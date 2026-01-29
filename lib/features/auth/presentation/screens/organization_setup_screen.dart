@@ -1,0 +1,368 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
+import 'package:ordermate/core/network/supabase_client.dart';
+import 'package:ordermate/core/theme/app_colors.dart';
+import 'package:ordermate/core/widgets/step_indicator.dart';
+
+class OrganizationSetupScreen extends ConsumerStatefulWidget {
+  final Map<String, String> userData;
+
+  const OrganizationSetupScreen({super.key, required this.userData});
+
+  @override
+  ConsumerState<OrganizationSetupScreen> createState() => _OrganizationSetupScreenState();
+}
+
+class _OrganizationSetupScreenState extends ConsumerState<OrganizationSetupScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _orgNameController = TextEditingController();
+  
+  // Single Branch Address Fields
+  final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _countryController = TextEditingController();
+  final _postalCodeController = TextEditingController();
+  final _currencyController = TextEditingController();
+  final _contactPersonController = TextEditingController();
+
+  bool _hasMultipleBranch = false;
+  bool _isLoading = false;
+  File? _logoFile;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _logoFile = File(image.path);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _orgNameController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _countryController.dispose();
+    _postalCodeController.dispose();
+    _currencyController.dispose();
+    _contactPersonController.dispose();
+    super.dispose();
+  }
+
+  void _onNext() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final orgName = _orgNameController.text.trim();
+
+    if (_hasMultipleBranch) {
+      context.push('/onboarding/store', extra: {
+        'userData': widget.userData,
+        'orgData': {
+          'name': orgName,
+          'hasMultipleBranch': 'true',
+        }
+      });
+    } else {
+      await _registerAndCreate(
+        storeName: 'Main Store',
+        address: _addressController.text.trim(),
+        city: _cityController.text.trim(),
+        country: _countryController.text.trim(),
+        postal: _postalCodeController.text.trim(),
+        currency: _currencyController.text.trim(),
+        contact: _contactPersonController.text.trim(),
+      );
+    }
+  }
+
+  Future<void> _registerAndCreate({
+    required String storeName,
+    required String address,
+    required String city,
+    required String country,
+    required String postal,
+    required String currency,
+    required String contact,
+  }) async {
+    setState(() => _isLoading = true);
+
+    try {
+      final email = widget.userData['email']!;
+      final password = widget.userData['password']!;
+      final fullName = widget.userData['fullName']!;
+      final phone = widget.userData['phone']!;
+      final orgName = _orgNameController.text.trim();
+      
+      const redirectTo = 'ordermate://login-callback';
+
+      // 1. Sign Up User
+      final authResponse = await SupabaseConfig.client.auth.signUp(
+        email: email,
+        password: password,
+        emailRedirectTo: redirectTo,
+        data: {
+          'full_name': fullName,
+          'phone': phone,
+          'organization_name': orgName,
+        },
+      );
+
+      if (authResponse.user == null) {
+        throw 'Registration failed. Please try again.';
+      }
+
+      String? logoUrl;
+      if (_logoFile != null) {
+        try {
+           final repo = ref.read(organizationRepositoryProvider);
+           logoUrl = await repo.uploadOrganizationLogo(_logoFile!);
+        } catch (e) {
+          debugPrint('Logo upload failed: $e');
+        }
+      }
+
+      // 3. Create Organization
+      final orgResponse = await SupabaseConfig.client
+          .from('omtbl_organizations')
+          .insert({
+            'name': orgName,
+            'logo_url': logoUrl,
+          })
+          .select()
+          .single();
+      
+      final orgId = orgResponse['id'];
+
+      // 3. Create Store
+      final locationString = '$address, $city, $country';
+      await SupabaseConfig.client.from('omtbl_stores').insert({
+         'organization_id': orgId,
+         'name': storeName,
+         'location': locationString,
+         'contact_person': contact,
+         'store_city': city,
+         'store_country': country,
+         'store_postal_code': postal,
+         'store_default_currency': currency,
+      });
+
+      // 4. Update User Profile with Org ID
+      await SupabaseConfig.client
+          .from('omtbl_users')
+          .update({
+            'organization_id': orgId,
+            'role': 'owner',
+          })
+          .eq('auth_id', authResponse.user!.id);
+
+      if (mounted) {
+        context.push('/onboarding/team', extra: {
+          'orgId': orgId,
+          'storeId': (await SupabaseConfig.client.from('omtbl_stores').select('id').eq('organization_id', orgId).single())['id'],
+        });
+      }
+
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text(
+          'Organization Setup',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.loginGradientStart, AppColors.loginGradientEnd],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const StepIndicator(
+                currentStep: 1,
+                totalSteps: 4,
+                stepLabels: ['Account', 'Organization', 'Branch', 'Team'],
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 10),
+                        Center(
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                onTap: _pickImage,
+                                child: Container(
+                                  height: 100,
+                                  width: 100,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                  child: _logoFile != null
+                                      ? ClipOval(child: Image.file(_logoFile!, fit: BoxFit.cover))
+                                      : const Icon(Icons.add_a_photo, size: 30, color: Colors.white),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Organization Logo',
+                                style: TextStyle(color: Colors.white70, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildLabel('Organization Name'),
+                        const SizedBox(height: 8),
+                        _buildTextField(
+                          controller: _orgNameController,
+                          hint: 'Enter organization name',
+                          icon: Icons.business,
+                        ),
+                        const SizedBox(height: 20),
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            switchTheme: SwitchThemeData(
+                              trackColor: WidgetStateProperty.resolveWith((states) => 
+                                states.contains(WidgetState.selected) ? Colors.white : Colors.white24
+                              ),
+                            ),
+                          ),
+                          child: SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text(
+                              'Multiple Branches / Stores',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                            ),
+                            subtitle: const Text(
+                              'Enable if you have more than one location',
+                              style: TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
+                            value: _hasMultipleBranch,
+                            activeThumbColor: Colors.white,
+                            onChanged: (v) => setState(() => _hasMultipleBranch = v),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (!_hasMultipleBranch) ...[
+                          _buildLabel('Store Details (Main Branch)'),
+                          const SizedBox(height: 16),
+                          _buildTextField(controller: _addressController, hint: 'Street Address', icon: Icons.location_on),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(child: _buildTextField(controller: _cityController, hint: 'City', icon: Icons.location_city)),
+                              const SizedBox(width: 12),
+                              Expanded(child: _buildTextField(controller: _postalCodeController, hint: 'Postal Code', icon: Icons.pin_drop)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildTextField(controller: _countryController, hint: 'Country', icon: Icons.public),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(child: _buildTextField(controller: _currencyController, hint: 'Default Currency (e.g. PKR)', icon: Icons.money)),
+                              const SizedBox(width: 12),
+                              Expanded(child: _buildTextField(controller: _contactPersonController, hint: 'Contact Person', icon: Icons.person_outline)),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 32),
+                        _isLoading 
+                          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                          : ElevatedButton(
+                              onPressed: _onNext,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: AppColors.loginGradientStart,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'Next',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    String? Function(String?)? validator,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextFormField(
+        controller: controller,
+        validator: validator ?? (val) => val?.isEmpty ?? false ? 'Required' : null,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: Icon(icon, color: AppColors.loginGradientStart),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+        style: const TextStyle(color: Colors.black),
+      ),
+    );
+  }
+}

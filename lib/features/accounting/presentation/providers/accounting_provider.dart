@@ -1,0 +1,992 @@
+// lib/features/accounting/presentation/providers/accounting_provider.dart
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/chart_of_account.dart';
+import '../../domain/entities/invoice.dart';
+import '../../domain/entities/invoice_item.dart';
+import '../../domain/entities/gl_setup.dart';
+import '../../domain/entities/daily_balance.dart';
+import '../../domain/repositories/accounting_repository.dart';
+import '../../data/repositories/accounting_repository_impl.dart';
+import '../../data/repositories/local_accounting_repository.dart';
+
+import '../../data/services/accounting_setup_service.dart';
+import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
+import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:ordermate/features/orders/presentation/providers/order_provider.dart';
+import 'package:ordermate/features/products/presentation/providers/product_provider.dart';
+
+final localAccountingRepositoryProvider = Provider<LocalAccountingRepository>((ref) {
+  return LocalAccountingRepository();
+});
+
+final accountingRepositoryProvider = Provider<AccountingRepository>((ref) {
+  final localRepo = ref.watch(localAccountingRepositoryProvider);
+  return AccountingRepositoryImpl(localRepo);
+});
+
+final accountingSetupServiceProvider = Provider<AccountingSetupService>((ref) {
+  final repo = ref.watch(accountingRepositoryProvider);
+  return AccountingSetupService(repo);
+});
+
+class AccountingState {
+  final List<ChartOfAccount> accounts;
+  final List<AccountType> types;
+  final List<AccountCategory> categories;
+  final List<PaymentTerm> paymentTerms;
+  final List<Transaction> transactions;
+  final List<BankCash> bankCashAccounts;
+  final List<VoucherPrefix> voucherPrefixes;
+  final List<FinancialSession> financialSessions;
+  final List<InvoiceType> invoiceTypes;
+  final List<Invoice> invoices;
+  final List<InvoiceItem> currentInvoiceItems;
+  final GLSetup? glSetup;
+  final DailyBalance? currentDailyBalance;
+  final FinancialSession? selectedFinancialSession;
+  final bool isLoading;
+  final String? error;
+
+  AccountingState({
+    this.accounts = const [],
+    this.types = const [],
+    this.categories = const [],
+    this.paymentTerms = const [],
+    this.transactions = const [],
+    this.bankCashAccounts = const [],
+    this.voucherPrefixes = const [],
+    this.financialSessions = const [],
+    this.invoiceTypes = const [],
+    this.invoices = const [],
+    this.currentInvoiceItems = const [],
+    this.glSetup,
+    this.currentDailyBalance,
+    this.selectedFinancialSession,
+    this.isLoading = false,
+    this.error,
+  });
+
+  AccountingState copyWith({
+    List<ChartOfAccount>? accounts,
+    List<AccountType>? types,
+    List<AccountCategory>? categories,
+    List<PaymentTerm>? paymentTerms,
+    List<Transaction>? transactions,
+    List<BankCash>? bankCashAccounts,
+    List<VoucherPrefix>? voucherPrefixes,
+    List<FinancialSession>? financialSessions,
+    List<InvoiceType>? invoiceTypes,
+    List<Invoice>? invoices,
+    List<InvoiceItem>? currentInvoiceItems,
+    GLSetup? glSetup,
+    DailyBalance? currentDailyBalance,
+    FinancialSession? selectedFinancialSession,
+    bool? isLoading,
+    String? error,
+  }) {
+    return AccountingState(
+      accounts: accounts ?? this.accounts,
+      types: types ?? this.types,
+      categories: categories ?? this.categories,
+      paymentTerms: paymentTerms ?? this.paymentTerms,
+      transactions: transactions ?? this.transactions,
+      bankCashAccounts: bankCashAccounts ?? this.bankCashAccounts,
+      voucherPrefixes: voucherPrefixes ?? this.voucherPrefixes,
+      financialSessions: financialSessions ?? this.financialSessions,
+      invoiceTypes: invoiceTypes ?? this.invoiceTypes,
+      invoices: invoices ?? this.invoices,
+      currentInvoiceItems: currentInvoiceItems ?? this.currentInvoiceItems,
+      glSetup: glSetup ?? this.glSetup,
+      currentDailyBalance: currentDailyBalance ?? this.currentDailyBalance,
+      selectedFinancialSession: selectedFinancialSession ?? this.selectedFinancialSession,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+class AccountingNotifier extends StateNotifier<AccountingState> {
+  final AccountingRepository _repository;
+  final Ref _ref;
+
+  AccountingNotifier(this._repository, this._ref) : super(AccountingState());
+
+  Future<void> loadAll({int? organizationId}) async {
+    final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+    state = state.copyWith(isLoading: true);
+    try {
+      final results = await Future.wait([
+        _repository.getChartOfAccounts(organizationId: orgId),
+        _repository.getAccountTypes(organizationId: orgId),
+        _repository.getAccountCategories(organizationId: orgId),
+        _repository.getPaymentTerms(organizationId: orgId),
+        _repository.getBankCashAccounts(organizationId: orgId),
+        _repository.getVoucherPrefixes(organizationId: orgId),
+        _repository.getFinancialSessions(organizationId: orgId),
+        _repository.getInvoiceTypes(organizationId: orgId),
+      ]);
+
+      state = state.copyWith(
+        accounts: List<ChartOfAccount>.from(results[0] as Iterable),
+        types: List<AccountType>.from(results[1] as Iterable),
+        categories: List<AccountCategory>.from(results[2] as Iterable),
+        paymentTerms: List<PaymentTerm>.from(results[3] as Iterable),
+        bankCashAccounts: List<BankCash>.from(results[4] as Iterable),
+        voucherPrefixes: List<VoucherPrefix>.from(results[5] as Iterable),
+        financialSessions: List<FinancialSession>.from(results[6] as Iterable),
+        invoiceTypes: List<InvoiceType>.from(results[7] as Iterable),
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  void selectFinancialSession(FinancialSession? session) {
+    state = state.copyWith(selectedFinancialSession: session);
+    
+    final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+    final storeId = _ref.read(organizationProvider).selectedStore?.id;
+    final sYear = session?.sYear;
+
+    // Reload depedent data
+    loadTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
+    loadInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
+    
+    // Reload Orders
+    try {
+       // OrderProvider has been updated to accept sYear
+       _ref.read(orderProvider.notifier).loadOrders(sYear: sYear);
+    } catch (e) {
+       // print('Error reloading orders: $e');
+    }
+  }
+
+  Future<void> loadBankCashAccounts({int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final accounts = await _repository.getBankCashAccounts(organizationId: orgId);
+      state = state.copyWith(bankCashAccounts: accounts);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> loadVoucherPrefixes({int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final prefixes = await _repository.getVoucherPrefixes(organizationId: orgId);
+      state = state.copyWith(voucherPrefixes: prefixes);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> loadPaymentTerms({int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final terms = await _repository.getPaymentTerms(organizationId: orgId);
+      state = state.copyWith(paymentTerms: terms);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> loadTransactions({int? organizationId, int? storeId, int? sYear}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final txs = await _repository.getTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
+      state = state.copyWith(transactions: txs);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  int _validateAndGetSYear(DateTime date) {
+    if (state.financialSessions.isEmpty) {
+      throw Exception('No financial years configured. Please configure a financial session first.');
+    }
+    
+    // Find a session that covers this date
+    final session = state.financialSessions.cast<FinancialSession?>().firstWhere(
+      (s) => s != null && 
+             (date.isAtSameMomentAs(s.startDate) || date.isAfter(s.startDate)) &&
+             (date.isAtSameMomentAs(s.endDate) || date.isBefore(s.endDate.add(const Duration(days: 1)))), // inclusive
+      orElse: () => null,
+    );
+
+    if (session == null) {
+       final dateStr = date.toIso8601String().split('T')[0];
+       throw Exception('Date $dateStr does not fall within any configured Financial Year.');
+    }
+    
+    if (session.isClosed) {
+       throw Exception('Financial Year ${session.sYear} is closed. Cannot transact.');
+    }
+    
+    return session.sYear;
+  }
+
+  Future<void> createTransaction(Transaction transaction) async {
+    try {
+      // Validate SYear
+      final sYear = _validateAndGetSYear(transaction.voucherDate);
+      
+      final txWithYear = Transaction(
+        id: transaction.id,
+        voucherPrefixId: transaction.voucherPrefixId,
+        voucherNumber: transaction.voucherNumber,
+        voucherDate: transaction.voucherDate,
+        accountId: transaction.accountId,
+        offsetAccountId: transaction.offsetAccountId,
+        amount: transaction.amount,
+        description: transaction.description,
+        status: transaction.status,
+        organizationId: transaction.organizationId,
+        storeId: transaction.storeId,
+        sYear: sYear, // Enforce correct sYear
+      );
+
+      await _repository.createTransaction(txWithYear);
+      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      final storeId = _ref.read(organizationProvider).selectedStore?.id;
+      await loadTransactions(organizationId: orgId, storeId: storeId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateTransaction(Transaction transaction) async {
+    try {
+      // Validate SYear
+      final sYear = _validateAndGetSYear(transaction.voucherDate);
+      
+      final txWithYear = Transaction(
+        id: transaction.id,
+        voucherPrefixId: transaction.voucherPrefixId,
+        voucherNumber: transaction.voucherNumber,
+        voucherDate: transaction.voucherDate,
+        accountId: transaction.accountId,
+        offsetAccountId: transaction.offsetAccountId,
+        amount: transaction.amount,
+        description: transaction.description,
+        status: transaction.status,
+        organizationId: transaction.organizationId,
+        storeId: transaction.storeId,
+        sYear: sYear, 
+      );
+
+      await _repository.updateTransaction(txWithYear);
+      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      final storeId = _ref.read(organizationProvider).selectedStore?.id;
+      await loadTransactions(organizationId: orgId, storeId: storeId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteTransaction(String id) async {
+    try {
+      await _repository.deleteTransaction(id);
+      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      final storeId = _ref.read(organizationProvider).selectedStore?.id;
+      await loadTransactions(organizationId: orgId ?? 0, storeId: storeId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> addAccount(ChartOfAccount account, {int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final accountWithOrg = ChartOfAccount(
+        id: account.id,
+        accountCode: account.accountCode,
+        accountTitle: account.accountTitle,
+        parentId: account.parentId,
+        level: account.level,
+        accountTypeId: account.accountTypeId,
+        accountCategoryId: account.accountCategoryId,
+        organizationId: orgId ?? 0,
+        isActive: account.isActive,
+        isSystem: account.isSystem,
+        createdAt: account.createdAt,
+        updatedAt: account.updatedAt,
+      );
+      await _repository.createChartOfAccount(accountWithOrg);
+      await loadAll(organizationId: orgId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> deleteAccount(String id, {int? organizationId}) async {
+    try {
+      await _repository.deleteChartOfAccount(id);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> addVoucherPrefix(VoucherPrefix prefix, {int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final prefixWithOrg = VoucherPrefix(
+        id: prefix.id,
+        prefixCode: prefix.prefixCode,
+        description: prefix.description,
+        voucherType: prefix.voucherType,
+        organizationId: orgId ?? 0,
+        status: prefix.status,
+      );
+      await _repository.createVoucherPrefix(prefixWithOrg);
+      await loadVoucherPrefixes(organizationId: orgId); 
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateVoucherPrefix(VoucherPrefix prefix, {int? organizationId}) async {
+    try {
+      await _repository.updateVoucherPrefix(prefix);
+      await loadVoucherPrefixes(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteVoucherPrefix(int id, {int? organizationId}) async {
+    try {
+      await _repository.deleteVoucherPrefix(id);
+      await loadVoucherPrefixes(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> addPaymentTerm(PaymentTerm term, {int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final termWithOrg = PaymentTerm(
+        id: term.id,
+        name: term.name,
+        description: term.description,
+        isActive: term.isActive,
+        days: term.days,
+        organizationId: orgId ?? 0,
+      );
+      await _repository.createPaymentTerm(termWithOrg);
+      await loadAll(organizationId: orgId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updatePaymentTerm(PaymentTerm term, {int? organizationId}) async {
+    try {
+      await _repository.updatePaymentTerm(term);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deletePaymentTerm(int id, {int? organizationId}) async {
+    try {
+      await _repository.deletePaymentTerm(id);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> addAccountType(AccountType type, {int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final typeWithOrg = AccountType(
+        id: type.id,
+        typeName: type.typeName,
+        status: type.status,
+        isSystem: type.isSystem,
+        organizationId: orgId ?? 0,
+      );
+      await _repository.createAccountType(typeWithOrg);
+      await loadAll(organizationId: orgId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateAccountType(AccountType type, {int? organizationId}) async {
+    try {
+      await _repository.updateAccountType(type);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAccountType(int id, {int? organizationId}) async {
+    try {
+      await _repository.deleteAccountType(id);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> addAccountCategory(AccountCategory category, {int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final categoryWithOrg = AccountCategory(
+        id: category.id,
+        categoryName: category.categoryName,
+        accountTypeId: category.accountTypeId,
+        status: category.status,
+        isSystem: category.isSystem,
+        organizationId: orgId ?? 0,
+      );
+      await _repository.createAccountCategory(categoryWithOrg);
+      await loadAll(organizationId: orgId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateAccountCategory(AccountCategory category, {int? organizationId}) async {
+    try {
+      await _repository.updateAccountCategory(category);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAccountCategory(int id, {int? organizationId}) async {
+    try {
+      await _repository.deleteAccountCategory(id);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> bulkAddAccountTypes(List<AccountType> types, {int? organizationId}) async {
+    try {
+      await _repository.bulkCreateAccountTypes(types);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> bulkAddAccountCategories(List<AccountCategory> categories, {int? organizationId}) async {
+    try {
+      await _repository.bulkCreateAccountCategories(categories);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> addFinancialSession(FinancialSession session, {int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final sessionWithOrg = FinancialSession(
+        sYear: session.sYear,
+        startDate: session.startDate,
+        endDate: session.endDate,
+        narration: session.narration,
+        inUse: session.inUse,
+        isActive: session.isActive,
+        organizationId: orgId ?? 0,
+      );
+      await _repository.createFinancialSession(sessionWithOrg);
+      await loadAll(organizationId: orgId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateFinancialSession(FinancialSession session, {int? organizationId}) async {
+    try {
+      await _repository.updateFinancialSession(session);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> createBankCashAccount(BankCash account, {int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final accountWithOrg = BankCash(
+        id: account.id,
+        name: account.name,
+        chartOfAccountId: account.chartOfAccountId,
+        accountNumber: account.accountNumber,
+        branchName: account.branchName,
+        organizationId: orgId ?? 0,
+        storeId: account.storeId,
+        status: account.status,
+      );
+      await _repository.createBankCashAccount(accountWithOrg);
+      await loadAll(organizationId: orgId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateBankCashAccount(BankCash account, {int? organizationId}) async {
+    try {
+      await _repository.updateBankCashAccount(account);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteBankCashAccount(String id, {int? organizationId}) async {
+    try {
+      await _repository.deleteBankCashAccount(id);
+      await loadAll(organizationId: organizationId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<bool> isBankCashUsed(String id) async {
+    return await _repository.isBankCashUsed(id);
+  }
+
+  // Invoice Methods
+  Future<void> loadInvoices({int? organizationId, int? storeId, int? sYear}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final invoices = await _repository.getInvoices(organizationId: orgId ?? 0, storeId: storeId, sYear: sYear); // Assuming Repo updated
+      state = state.copyWith(invoices: invoices);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> addInvoice(Invoice invoice) async {
+    try {
+      final sYear = _validateAndGetSYear(invoice.invoiceDate);
+      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      final storeId = _ref.read(organizationProvider).selectedStore?.id;
+      final invoiceWithOrg = Invoice(
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        invoiceDate: invoice.invoiceDate,
+        dueDate: invoice.dueDate,
+        idInvoiceType: invoice.idInvoiceType,
+        businessPartnerId: invoice.businessPartnerId,
+        orderId: invoice.orderId,
+        totalAmount: invoice.totalAmount,
+        paidAmount: invoice.paidAmount,
+        status: invoice.status,
+        notes: invoice.notes,
+        organizationId: orgId ?? 0,
+        storeId: storeId ?? 0,
+        sYear: sYear,
+      );
+      await _repository.createInvoice(invoiceWithOrg);
+      await loadInvoices(organizationId: orgId ?? 0, storeId: storeId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> createInvoiceWithItems(Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
+    try {
+      final sYear = _validateAndGetSYear(invoice.invoiceDate);
+      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      final storeId = _ref.read(organizationProvider).selectedStore?.id;
+      
+      final invoiceWithOrg = Invoice(
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        invoiceDate: invoice.invoiceDate,
+        dueDate: invoice.dueDate,
+        idInvoiceType: invoice.idInvoiceType,
+        businessPartnerId: invoice.businessPartnerId,
+        orderId: invoice.orderId,
+        totalAmount: invoice.totalAmount,
+        paidAmount: invoice.paidAmount,
+        status: invoice.status,
+        notes: invoice.notes,
+        organizationId: orgId ?? 0,
+        storeId: storeId ?? 0,
+        sYear: sYear,
+      );
+
+      final items = itemMaps.map((m) => InvoiceItem(
+        id: const Uuid().v4(),
+        invoiceId: invoice.id,
+        productId: m['product_id'],
+        quantity: m['quantity'] as double,
+        rate: m['rate'] as double,
+        total: m['total'] as double,
+        productName: m['product_name'],
+        uomId: m['uom_id'],
+        uomSymbol: m['uom_symbol'],
+        discountPercent: (m['discount_percent'] as num?)?.toDouble() ?? 0.0,
+      )).toList();
+
+      await _repository.createInvoiceWithItems(invoiceWithOrg, items);
+      
+      // --- GL TRANSACTION GENERATION ---
+      try {
+        await _createOrUpdateGLForInvoice(invoice, items: items);
+      } catch (glError) {
+        // Don't fail the invoice creation if GL fails, but log it
+        print('GL Transaction creation failed: $glError');
+      }
+      // ---------------------------------
+
+      // ---------------------------------
+      
+      final currentSYear = state.selectedFinancialSession?.sYear;
+      await loadInvoices(organizationId: orgId ?? 0, storeId: storeId, sYear: currentSYear);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateInvoiceWithItems(Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
+    try {
+      final sYear = _validateAndGetSYear(invoice.invoiceDate);
+      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      final storeId = _ref.read(organizationProvider).selectedStore?.id;
+      
+      final invoiceWithOrg = Invoice(
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        invoiceDate: invoice.invoiceDate,
+        dueDate: invoice.dueDate,
+        idInvoiceType: invoice.idInvoiceType,
+        businessPartnerId: invoice.businessPartnerId,
+        orderId: invoice.orderId,
+        totalAmount: invoice.totalAmount,
+        paidAmount: invoice.paidAmount,
+        status: invoice.status,
+        notes: invoice.notes,
+        organizationId: orgId ?? 0,
+        storeId: storeId ?? 0,
+        sYear: sYear,
+      );
+
+      final items = itemMaps.map((m) => InvoiceItem(
+        id: const Uuid().v4(),
+        invoiceId: invoice.id,
+        productId: m['product_id'],
+        quantity: m['quantity'] is int ? (m['quantity'] as int).toDouble() : m['quantity'] as double,
+        rate: m['rate'] is int ? (m['rate'] as int).toDouble() : m['rate'] as double,
+        total: m['total'] is int ? (m['total'] as int).toDouble() : m['total'] as double,
+        productName: m['product_name'],
+        uomId: m['uom_id'],
+        uomSymbol: m['uom_symbol'],
+        discountPercent: (m['discount_percent'] as num?)?.toDouble() ?? 0.0,
+      )).toList();
+
+      await _repository.updateInvoiceWithItems(invoiceWithOrg, items);
+      
+      // --- GL TRANSACTION UPDATE/REPAIR ---
+      try {
+        await _createOrUpdateGLForInvoice(invoice, items: items);
+      } catch (glError) {
+        print('GL Transaction update failed: $glError');
+      }
+      // ---------------------------------
+
+      await loadInvoices(organizationId: orgId ?? 0, storeId: storeId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateInvoice(Invoice invoice, {int? organizationId, int? storeId}) async {
+    try {
+      final sYear = _validateAndGetSYear(invoice.invoiceDate);
+      
+      final invoiceWithYear = Invoice(
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        invoiceDate: invoice.invoiceDate,
+        dueDate: invoice.dueDate,
+        idInvoiceType: invoice.idInvoiceType,
+        businessPartnerId: invoice.businessPartnerId,
+        orderId: invoice.orderId,
+        totalAmount: invoice.totalAmount,
+        paidAmount: invoice.paidAmount,
+        status: invoice.status,
+        notes: invoice.notes,
+        organizationId: invoice.organizationId,
+        storeId: invoice.storeId,
+        sYear: sYear, // enforced
+      );
+      
+      await _repository.updateInvoice(invoiceWithYear);
+      await loadInvoices(organizationId: organizationId, storeId: storeId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> addInvoiceType(InvoiceType type, {int? organizationId}) async {
+    try {
+      await _repository.createInvoiceType(type);
+      final types = await _repository.getInvoiceTypes(organizationId: organizationId);
+      state = state.copyWith(invoiceTypes: types);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<List<InvoiceItem>> getInvoiceItems(String invoiceId) async {
+    try {
+      final items = await _repository.getInvoiceItems(invoiceId);
+      state = state.copyWith(currentInvoiceItems: items);
+      return items;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> loadGLSetup({int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      if (orgId == null) return;
+      final setup = await _repository.getGLSetup(orgId);
+      state = state.copyWith(glSetup: setup);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> saveGLSetup(GLSetup setup) async {
+    try {
+      await _repository.saveGLSetup(setup);
+      state = state.copyWith(glSetup: setup);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> loadDailyBalance(String accountId, {int? organizationId}) async {
+    try {
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final balance = await _repository.getLatestDailyBalance(accountId, organizationId: orgId);
+      state = state.copyWith(currentDailyBalance: balance);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<void> saveDailyBalance(DailyBalance balance) async {
+    try {
+      await _repository.saveDailyBalance(balance);
+      state = state.copyWith(currentDailyBalance: balance);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+  Future<void> postInvoice(Invoice invoice) async {
+    try {
+      final items = await getInvoiceItems(invoice.id);
+      await _createOrUpdateGLForInvoice(invoice, items: items);
+      final updated = invoice.copyWith(status: 'Posted');
+      await updateInvoice(updated);
+    } catch (e) {
+      state = state.copyWith(error: 'Failed to post invoice: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _createOrUpdateGLForInvoice(Invoice invoice, {List<InvoiceItem>? items}) async {
+    try {
+       // Only post if status is posted or we are about to post (which implies we check correctness)
+       // Actually user might want to preview impact, but usually we do this on "Post".
+       // The caller ensures context. Here we blindly execute.
+       
+      final partnersState = _ref.read(businessPartnerProvider);
+      // Find partner in customers or vendors list
+      final partner = partnersState.customers.where((p) => p.id == invoice.businessPartnerId).firstOrNull 
+                    ?? partnersState.vendors.where((p) => p.id == invoice.businessPartnerId).firstOrNull;
+                    
+      if (partner != null && partner.chartOfAccountId != null) {
+        final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+        final storeId = _ref.read(organizationProvider).selectedStore?.id;
+        final sYear = _validateAndGetSYear(invoice.invoiceDate);
+
+        // Ensure GL Setup is loaded
+        if (state.glSetup == null) {
+           await loadGLSetup(organizationId: orgId);
+        }
+        final glSetup = state.glSetup;
+        
+        if (glSetup != null) {
+           String? debitAccount;
+           String? creditAccount;
+           String prefix = 'JV'; // fallback
+           bool isSales = false;
+           
+           if (invoice.idInvoiceType == 'SI' || invoice.idInvoiceType == 'SINV') {
+             // Sales Invoice: Debit Customer, Credit Sales
+             debitAccount = partner.chartOfAccountId;
+             creditAccount = glSetup.salesAccountId;
+             prefix = 'SINV';
+             isSales = true;
+           } else if (invoice.idInvoiceType == 'SIR' || invoice.idInvoiceType == 'SR') {
+              // Sales Return: Debit Sales Return (or Sales), Credit Customer
+             debitAccount = glSetup.salesAccountId; 
+             creditAccount = partner.chartOfAccountId;
+             prefix = 'SIR'; // Or Credit Note prefix if different
+             // COGS Return Logic could be added here (Debit Inventory, Credit COGS)
+           } 
+           // Add Purchase Invoice Logic as well if needed
+           else if (invoice.idInvoiceType == 'PI') {
+              debitAccount = glSetup.inventoryAccountId; // Or purchase account
+              creditAccount = partner.chartOfAccountId;
+              prefix = 'PI';
+           }
+           
+           // Get Voucher Prefix ID - Ensure we get fresh list if empty
+           List<VoucherPrefix> prefixes = state.voucherPrefixes;
+           if (prefixes.isEmpty) {
+             prefixes = await _repository.getVoucherPrefixes(organizationId: orgId);
+           }
+           
+           final prefixModel = prefixes.where((p) => p.prefixCode == prefix).firstOrNull;
+           
+           if (prefixModel == null) {
+             throw Exception('Voucher Prefix "$prefix" not found. Please configure Voucher Prefixes in setup.');
+           }
+           
+           if (debitAccount != null && creditAccount != null) {
+              // 1. DELETE EXISTING TRANSACTIONS for this Invoice Logic
+              // We replace all entries to handle updates cleanly, and to support multiple entries (Sales + COGS)
+              final allTxs = state.transactions.isEmpty ? await _repository.getTransactions(organizationId: orgId) : state.transactions;
+              final existingTxs = allTxs.where((t) => t.voucherNumber == invoice.invoiceNumber).toList();
+              
+              for (var tx in existingTxs) {
+                 await _repository.deleteTransaction(tx.id);
+              }
+              
+              // 2. CREATE MAIN SALES/PURCHASE TRANSACTION
+              final mainTx = Transaction(
+                 id: const Uuid().v4(),
+                 voucherPrefixId: prefixModel.id,
+                 voucherNumber: invoice.invoiceNumber!,
+                 voucherDate: invoice.invoiceDate,
+                 accountId: debitAccount,
+                 offsetAccountId: creditAccount,
+                 amount: invoice.totalAmount,
+                 description: 'Invoice ${invoice.invoiceNumber} - ${partner.name}',
+                 status: 'posted',
+                 organizationId: orgId ?? 0,
+                 storeId: storeId ?? 0,
+                 sYear: sYear,
+               );
+               await _repository.createTransaction(mainTx);
+               
+               // 3. CREATE COGS TRANSACTION (For Sales Invoices)
+                if (isSales && items != null) {
+                 double totalCost = 0;
+                 
+                 // Access Product Provider to lookup costs
+                 var productList = _ref.read(productProvider).products;
+                 if (productList.isEmpty) {
+                     // Ensure products are loaded to calculate cost
+                     await _ref.read(productProvider.notifier).loadProducts(storeId: storeId);
+                     productList = _ref.read(productProvider).products;
+                 }
+                 
+                 for (var item in items) {
+                    final product = productList.where((p) => p.id == item.productId).firstOrNull;
+                    if (product != null) {
+                        totalCost += (product.cost * item.quantity);
+                    }
+                 }
+                 
+                 if (totalCost > 0) {
+                     final cogsTx = Transaction(
+                       id: const Uuid().v4(),
+                       voucherPrefixId: prefixModel.id, // Reuse prefix
+                       voucherNumber: invoice.invoiceNumber!,
+                       voucherDate: invoice.invoiceDate,
+                       accountId: glSetup.cogsAccountId, // Debit COGS
+                       offsetAccountId: glSetup.inventoryAccountId, // Credit Inventory
+                       amount: totalCost,
+                       description: 'Cost of Sales - Invoice ${invoice.invoiceNumber}',
+                       status: 'posted',
+                       organizationId: orgId ?? 0,
+                       storeId: storeId ?? 0,
+                       sYear: sYear,
+                     );
+                     await _repository.createTransaction(cogsTx);
+                 }
+               }
+           } else {
+              throw Exception('GL Accounts not configured for this transaction type.');
+           }
+        } else {
+           throw Exception('GL Setup missing.');
+        }
+      } else {
+         throw Exception('Partner or Partner GL Account missing.');
+      }
+    } catch (glError) {
+      print('GL Transaction Op failed: $glError');
+      rethrow; 
+    }
+  }
+
+}
+
+final accountingProvider = StateNotifierProvider<AccountingNotifier, AccountingState>((ref) {
+  final repo = ref.watch(accountingRepositoryProvider);
+  final notifier = AccountingNotifier(repo, ref);
+  
+  // Watch organization to trigger refresh
+  final orgId = ref.watch(organizationProvider).selectedOrganizationId;
+  if (orgId != null) {
+     Future.microtask(() => notifier.loadAll(organizationId: orgId));
+  }
+  
+  return notifier;
+});

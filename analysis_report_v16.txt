@@ -1,0 +1,235 @@
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 85.0.0 (93.0.0 available)
+  analyzer 7.6.0 (10.0.1 available)
+  analyzer_plugin 0.13.4 (0.14.1 available)
+  app_links 6.4.1 (7.0.0 available)
+  build 2.5.4 (4.0.4 available)
+  build_config 1.1.2 (1.2.0 available)
+  build_resolvers 2.5.4 (3.0.4 available)
+  build_runner 2.5.4 (2.10.5 available)
+  build_runner_core 9.1.2 (9.3.2 available)
+  built_value 8.12.1 (8.12.3 available)
+  characters 1.4.0 (1.4.1 available)
+  code_builder 4.11.0 (4.11.1 available)
+  connectivity_plus 6.1.5 (7.0.0 available)
+  custom_lint_core 0.7.5 (0.8.2 available)
+  custom_lint_visitor 1.0.0+7.7.0 (1.0.0+9.0.0 available)
+  dart_style 3.1.1 (3.1.4 available)
+  equatable 2.0.7 (2.0.8 available)
+  ffi 2.1.4 (2.1.5 available)
+  file_picker 8.3.7 (10.3.8 available)
+  flutter_dotenv 5.2.1 (6.0.0 available)
+  flutter_launcher_icons 0.13.1 (0.14.4 available)
+  flutter_lints 4.0.0 (6.0.0 available)
+  flutter_native_splash 2.3.0 (2.4.7 available)
+  flutter_riverpod 2.6.1 (3.2.0 available)
+  freezed 2.5.8 (3.2.4 available)
+  freezed_annotation 2.4.4 (3.1.0 available)
+  geocoding 3.0.0 (4.0.0 available)
+  geocoding_android 3.3.1 (4.0.1 available)
+  geocoding_platform_interface 3.2.0 (5.0.0 available)
+  geolocator 12.0.0 (14.0.2 available)
+  geolocator_android 4.6.2 (5.0.2 available)
+  go_router 14.8.1 (17.0.1 available)
+  google_fonts 6.3.3 (8.0.0 available)
+  google_maps_flutter_android 2.18.6 (2.18.9 available)
+  google_maps_flutter_ios 2.15.7 (2.17.0 available)
+  google_sign_in 6.3.0 (7.2.0 available)
+  google_sign_in_android 6.2.1 (7.2.7 available)
+  google_sign_in_ios 5.9.0 (6.2.5 available)
+  google_sign_in_platform_interface 2.5.0 (3.1.0 available)
+  google_sign_in_web 0.12.4+4 (1.1.0 available)
+  image 4.5.4 (4.7.2 available)
+  image_cropper 8.1.0 (11.0.0 available)
+  image_cropper_for_web 6.1.0 (7.0.0 available)
+  image_cropper_platform_interface 7.2.0 (8.0.0 available)
+  image_picker_android 0.8.13+10 (0.8.13+12 available)
+  js 0.6.7 (0.7.2 available)
+  json_serializable 6.9.5 (6.11.4 available)
+  lints 4.0.0 (6.0.0 available)
+  local_auth 2.3.0 (3.0.0 available)
+  local_auth_android 1.0.56 (2.0.4 available)
+  local_auth_darwin 1.6.1 (2.0.1 available)
+  local_auth_windows 1.0.11 (2.0.1 available)
+  matcher 0.12.17 (0.12.18 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.17.0 (1.18.0 available)
+  path_provider_foundation 2.5.1 (2.6.0 available)
+  permission_handler 11.4.0 (12.0.1 available)
+  permission_handler_android 12.1.0 (13.0.1 available)
+  riverpod 2.6.1 (3.2.0 available)
+  riverpod_analyzer_utils 0.5.9 (0.5.10 available)
+  riverpod_annotation 2.6.1 (4.0.1 available)
+  riverpod_generator 2.6.4 (4.0.2 available)
+  shared_preferences_android 2.4.18 (2.4.20 available)
+  sign_in_with_apple 6.1.4 (7.0.1 available)
+  sign_in_with_apple_platform_interface 1.1.0 (2.0.0 available)
+  sign_in_with_apple_web 2.1.1 (3.0.0 available)
+  source_gen 2.0.0 (4.2.0 available)
+  source_helper 1.3.7 (1.3.10 available)
+  sqflite_common_ffi 2.4.0+1 (2.4.0+2 available)
+  sqlite3 3.1.2 (3.1.4 available)
+  test_api 0.7.7 (0.7.9 available)
+  timezone 0.10.1 (0.11.0 available)
+  url_launcher 6.3.0 (6.3.2 available)
+  url_launcher_web 2.4.1 (2.4.2 available)
+  vector_graphics_compiler 1.1.19 (1.1.20 available)
+  watcher 1.2.0 (1.2.1 available)
+Got dependencies!
+76 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing ordermate...                                          
+
+   info - Use 'const' with the constructor to improve performance - lib\core\views\responsive_scaffold.dart:277:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\core\views\responsive_scaffold.dart:279:26 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\core\views\responsive_scaffold.dart:280:31 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\core\views\responsive_scaffold.dart:281:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\core\views\responsive_scaffold.dart:282:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\core\views\responsive_scaffold.dart:283:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\core\views\responsive_scaffold.dart:285:32 - prefer_const_constructors
+   info - Parameter 'key' could be a super parameter - lib\core\widgets\loading_overlay.dart:12:9 - use_super_parameters
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\providers\accounting_provider.dart:613:58 - dead_null_aware_expression
+   info - Don't invoke 'print' in production code - lib\features\accounting\presentation\providers\accounting_provider.dart:632:9 - avoid_print
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\providers\accounting_provider.dart:719:60 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\providers\accounting_provider.dart:739:60 - dead_null_aware_expression
+   info - Don't invoke 'print' in production code - lib\features\accounting\presentation\providers\accounting_provider.dart:756:9 - avoid_print
+warning - Duplicate import - lib\features\accounting\presentation\providers\voucher_service.dart:11:8 - duplicate_import
+warning - The operand can't be 'null', so the condition is always 'false' - lib\features\accounting\presentation\providers\voucher_service.dart:57:30 - unnecessary_null_comparison
+warning - The '!' will have no effect because the receiver can't be null - lib\features\accounting\presentation\providers\voucher_service.dart:60:70 - unnecessary_non_null_assertion
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\providers\voucher_service.dart:86:33 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\providers\voucher_service.dart:152:37 - dead_null_aware_expression
+warning - The operand can't be 'null', so the condition is always 'false' - lib\features\accounting\presentation\providers\voucher_service.dart:158:55 - unnecessary_null_comparison
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\accounting\presentation\screens\chart_of_account_form_screen.dart:172:23 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\accounting\presentation\screens\gl_setup_screen.dart:275:9 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\accounting\presentation\screens\invoice_detail_screen.dart:66:21 - prefer_const_constructors
+warning - Unused import: 'package:ordermate/core/network/supabase_client.dart' - lib\features\accounting\presentation\screens\invoice_entry_screen.dart:5:8 - unused_import
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\screens\invoice_entry_screen.dart:247:39 - dead_null_aware_expression
+warning - Unused import: 'package:ordermate/features/business_partners/domain/entities/business_partner.dart' - lib\features\accounting\presentation\screens\invoices_screen.dart:9:8 - unused_import
+warning - Unused import: 'package:ordermate/core/utils/connectivity_helper.dart' - lib\features\accounting\presentation\screens\invoices_screen.dart:10:8 - unused_import
+warning - Unused import: 'package:connectivity_plus/connectivity_plus.dart' - lib\features\accounting\presentation\screens\invoices_screen.dart:11:8 - unused_import
+warning - The operand can't be 'null', so the condition is always 'false' - lib\features\accounting\presentation\screens\payment_term_form_screen.dart:61:54 - unnecessary_null_comparison
+warning - Unused import: 'package:ordermate/features/business_partners/domain/entities/business_partner.dart' - lib\features\accounting\presentation\screens\transaction_form_screen.dart:12:8 - unused_import
+   info - Statements in an if should be enclosed in a block - lib\features\accounting\presentation\screens\transaction_form_screen.dart:60:23 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\accounting\presentation\screens\transaction_form_screen.dart:64:25 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\accounting\presentation\screens\transaction_form_screen.dart:75:32 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\accounting\presentation\screens\transaction_form_screen.dart:78:34 - curly_braces_in_flow_control_structures
+warning - The value of the local variable 'selectedStore' isn't used - lib\features\accounting\presentation\screens\transactions_screen.dart:41:11 - unused_local_variable
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\auth\presentation\screens\login_screen.dart:737:25 - deprecated_member_use
+warning - Unused import: 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart' - lib\features\customers\presentation\screens\customer_invoices_screen.dart:8:8 - unused_import
+warning - The operand can't be 'null', so the condition is always 'true' - lib\features\customers\presentation\screens\customer_invoices_screen.dart:47:42 - unnecessary_null_comparison
+warning - The left operand can't be null, so the right operand is never executed - lib\features\customers\presentation\screens\customer_invoices_screen.dart:243:80 - dead_null_aware_expression
+warning - The '!' will have no effect because the receiver can't be null - lib\features\customers\presentation\screens\customer_invoices_screen.dart:368:45 - unnecessary_non_null_assertion
+warning - Unused import: 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart' - lib\features\customers\presentation\screens\customer_list_screen.dart:17:8 - unused_import
+warning - Unused import: 'package:ordermate/features/accounting/domain/entities/invoice.dart' - lib\features\customers\presentation\screens\customer_list_screen.dart:18:8 - unused_import
+warning - Unused import: 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart' - lib\features\customers\presentation\screens\customer_list_screen.dart:19:8 - unused_import
+warning - Unused import: 'package:intl/intl.dart' - lib\features\customers\presentation\screens\customer_list_screen.dart:20:8 - unused_import
+warning - Unused import: 'package:uuid/uuid.dart' - lib\features\customers\presentation\screens\customer_list_screen.dart:21:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\features\customers\presentation\screens\customer_list_screen.dart:164:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\customers\presentation\screens\customer_list_screen.dart:289:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\customers\presentation\screens\customer_list_screen.dart:608:32 - use_build_context_synchronously
+warning - Unused import: 'package:ordermate/core/utils/connectivity_helper.dart' - lib\features\dashboard\presentation\providers\dashboard_provider.dart:6:8 - unused_import
+warning - Unused import: 'package:ordermate/core/widgets/app_drawer.dart' - lib\features\dashboard\presentation\screens\dashboard_screen.dart:12:8 - unused_import
+warning - Unused import: 'package:ordermate/features/dashboard/presentation/widgets/refresh_button.dart' - lib\features\dashboard\presentation\screens\dashboard_screen.dart:15:8 - unused_import
+warning - Unused import: 'package:ordermate/core/theme/app_colors.dart' - lib\features\dashboard\presentation\screens\dashboard_screen.dart:23:8 - unused_import
+   info - Use 'const' for final variables initialized to a constant value - lib\features\dashboard\presentation\screens\dashboard_screen.dart:144:9 - prefer_const_declarations
+warning - The value of the local variable 'sessionUser' isn't used - lib\features\dashboard\presentation\screens\dashboard_screen.dart:199:11 - unused_local_variable
+warning - The declaration '_handleUserHeaderTap' isn't referenced - lib\features\dashboard\presentation\screens\dashboard_screen.dart:424:8 - unused_element
+warning - The declaration '_showOrgDetailsDialog' isn't referenced - lib\features\dashboard\presentation\screens\dashboard_screen.dart:463:8 - unused_element
+warning - The declaration '_showStoreDetailsDialog' isn't referenced - lib\features\dashboard\presentation\screens\dashboard_screen.dart:484:8 - unused_element
+warning - The value of the field '_locationError' isn't used - lib\features\employees\presentation\screens\employee_form_screen.dart:44:11 - unused_field
+   info - Statements in an if should be enclosed in a block - lib\features\employees\presentation\screens\employee_form_screen.dart:284:11 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\employees\presentation\screens\employee_form_screen.dart:286:11 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\employees\presentation\screens\employee_form_screen.dart:288:11 - curly_braces_in_flow_control_structures
+warning - The declaration '_cleanCityName' isn't referenced - lib\features\employees\presentation\screens\employee_form_screen.dart:339:10 - unused_element
+warning - The declaration '_searchAddressWithOSM' isn't referenced - lib\features\employees\presentation\screens\employee_form_screen.dart:346:38 - unused_element
+   info - Statements in an if should be enclosed in a block - lib\features\employees\presentation\screens\employee_form_screen.dart:430:9 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\employees\presentation\screens\employee_form_screen.dart:542:37 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\employees\presentation\screens\employee_form_screen.dart:574:37 - curly_braces_in_flow_control_structures
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\features\employees\presentation\screens\employee_form_screen.dart:618:33 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\employee_form_screen.dart:657:64 - prefer_const_constructors
+   info - Don't use 'BuildContext's across async gaps - lib\features\employees\presentation\screens\employee_list_screen.dart:146:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\employees\presentation\screens\employee_list_screen.dart:357:31 - use_build_context_synchronously
+warning - Unused import: 'package:ordermate/features/organization/presentation/providers/organization_provider.dart' - lib\features\employees\presentation\screens\privilege_management_screen.dart:4:8 - unused_import
+warning - The left operand can't be null, so the right operand is never executed - lib\features\employees\presentation\screens\privilege_management_screen.dart:195:59 - dead_null_aware_expression
+   info - Use interpolation to compose strings and values - lib\features\employees\presentation\screens\privilege_management_screen.dart:223:25 - prefer_interpolation_to_compose_strings
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\features\employees\presentation\screens\privilege_management_screen.dart:272:49 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:273:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:273:58 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:273:108 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:274:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:274:58 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:274:108 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:274:122 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:275:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:275:58 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:275:108 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:275:122 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:276:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:276:58 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:276:108 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:276:122 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:277:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:277:58 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:277:108 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:277:122 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:278:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:278:58 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:278:108 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:278:122 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:279:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:279:58 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:279:108 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:279:122 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:280:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:280:58 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:280:108 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\privilege_management_screen.dart:280:122 - prefer_const_constructors
+   info - Unnecessary use of 'toList' in a spread - lib\features\employees\presentation\screens\privilege_management_screen.dart:311:40 - unnecessary_to_list_in_spreads
+   info - Unnecessary use of 'toList' in a spread - lib\features\employees\presentation\screens\privilege_management_screen.dart:318:26 - unnecessary_to_list_in_spreads
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\features\employees\presentation\screens\privilege_management_screen.dart:332:11 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\employees\presentation\screens\role_form_screen.dart:170:17 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\employees\presentation\screens\role_list_screen.dart:208:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\employees\presentation\screens\role_list_screen.dart:210:41 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\employees\presentation\screens\user_form_screen.dart:257:54 - prefer_const_constructors
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\brand_list_screen.dart:172:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\brand_list_screen.dart:346:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\category_list_screen.dart:132:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\category_list_screen.dart:339:33 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\product_type_list_screen.dart:138:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\product_type_list_screen.dart:343:33 - use_build_context_synchronously
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\inventory\presentation\screens\unit_conversion_form_screen.dart:112:17 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\inventory\presentation\screens\unit_conversion_form_screen.dart:129:17 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\location_tracking\presentation\screens\location_history_screen.dart:129:79 - deprecated_member_use
+   info - The import of 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart' is unnecessary because all of the used elements are also provided by the import of 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart' - lib\features\products\presentation\screens\product_form_screen.dart:18:8 - unnecessary_import
+   info - The 'if' statement could be replaced by a null-aware assignment - lib\features\products\presentation\screens\product_form_screen.dart:148:9 - prefer_conditional_assignment
+   info - Don't use 'BuildContext's across async gaps - lib\features\products\presentation\screens\product_list_screen.dart:209:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\products\presentation\screens\product_list_screen.dart:449:32 - use_build_context_synchronously
+warning - Unused import: '../../../accounting/domain/entities/invoice.dart' - lib\features\reports\domain\repositories\report_repository.dart:4:8 - unused_import
+warning - Unused import: '../../../accounting/domain/entities/invoice_item.dart' - lib\features\reports\domain\repositories\report_repository.dart:5:8 - unused_import
+warning - The left operand can't be null, so the right operand is never executed - lib\features\reports\presentation\screens\ledger_report_screen.dart:178:39 - dead_null_aware_expression
+warning - Unused import: 'package:ordermate/core/widgets/app_drawer.dart' - lib\features\reports\presentation\screens\reports_hub_screen.dart:5:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\reports_hub_screen.dart:105:43 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\features\vendors\presentation\screens\vendor_list_screen.dart:210:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\vendors\presentation\screens\vendor_list_screen.dart:418:31 - use_build_context_synchronously
+   info - Use 'const' for final variables initialized to a constant value - test\enterprise_suite_test.dart:38:7 - prefer_const_declarations
+warning - Unnecessary cast - test\enterprise_suite_test.dart:98:31 - unnecessary_cast
+warning - Unnecessary cast - test\router\router_test.dart:29:20 - unnecessary_cast
+warning - Unnecessary cast - test\router\router_test.dart:49:20 - unnecessary_cast
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:21:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:25:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:31:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:37:6 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:38:6 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:40:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:11:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:22:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:24:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:27:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:37:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:39:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:42:5 - avoid_print
+
