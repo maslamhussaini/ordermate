@@ -540,48 +540,6 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
         // If this fails, we have an orphan Auth User. 
     }
 
-    } catch (e) {
-      debugPrint('Online AppUser invitation failed: $e. Falling back to local/manual logic.');
-      
-      // Fallback: If Edge Function fails, we still try the old manual way as a safety net?
-      // Actually, if it's a 400 'User already registered', we might just want to link them.
-      
-      try {
-        final data = {
-          'business_partner_id': partnerId,
-          'email': email,
-          'full_name': fullName,
-          'role_id': roleId,
-          'is_active': true,
-          'password': password,
-          'organization_id': organizationId,
-          'store_id': storeId,
-        };
-
-        await SupabaseConfig.client.from('omtbl_users').upsert(data, onConflict: 'email');
-        
-        // Manual email as last resort
-        if (!kIsWeb) {
-          final otp = (100000 + Random().nextInt(900000)).toString();
-          await EmailService().sendOtpEmail(email, otp);
-        } else {
-          debugPrint('Web: Skipping direct email fallback to avoid SocketException');
-        }
-        
-      } catch (fallbackErr) {
-        debugPrint('Fallback failed: $fallbackErr');
-      }
-
-      await _localRepository.createAppUser(
-        partnerId: partnerId,
-        email: email,
-        fullName: fullName,
-        roleId: roleId,
-        organizationId: organizationId,
-        storeId: storeId,
-        password: password,
-      );
-    }
   }
 
   @override
