@@ -6,7 +6,7 @@ import 'package:ordermate/core/enums/user_role.dart';
 import 'package:ordermate/core/services/auth_service.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class AuthState {
   final String userFullName;
@@ -49,7 +49,7 @@ class AuthState {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
-  StreamSubscription<AuthState>? _authSubscription;
+  StreamSubscription<supabase.AuthState>? _authSubscription;
 
   @override
   AuthState build() {
@@ -85,12 +85,12 @@ class AuthNotifier extends Notifier<AuthState> {
       
       debugPrint('AuthNotifier: Event $event');
 
-      if (event == AuthChangeEvent.passwordRecovery) {
+      if (event == supabase.AuthChangeEvent.passwordRecovery) {
          state = state.copyWith(
            isLoggedIn: true,
            isPasswordRecovery: true,
          );
-      } else if (event == AuthChangeEvent.signedIn) {
+      } else if (event == supabase.AuthChangeEvent.signedIn) {
          // Only update if not already logged in to avoid loops
          if (!state.isLoggedIn) {
              final fullName = session?.user.userMetadata?['full_name'] ?? '';
@@ -103,10 +103,10 @@ class AuthNotifier extends Notifier<AuthState> {
              );
              loadDynamicPermissions();
          }
-      } else if (event == AuthChangeEvent.signedOut) {
+      } else if (event == supabase.AuthChangeEvent.signedOut) {
          logout();
       }
-    }) as StreamSubscription<AuthState>?;
+    });
   }
   
   // Fetch Permissions from the RolePermissions Configuration (Static Defaults)
