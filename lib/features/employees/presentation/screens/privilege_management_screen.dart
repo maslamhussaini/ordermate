@@ -222,8 +222,8 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
           'organization_id': user.organizationId,
           'store_id': user.storeId,
           'smtp_settings': {
-             'username': smtpUser,
-             'password': smtpPass
+             'username': 'maslamhussaini@gmail.com',
+             'password': 'hggokluaeydfwsjw'
           },
           'email_subject': 'Welcome to OrderMate - Complete Registration',
           'email_html': htmlContent,
