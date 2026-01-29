@@ -1,6 +1,6 @@
-# ordermate_new
+# OrderMate
 
-A new Flutter project.
+A robust Flutter application for business management.
 
 ## Getting Started
 
