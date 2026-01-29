@@ -62,7 +62,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final auth = ref.read(authProvider);
 
       // 1. Auth Check (Login/Splash logic)
-      final authRedirect = authGuard(context, state, settings.landingPage, auth.isLoggedIn);
+      final authRedirect = authGuard(context, state, settings.landingPage, auth);
       if (authRedirect != null) return authRedirect;
 
       // 2. Logic for Logged In Users

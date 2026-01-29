@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-String? authGuard(BuildContext context, GoRouterState state, String landingPage, bool isLoggedIn) {
-  final isAuthenticated = isLoggedIn;
+import 'package:ordermate/core/providers/auth_provider.dart';
+
+String? authGuard(BuildContext context, GoRouterState state, String landingPage, AuthState auth) {
+  final isAuthenticated = auth.isLoggedIn;
   final isGoingToLogin = state.matchedLocation == '/login';
   final isGoingToSplash = state.matchedLocation == '/splash';
   final isGoingToRegister = state.matchedLocation == '/register';
@@ -13,10 +15,18 @@ String? authGuard(BuildContext context, GoRouterState state, String landingPage,
   if (isGoingToSplash) {
     return null;
   }
+  
+  // Password Recovery Flow
+  if (auth.isPasswordRecovery) {
+     if (!isGoingToResetPassword) {
+        return '/reset-password';
+     }
+     return null;
+  }
 
   // Redirect to login if not authenticated and not going to public routes
   if (!isAuthenticated && !isGoingToLogin && !isGoingToResetPassword && !isGoingToRegister && !isGoingToOnboarding) {
-    return '/login'; // Use RouteNames.login if imported, but string is fine for return value of redirect
+    return '/login'; 
   }
 
   // Redirect to landing page if authenticated and going to login or register

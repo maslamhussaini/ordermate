@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordermate/core/entities/permission_object.dart';
 import 'package:ordermate/core/enums/permission.dart';
@@ -5,24 +6,24 @@ import 'package:ordermate/core/enums/user_role.dart';
 import 'package:ordermate/core/services/auth_service.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthState {
   final String userFullName;
   final bool isLoggedIn;
+  final bool isPasswordRecovery;
   final UserRole role;
   final List<PermissionObject> permissions;
  
   const AuthState({
     this.userFullName = '',
     this.isLoggedIn = false,
+    this.isPasswordRecovery = false,
     this.role = UserRole.staff,
     this.permissions = const [],
   });
 
   bool can(String module, Permission action) {
-    // Admins usually have all permissions, but strict DB model might separate.
-    // For Enterprise, even Admins rely on DB permissions (Implicitly All or Explicitly All).
-    // Here we check explicit permissions OR Role override.
     if (role == UserRole.admin) return true; 
 
     return permissions.any(
@@ -33,12 +34,14 @@ class AuthState {
   AuthState copyWith({
     String? userFullName,
     bool? isLoggedIn,
+    bool? isPasswordRecovery,
     UserRole? role,
     List<PermissionObject>? permissions,
   }) {
     return AuthState(
       userFullName: userFullName ?? this.userFullName,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      isPasswordRecovery: isPasswordRecovery ?? this.isPasswordRecovery,
       role: role ?? this.role,
       permissions: permissions ?? this.permissions,
     );
@@ -46,21 +49,64 @@ class AuthState {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
+  StreamSubscription<AuthState>? _authSubscription;
+
   @override
   AuthState build() {
-    // Initial State: Synced with static AuthService for compatibility or DB load
     final initialState = AuthState(
       isLoggedIn: AuthService.isLoggedIn,
       role: AuthService.role,
       permissions: _getPermissionsForRole(AuthService.role),
     );
     
+    // Listen to Supabase Auth Changes
+    _setupAuthListener();
+    
     // Attempt to load dynamic permissions if logged in
     if (initialState.isLoggedIn) {
       Future.microtask(() => loadDynamicPermissions());
     }
     
+    // Cleanup on dispose
+    ref.onDispose(() {
+      _authSubscription?.cancel();
+    });
+
     return initialState;
+  }
+
+  void _setupAuthListener() {
+    _authSubscription?.cancel(); // Cancel any existing
+    
+    // Subscribe to the Supabase Auth State Stream
+    _authSubscription = SupabaseConfig.client.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+      final session = data.session;
+      
+      debugPrint('AuthNotifier: Event $event');
+
+      if (event == AuthChangeEvent.passwordRecovery) {
+         state = state.copyWith(
+           isLoggedIn: true,
+           isPasswordRecovery: true,
+         );
+      } else if (event == AuthChangeEvent.signedIn) {
+         // Only update if not already logged in to avoid loops
+         if (!state.isLoggedIn) {
+             final fullName = session?.user.userMetadata?['full_name'] ?? '';
+             // Default to existing role or fetch? We'll rely on the existing login method logic ideally,
+             // but for auto-login we assume basic access until profile is fetched.
+             state = state.copyWith(
+               isLoggedIn: true,
+               userFullName: fullName,
+               isPasswordRecovery: false, 
+             );
+             loadDynamicPermissions();
+         }
+      } else if (event == AuthChangeEvent.signedOut) {
+         logout();
+      }
+    }) as StreamSubscription<AuthState>?;
   }
   
   // Fetch Permissions from the RolePermissions Configuration (Static Defaults)
@@ -85,10 +131,10 @@ class AuthNotifier extends Notifier<AuthState> {
     if (sessionUser == null) return;
 
     try {
-      // 1. Get User Profile to find Role ID and Employee ID
+      // 1. Get User Profile
       final userResponse = await SupabaseConfig.client
           .from('omtbl_users')
-          .select('id, role_id, role')
+          .select('id, role_id, role, full_name')
           .eq('auth_id', sessionUser.id)
           .maybeSingle();
 
@@ -97,8 +143,13 @@ class AuthNotifier extends Notifier<AuthState> {
       final roleId = userResponse['role_id'] as int?;
       final employeeId = userResponse['id'] as String?;
       final roleStr = (userResponse['role'] as String?)?.toUpperCase();
+      final fullName = userResponse['full_name'] as String?;
 
-      // Corporate Admins bypass all checks (logic in AuthState.can)
+      if (fullName != null && fullName.isNotEmpty) {
+         state = state.copyWith(userFullName: fullName);
+      }
+
+      // Corporate Admins bypass all checks
       if (roleStr == 'CORPORATE_ADMIN') return;
 
       // 2. Fetch Privileges
@@ -109,7 +160,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       if (privsResponse.isEmpty) return;
 
-      // 3. Map Privileges to PermissionObjects
+      // 3. Map Privileges
       final List<PermissionObject> dynamicPermissions = [];
       for (var p in privsResponse) {
         final form = p['omtbl_app_forms'] as Map<String, dynamic>?;
@@ -117,7 +168,6 @@ class AuthNotifier extends Notifier<AuthState> {
 
         final module = form['form_code'].toString().toLowerCase().replaceFirst('frm_', '');
         
-        // Map Database flags to Enum Permission
         if (p['can_view'] == true || p['can_read'] == true) {
           dynamicPermissions.add(PermissionObject(module, Permission.read));
         }
@@ -129,9 +179,6 @@ class AuthNotifier extends Notifier<AuthState> {
         }
       }
 
-      // 4. Fallback to module-level permissions if form-specific not found?
-      // For now, we Merge or Replace? 
-      // The user wants it "Dynamic as pvg", so we should probably REPLACE or strongly PRIORITIZE these.
       if (dynamicPermissions.isNotEmpty) {
         state = state.copyWith(permissions: dynamicPermissions);
       }
@@ -147,11 +194,9 @@ class AuthNotifier extends Notifier<AuthState> {
       role: role,
       userFullName: fullName,
       permissions: _getPermissionsForRole(role),
+      isPasswordRecovery: false, 
     );
-    // Sync static for backward compat if needed
     AuthService.testRole = role; 
-
-    // Load dynamic perks after successful auth
     loadDynamicPermissions();
   }
   
