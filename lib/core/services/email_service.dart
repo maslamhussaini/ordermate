@@ -10,8 +10,8 @@ class EmailService {
   EmailService._internal();
 
   // SMTP Credentials - Fetched via getters to ensure they are read AFTER dotenv.load()
-  String get smtpUsername => dotenv.env['SMTP_EMAIL'] ?? dotenv.env['GMAIL_USERNAME'] ?? ''; 
-  String get smtpPassword => dotenv.env['SMTP_PASSWORD'] ?? dotenv.env['GMAIL_APP_PASSWORD'] ?? ''; 
+  String get smtpUsername => (dotenv.env['SMTP_EMAIL'] ?? dotenv.env['GMAIL_USERNAME'] ?? '').trim(); 
+  String get smtpPassword => (dotenv.env['SMTP_PASSWORD'] ?? dotenv.env['GMAIL_APP_PASSWORD'] ?? '').trim(); 
 
   String get _smtpUsername => smtpUsername;
   String get _smtpPassword => smtpPassword; 
