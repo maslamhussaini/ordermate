@@ -34,9 +34,11 @@ echo "✅ .env file created and cleaned"
 
 # 3. Build the Web App
 echo "🔨 Building web app..."
+rm -rf build/web  # Clean start
 flutter config --enable-web
 flutter pub get
 flutter build web --release --no-tree-shake-icons --base-href /
+
 
 # Final forced copy to the build output just in case
 mkdir -p build/web/assets
