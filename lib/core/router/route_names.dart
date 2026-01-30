@@ -66,6 +66,7 @@ class RouteNames {
 
   // Stores
   static const stores = 'stores';
+  static const branches = 'branches';
   static const storeCreate = 'store-create';
   static const storeEdit = 'store-edit';
 

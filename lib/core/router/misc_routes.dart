@@ -34,6 +34,8 @@ import 'package:ordermate/features/reports/presentation/screens/reports_hub_scre
 import 'package:ordermate/features/reports/presentation/screens/ledger_report_screen.dart';
 import 'package:ordermate/features/reports/presentation/screens/sales_report_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_profile_screen.dart';
+import 'package:ordermate/features/organization/presentation/screens/organization_list_screen.dart';
+import 'package:ordermate/features/organization/presentation/screens/organization_form_screen.dart';
 import 'package:ordermate/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ordermate/features/settings/presentation/screens/printer_setup_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/brand_form_screen.dart';
@@ -215,11 +217,11 @@ final List<AppRoute> employeeRoutes = [
   ),
 ];
 
-final List<AppRoute> storeRoutes = [
+final List<AppRoute> branchRoutes = [
   AppRoute(
-    path: '/stores',
-    title: 'Stores',
-    routeName: RouteNames.stores,
+    path: '/branches',
+    title: 'Branches',
+    routeName: RouteNames.branches,
     module: 'stores',
     icon: Icons.store,
     roles: [UserRole.admin],
@@ -228,6 +230,38 @@ final List<AppRoute> storeRoutes = [
        AppRoute(path: 'create', title: 'Add Store', routeName: RouteNames.storeCreate, module: 'stores', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const StoreFormScreen()),
        AppRoute(path: 'edit/:id', title: 'Edit Store', routeName: RouteNames.storeEdit, module: 'stores', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => StoreFormScreen(storeId: state.pathParameters['id'])),
     ]
+  ),
+];
+
+final List<AppRoute> organizationRoutes = [
+  AppRoute(
+    path: '/organizations',
+    title: 'Organizations',
+    routeName: RouteNames.organizations,
+    module: 'organization',
+    icon: Icons.business,
+    roles: [UserRole.admin],
+    builder: (_, __) => const OrganizationListScreen(),
+    children: [
+      AppRoute(
+        path: 'create',
+        title: 'New Organization',
+        routeName: RouteNames.organizationCreate,
+        module: 'organization',
+        showInMenu: false,
+        roles: [UserRole.admin],
+        builder: (_, __) => const OrganizationFormScreen(),
+      ),
+      AppRoute(
+        path: 'edit/:id',
+        title: 'Edit Organization',
+        routeName: RouteNames.organizationEdit,
+        module: 'organization',
+        showInMenu: false,
+        roles: [UserRole.admin],
+        builder: (_, state) => OrganizationFormScreen(organizationId: state.pathParameters['id']),
+      ),
+    ],
   ),
 ];
 
@@ -250,7 +284,7 @@ final List<AppRoute> reportRoutes = [
 
 final List<AppRoute> coreRoutes = [
   AppRoute(
-    path: '/organization/profile',
+    path: '/organization',
     title: 'Organization',
     routeName: RouteNames.organization,
     module: 'organization',
