@@ -4,7 +4,7 @@
     "ignoreCommand": "git diff --quiet HEAD^ HEAD .",
     "rewrites": [
         {
-            "source": "/(.*)",
+            "source": "/((?!.*\\.).*)",
             "destination": "/index.html"
         }
     ]

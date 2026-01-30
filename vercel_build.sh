@@ -26,6 +26,6 @@ echo "✅ .env file created"
 echo "🔨 Building web app..."
 flutter config --enable-web
 flutter pub get
-flutter build web --release --no-tree-shake-icons
+flutter build web --release --no-tree-shake-icons --base-href /
 
 echo "🎉 Build complete!"
