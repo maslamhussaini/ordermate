@@ -19,13 +19,18 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize database factory
-  if (kIsWeb) {
-    // Web Initialization
-    databaseFactory = databaseFactoryFfiWeb;
-  } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    // Desktop Initialization
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
+  try {
+    if (kIsWeb) {
+      // Web Initialization
+      databaseFactory = databaseFactoryFfiWeb;
+    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // Desktop Initialization
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+  } catch (e) {
+    debugPrint('Database initialization failed: $e');
+    // We continue so the app can still run in online-only mode
   }
 
   // Set preferred orientations
