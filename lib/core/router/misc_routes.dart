@@ -293,6 +293,15 @@ final List<AppRoute> coreRoutes = [
     builder: (_, __) => const OrganizationProfileScreen(),
   ),
   AppRoute(
+    path: '/organization/profile',
+    title: 'Organization Profile (Legacy)',
+    routeName: 'org-profile-legacy',
+    module: 'organization',
+    showInMenu: false,
+    roles: [UserRole.admin],
+    builder: (_, __) => const OrganizationProfileScreen(), // Or use a redirect if GoRouter supports it within AppRoute
+  ),
+  AppRoute(
     path: '/settings',
     title: 'Settings',
     routeName: RouteNames.settings,
