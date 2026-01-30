@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ResetPasswordScreen extends StatefulWidget {
+class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({super.key});
 
   @override
-  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+  ConsumerState<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
@@ -36,6 +38,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       );
 
       if (mounted) {
+        // Clear recovery status in provider so we aren't redirected back here
+        ref.read(authProvider.notifier).clearRecoveryStatus();
+
         showDialog(
           context: context,
           builder: (context) => AlertDialog(

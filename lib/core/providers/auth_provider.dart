@@ -200,6 +200,10 @@ class AuthNotifier extends Notifier<AuthState> {
     loadDynamicPermissions();
   }
   
+  void clearRecoveryStatus() {
+    state = state.copyWith(isPasswordRecovery: false);
+  }
+
   void logout() {
     state = const AuthState(isLoggedIn: false);
     AuthService.testRole = null;
