@@ -235,7 +235,7 @@ final List<AppRoute> branchRoutes = [
 
 final List<AppRoute> organizationRoutes = [
   AppRoute(
-    path: '/organizations',
+    path: '/organizations-list',
     title: 'Organizations',
     routeName: RouteNames.organizations,
     module: 'organization',

@@ -33,18 +33,21 @@ List<GoRoute> buildGoRoutes(List<AppRoute> routes) {
 
 // Helper to find metadata
 AppRoute? findAppRoute(List<AppRoute> routes, String location) {
+  // First pass: Exact match (highest priority)
   for (final r in routes) {
-    bool isMatch = false;
-    if (location == r.path) isMatch = true;
-    
-    // Heuristic for starting with path (for children)
-    if (r.path.startsWith('/')) {
-        if (location.startsWith(r.path)) isMatch = true;
-    }
-    
-    if (isMatch) {
-       final child = findAppRoute(r.children, location);
-       return child ?? r;
+    if (location == r.path) return r;
+  }
+
+  // Second pass: Prefix match with children (recursive)
+  for (final r in routes) {
+    if (r.path.startsWith('/') && location.startsWith(r.path)) {
+      // Ensure it's a true directory match or perfect prefix (e.g., /orders matches /orders/create)
+      // Check if the next character is a slash or if it's the end of string
+      if (location.length == r.path.length || location[r.path.length] == '/') {
+        final child = findAppRoute(r.children, location);
+        if (child != null) return child;
+        return r;
+      }
     }
   }
   return null;
