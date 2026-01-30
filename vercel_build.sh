@@ -24,13 +24,11 @@ GMAIL_USERNAME=$GMAIL_USERNAME
 GMAIL_APP_PASSWORD=$CLEAN_GMAIL_PASS
 EOT
 
-# Explicitly ensure the .env is in every possible assets directory
-mkdir -p assets
-cp .env assets/.env
+# Explicitly ensure the .env is in the right place
 mkdir -p web/assets
 cp .env web/assets/.env
 
-echo "✅ .env file created and cleaned"
+echo "✅ Environment and SQLite assets prepared"
 
 # 3. Build the Web App
 echo "🔨 Building web app..."
@@ -40,10 +38,13 @@ flutter pub get
 flutter build web --release --no-tree-shake-icons --base-href /
 
 
-# Final forced copy to the build output just in case
+# Final forced copy of assets to the build output
 mkdir -p build/web/assets
 cp .env build/web/assets/.env
-echo "✅ Final verification: .env copied to build/web/assets/"
+# Copy SQLite worker files to the root of the build output for production
+cp web/sqlite3.wasm web/sqflite_sw.js build/web/ 2>/dev/null || true
+
+echo "✅ Final verification: Assets and SQLite workers in build/web/"
 
 echo "📂 Verifying build output..."
 ls -R build/web

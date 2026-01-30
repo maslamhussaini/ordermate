@@ -312,17 +312,16 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
       
       if (!mounted) return;
 
-      state = DashboardState(
-        stats: newStats,
-        lastRefreshed: DateTime.now(),
-        error: originalError?.toString(), 
-      );
-      
-    } catch (localError) {
-      debugPrint('Dashboard Error: $localError');
       if (!mounted) return;
+      
+      // On web, SQLite errors are common but shouldn't distract from the main Online error
+      String displayError = originalError?.toString() ?? localError.toString();
+      if (kIsWeb && displayError.contains('SqfliteFfiWebException')) {
+        displayError = originalError?.toString() ?? 'Connection error. Please check your Supabase settings.';
+      }
+      
       state = DashboardState(
-        error: 'Online: $originalError\nOffline: $localError',
+        error: displayError,
         stats: state.stats,
       );
     }
