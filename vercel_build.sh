@@ -24,8 +24,7 @@ GMAIL_USERNAME=$GMAIL_USERNAME
 GMAIL_APP_PASSWORD=$CLEAN_GMAIL_PASS
 EOT
 
-# Explicitly ensure the .env is in the assets directory for reliable fetching
-# Flutter Web assets are served from /assets/
+# Explicitly ensure the .env is in every possible assets directory
 mkdir -p assets
 cp .env assets/.env
 mkdir -p web/assets
@@ -38,6 +37,11 @@ echo "🔨 Building web app..."
 flutter config --enable-web
 flutter pub get
 flutter build web --release --no-tree-shake-icons --base-href /
+
+# Final forced copy to the build output just in case
+mkdir -p build/web/assets
+cp .env build/web/assets/.env
+echo "✅ Final verification: .env copied to build/web/assets/"
 
 echo "📂 Verifying build output..."
 ls -R build/web
