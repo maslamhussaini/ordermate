@@ -28,4 +28,7 @@ flutter config --enable-web
 flutter pub get
 flutter build web --release --no-tree-shake-icons --base-href /
 
+echo "📂 Verifying build output..."
+ls -R build/web
+
 echo "🎉 Build complete!"

@@ -1,11 +1,6 @@
 {
     "buildCommand": "bash vercel_build.sh",
     "outputDirectory": "build/web",
-    "ignoreCommand": "git diff --quiet HEAD^ HEAD .",
-    "rewrites": [
-        {
-            "source": "/((?!.*\\.).*)",
-            "destination": "/index.html"
-        }
-    ]
+    "cleanUrls": true,
+    "trailingSlash": false
 }
