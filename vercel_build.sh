@@ -23,8 +23,10 @@ EOT
 # Explicitly ensure the .env is in the web assets directory for reliable fetching
 mkdir -p web/assets
 cp .env web/assets/.env
+mkdir -p build/web/assets
+cp .env build/web/assets/.env
 
-echo "✅ .env file created and copied to web/assets/"
+echo "✅ .env file created and verified at assets/.env"
 
 # 3. Build the Web App
 echo "🔨 Building web app..."
