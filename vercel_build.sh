@@ -20,7 +20,11 @@ GMAIL_USERNAME=$GMAIL_USERNAME
 GMAIL_APP_PASSWORD=$GMAIL_APP_PASSWORD
 EOT
 
-echo "✅ .env file created"
+# Explicitly ensure the .env is in the web assets directory for reliable fetching
+mkdir -p web/assets
+cp .env web/assets/.env
+
+echo "✅ .env file created and copied to web/assets/"
 
 # 3. Build the Web App
 echo "🔨 Building web app..."
