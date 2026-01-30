@@ -24,7 +24,7 @@ class SupabaseConfig {
       anonKey = _prodKey;
     }
 
-    debugPrint('SupabaseConfig: Initializing with ${url.substring(0, url.length > 20 ? 20 : url.length)}...');
+    debugPrint('SupabaseConfig: Initializing Supabase client...');
 
     await Supabase.initialize(
       url: url,
