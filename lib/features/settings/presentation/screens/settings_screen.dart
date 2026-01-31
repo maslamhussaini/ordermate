@@ -245,15 +245,20 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(AppLocalizations.of(context)?.get('logout') ?? 'Logout', style: const TextStyle(color: Colors.red)),
             onTap: () async {
                try {
+                 // 1. Attempt Global Logout (Server + Local)
                  await SupabaseConfig.client.auth.signOut();
                } catch (e) {
                  debugPrint('Logout error: $e');
-                 // Force local signout if network fails
-                 // This ensures the local session is cleared so auto-login doesn't happen
-                 try {
-                    await SupabaseConfig.client.auth.signOut(scope: SignOutScope.local);
-                 } catch (_) {}
                } finally {
+                 // 2. Safety Check: If session persists locally, force kill it
+                 if (SupabaseConfig.client.auth.currentUser != null) {
+                    try {
+                       debugPrint('Forcing local signout...');
+                       await SupabaseConfig.client.auth.signOut(scope: SignOutScope.local);
+                    } catch (_) {}
+                 }
+
+                 // 3. Navigate
                  if (context.mounted) context.go('/login');
                }
             },
