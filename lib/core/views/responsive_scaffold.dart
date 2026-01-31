@@ -25,6 +25,9 @@ class ResponsiveScaffold extends ConsumerWidget {
     // Desktop breakpoint > 900
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
+    final accountingState = ref.watch(accountingProvider);
+    final selectedYear = accountingState.selectedFinancialSession?.sYear;
+
     return Scaffold(
       appBar: AppBar(
         // On desktop, we hide the hamburger (drawer icon) because sidebar is always visible
@@ -36,7 +39,6 @@ class ResponsiveScaffold extends ConsumerWidget {
             icon: const Icon(Icons.date_range),
             tooltip: 'Select Financial Year',
             onPressed: () {
-               final accountingState = ref.read(accountingProvider);
                final sessions = accountingState.financialSessions;
                final currentSession = accountingState.selectedFinancialSession;
                
@@ -86,6 +88,42 @@ class ResponsiveScaffold extends ConsumerWidget {
                );
             },
           ),
+          
+          if (selectedYear != null)
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white10 
+                      : Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white24 
+                        : Colors.grey.shade300,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.event_note, size: 14, 
+                         color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$selectedYear',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // User Profile / Logout
           PopupMenuButton<String>(
             tooltip: 'My Profile',
