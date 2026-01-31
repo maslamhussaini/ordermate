@@ -37,11 +37,18 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     super.initState();
     _filterType = widget.initialFilterType;
     Future.microtask(() {
-      final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      final storeId = ref.read(organizationProvider).selectedStore?.id;
-      ref.read(accountingProvider.notifier).loadInvoices(organizationId: orgId, storeId: storeId);
+      final orgState = ref.read(organizationProvider);
+      final orgId = orgState.selectedOrganizationId;
+      final storeId = orgState.selectedStore?.id;
+      final sYear = orgState.selectedFinancialYear;
+      
+      ref.read(accountingProvider.notifier).loadInvoices(
+        organizationId: orgId, 
+        storeId: storeId,
+        sYear: sYear,
+      );
       ref.read(businessPartnerProvider.notifier).loadCustomers();
-      ref.read(businessPartnerProvider.notifier).loadVendors(); // Ensure vendors are loaded for GL posting lookup
+      ref.read(businessPartnerProvider.notifier).loadVendors(); 
     });
   }
 
@@ -267,8 +274,22 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(accountingProvider);
     final partnerState = ref.watch(businessPartnerProvider);
+    final orgState = ref.watch(organizationProvider);
     final invoices = state.invoices;
-    final isLoading = state.isLoading && invoices.isEmpty;
+    final isLoading = state.isLoading;
+
+    // Reload if organization or store changes
+    ref.listen(organizationProvider, (previous, next) {
+      if (previous?.selectedOrganizationId != next.selectedOrganizationId ||
+          previous?.selectedStore?.id != next.selectedStore?.id ||
+          previous?.selectedFinancialYear != next.selectedFinancialYear) {
+        ref.read(accountingProvider.notifier).loadInvoices(
+              organizationId: next.selectedOrganizationId,
+              storeId: next.selectedStore?.id,
+              sYear: next.selectedFinancialYear,
+            );
+      }
+    });
 
     // Filter Logic
     final filteredInvoices = invoices.where((invoice) {
@@ -297,9 +318,15 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              final orgId = ref.read(organizationProvider).selectedOrganizationId;
-              final storeId = ref.read(organizationProvider).selectedStore?.id;
-              ref.read(accountingProvider.notifier).loadInvoices(organizationId: orgId, storeId: storeId);
+              final orgState = ref.read(organizationProvider);
+              final orgId = orgState.selectedOrganizationId;
+              final storeId = orgState.selectedStore?.id;
+              final sYear = orgState.selectedFinancialYear;
+              ref.read(accountingProvider.notifier).loadInvoices(
+                organizationId: orgId, 
+                storeId: storeId,
+                sYear: sYear,
+              );
             },
           ),
         ],
@@ -367,22 +394,51 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : filteredInvoices.isEmpty
+                : state.error != null
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300),
+                            const Icon(Icons.error_outline, size: 64, color: Colors.red),
                             const SizedBox(height: 16),
-                            const Text('No invoices found', style: TextStyle(color: Colors.grey)),
+                            Text('Error: ${state.error}', style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                final orgState = ref.read(organizationProvider);
+                                ref.read(accountingProvider.notifier).loadInvoices(
+                                  organizationId: orgState.selectedOrganizationId,
+                                  storeId: orgState.selectedStore?.id,
+                                  sYear: orgState.selectedFinancialYear,
+                                );
+                              },
+                              child: const Text('Retry'),
+                            ),
                           ],
                         ),
                       )
+                    : filteredInvoices.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade300),
+                                const SizedBox(height: 16),
+                                const Text('No invoices found', style: TextStyle(color: Colors.grey)),
+                              ],
+                            ),
+                          )
                     : RefreshIndicator(
                         onRefresh: () async {
-                          final orgId = ref.read(organizationProvider).selectedOrganizationId;
-                          final storeId = ref.read(organizationProvider).selectedStore?.id;
-                          await ref.read(accountingProvider.notifier).loadInvoices(organizationId: orgId, storeId: storeId);
+                          final orgState = ref.read(organizationProvider);
+                          final orgId = orgState.selectedOrganizationId;
+                          final storeId = orgState.selectedStore?.id;
+                          final sYear = orgState.selectedFinancialYear;
+                          await ref.read(accountingProvider.notifier).loadInvoices(
+                            organizationId: orgId, 
+                            storeId: storeId,
+                            sYear: sYear,
+                          );
                         },
                         child: ListView.builder(
                           itemCount: filteredInvoices.length,

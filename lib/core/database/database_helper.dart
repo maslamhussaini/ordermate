@@ -645,7 +645,7 @@ class DatabaseHelper {
         await db.execute('ALTER TABLE local_products ADD COLUMN uom_symbol TEXT');
         await db.execute('ALTER TABLE local_products ADD COLUMN base_quantity REAL DEFAULT 1.0');
       } catch (e) {
-        debugPrint('Migration to v27 error: $e');
+        debugPrint('Migration to v27 note: $e (likely columns already exist)');
       }
     }
     if (oldVersion < 28) {

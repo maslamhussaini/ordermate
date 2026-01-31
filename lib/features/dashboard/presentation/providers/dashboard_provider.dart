@@ -79,6 +79,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     // Always attempt Online fetch. If it fails (network issue), _loadOnlineStats falls back to local.
     bool tryOnline = !SupabaseConfig.isOfflineLoggedIn;
 
+    state = state.copyWith(isLoading: true);
     if (tryOnline) {
       await _loadOnlineStats();
     } else {

@@ -41,13 +41,16 @@ AppRoute? findAppRoute(List<AppRoute> routes, String location) {
   // Second pass: Prefix match with children (recursive)
   for (final r in routes) {
     if (r.path.startsWith('/') && location.startsWith(r.path)) {
-      // Ensure it's a true directory match or perfect prefix (e.g., /orders matches /orders/create)
-      // Check if the next character is a slash or if it's the end of string
       if (location.length == r.path.length || location[r.path.length] == '/') {
         final child = findAppRoute(r.children, location);
         if (child != null) return child;
         return r;
       }
+    } else if (location.contains('/' + r.path) || location == r.path) {
+       // Deeply nested relative route match
+       final child = findAppRoute(r.children, location);
+       if (child != null) return child;
+       return r;
     }
   }
   return null;
@@ -82,9 +85,17 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 3. Logic for Logged In Users
       if (!auth.isLoggedIn) return '/login';
+
+      final location = state.matchedLocation;
       
       // 4. Permission & Role Guard
-      final route = findAppRoute(appRoutes, state.matchedLocation);
+      // If permissions are still loading from the DB, don't redirect yet
+      if (auth.isPermissionLoading) {
+         debugPrint('Router: Permissions loading, skipping RBAC for $location');
+         return null;
+      }
+
+      final route = findAppRoute(appRoutes, location);
 
       if (route != null) {
          // A. Role Check 

@@ -12,6 +12,7 @@ class AuthState {
   final String userFullName;
   final bool isLoggedIn;
   final bool isPasswordRecovery;
+  final bool isPermissionLoading;
   final UserRole role;
   final List<PermissionObject> permissions;
  
@@ -19,12 +20,17 @@ class AuthState {
     this.userFullName = '',
     this.isLoggedIn = false,
     this.isPasswordRecovery = false,
+    this.isPermissionLoading = false,
     this.role = UserRole.staff,
     this.permissions = const [],
   });
 
   bool can(String module, Permission action) {
     if (role == UserRole.admin) return true; 
+    
+    // While loading, we can't confirm permission, so deny by default
+    // or return true if it's a "loading" state the UI handles.
+    if (isPermissionLoading) return false;
 
     return permissions.any(
       (p) => p.module == module && p.action == action,
@@ -35,6 +41,7 @@ class AuthState {
     String? userFullName,
     bool? isLoggedIn,
     bool? isPasswordRecovery,
+    bool? isPermissionLoading,
     UserRole? role,
     List<PermissionObject>? permissions,
   }) {
@@ -42,6 +49,7 @@ class AuthState {
       userFullName: userFullName ?? this.userFullName,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
       isPasswordRecovery: isPasswordRecovery ?? this.isPasswordRecovery,
+      isPermissionLoading: isPermissionLoading ?? this.isPermissionLoading,
       role: role ?? this.role,
       permissions: permissions ?? this.permissions,
     );
@@ -96,6 +104,7 @@ class AuthNotifier extends Notifier<AuthState> {
           isLoggedIn: true,
           userFullName: fullName,
           isPasswordRecovery: false, 
+          isPermissionLoading: true, // Start loading
         );
         loadDynamicPermissions();
       } else if (event == supabase.AuthChangeEvent.signedOut) {
@@ -106,6 +115,8 @@ class AuthNotifier extends Notifier<AuthState> {
   
   // Fetch Permissions from the RolePermissions Configuration (Static Defaults)
   List<PermissionObject> _getPermissionsForRole(UserRole role) {
+    if (RolePermissions.admin.isEmpty) return []; // Guard
+    
     final Map<String, Set<Permission>> permissionMap = (role == UserRole.admin) 
         ? RolePermissions.admin 
         : RolePermissions.staff;
@@ -123,7 +134,15 @@ class AuthNotifier extends Notifier<AuthState> {
   /// Loads permissions from omtbl_role_form_privileges for the current user
   Future<void> loadDynamicPermissions() async {
     final sessionUser = SupabaseConfig.client.auth.currentUser;
-    if (sessionUser == null) return;
+    if (sessionUser == null) {
+      state = state.copyWith(isPermissionLoading: false);
+      return;
+    }
+
+    // Set loading if not already set
+    if (!state.isPermissionLoading) {
+       state = state.copyWith(isPermissionLoading: true);
+    }
 
     try {
       // 1. Get User Profile
@@ -133,7 +152,10 @@ class AuthNotifier extends Notifier<AuthState> {
           .eq('auth_id', sessionUser.id)
           .maybeSingle();
 
-      if (userResponse == null) return;
+      if (userResponse == null) {
+        state = state.copyWith(isPermissionLoading: false);
+        return;
+      }
 
       final roleId = userResponse['role_id'] as int?;
       final employeeId = userResponse['id'] as String?;
@@ -152,7 +174,10 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       // Corporate Admins bypass all checks
-      if (determinedRole == UserRole.admin) return;
+      if (determinedRole == UserRole.admin) {
+        state = state.copyWith(isPermissionLoading: false);
+        return;
+      }
 
       // 2. Fetch Privileges
       final privsResponse = await SupabaseConfig.client
@@ -160,7 +185,10 @@ class AuthNotifier extends Notifier<AuthState> {
           .select('*, omtbl_app_forms(form_code, module_name)')
           .or('role_id.eq.$roleId,employee_id.eq.$employeeId');
 
-      if (privsResponse.isEmpty) return;
+      if (privsResponse.isEmpty) {
+        state = state.copyWith(isPermissionLoading: false);
+        return;
+      }
 
       // 3. Map Privileges
       final List<PermissionObject> dynamicPermissions = [];
@@ -181,12 +209,14 @@ class AuthNotifier extends Notifier<AuthState> {
         }
       }
 
-      if (dynamicPermissions.isNotEmpty) {
-        state = state.copyWith(permissions: dynamicPermissions);
-      }
+      state = state.copyWith(
+        permissions: dynamicPermissions,
+        isPermissionLoading: false,
+      );
       
     } catch (e) {
       debugPrint('Error loading dynamic permissions: $e');
+      state = state.copyWith(isPermissionLoading: false);
     }
   }
   
@@ -197,6 +227,7 @@ class AuthNotifier extends Notifier<AuthState> {
       userFullName: fullName,
       permissions: _getPermissionsForRole(role),
       isPasswordRecovery: false, 
+      isPermissionLoading: false,
     );
     AuthService.testRole = role; 
     loadDynamicPermissions();

@@ -586,12 +586,17 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   // Invoice Methods
   Future<void> loadInvoices({int? organizationId, int? storeId, int? sYear}) async {
+    state = state.copyWith(isLoading: true, error: null);
     try {
       final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
-      final invoices = await _repository.getInvoices(organizationId: orgId ?? 0, storeId: storeId, sYear: sYear); // Assuming Repo updated
-      state = state.copyWith(invoices: invoices);
+      if (orgId == null) {
+        state = state.copyWith(isLoading: false, invoices: []);
+        return;
+      }
+      final invoices = await _repository.getInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
+      state = state.copyWith(invoices: invoices, isLoading: false);
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
