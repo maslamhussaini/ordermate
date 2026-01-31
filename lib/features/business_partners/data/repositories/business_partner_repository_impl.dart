@@ -484,6 +484,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
           'organization_id': organizationId,
           'store_id': storeId,
           'generate_link': true, // We must generate link to create the user in Auth
+          'redirect_to': SupabaseConfig.frontendUrl,
         },
       );
 

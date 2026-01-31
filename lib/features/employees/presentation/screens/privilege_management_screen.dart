@@ -229,7 +229,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
           'email_html': htmlContent,
           'generate_link': true,
           // Pass current origin for redirect, fallback to a sensible default
-          'redirect_to': kIsWeb ? Uri.base.origin : 'https://ordermate-app.com', 
+          'redirect_to': SupabaseConfig.frontendUrl, 
         },
       );
 

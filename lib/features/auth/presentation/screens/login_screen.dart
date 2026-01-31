@@ -512,8 +512,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     try {
-      final redirectTo =
-          kIsWeb ? Uri.base.origin : 'ordermate://reset-callback';
+      final redirectTo = SupabaseConfig.frontendUrl;
 
       debugPrint(
           'SENDING PASSWORD RESET TO: $email with REDIRECT: "$redirectTo"');

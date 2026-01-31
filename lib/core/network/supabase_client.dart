@@ -49,4 +49,17 @@ class SupabaseConfig {
 
   /// Flag to indicate if user is logged in via offline mode (bypassing Supabase session check)
   static bool isOfflineLoggedIn = false;
+
+  static String get frontendUrl {
+    final envUrl = dotenv.env['FRONTEND_URL']?.trim();
+    if (envUrl != null && envUrl.isNotEmpty) return envUrl;
+    
+    if (kIsWeb) {
+      // On web, Uri.base.origin is the current URL (e.g., https://ordermate-v619.vercel.app)
+      return Uri.base.origin;
+    }
+    
+    // Default fallback for mobile
+    return 'https://ordermate-v619.vercel.app';
+  }
 }
