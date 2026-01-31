@@ -7,6 +7,7 @@ import 'package:ordermate/features/organization/domain/entities/store.dart';
 import 'package:ordermate/features/organization/domain/repositories/organization_repository.dart';
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 import 'package:ordermate/features/auth/presentation/providers/user_provider.dart';
+import 'package:ordermate/core/providers/auth_provider.dart';
 
 // State
 class OrganizationState {
@@ -59,7 +60,14 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   final OrganizationRepository _repository;
   final Ref ref;
 
-  OrganizationNotifier(this._repository, this.ref) : super(const OrganizationState());
+  OrganizationNotifier(this._repository, this.ref) : super(const OrganizationState()) {
+    // Listen for logout events to reset state
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (previous?.isLoggedIn == true && !next.isLoggedIn) {
+        reset();
+      }
+    });
+  }
 
   Future<void> loadOrganizations() async {
     state = state.copyWith(isLoading: true);
@@ -108,6 +116,10 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
 
   Future<void> selectStore(Store? store) async {
      state = state.copyWith(selectedStore: store);
+  }
+
+  void reset() {
+    state = const OrganizationState();
   }
 
   void selectFinancialYear(int? year) {
