@@ -32,28 +32,46 @@ List<GoRoute> buildGoRoutes(List<AppRoute> routes) {
 }
 
 // Helper to find metadata
-AppRoute? findAppRoute(List<AppRoute> routes, String location) {
-  // First pass: Exact match (highest priority)
-  for (final r in routes) {
-    if (location == r.path) return r;
-  }
+AppRoute? findAppRoute(List<AppRoute> routes, String location, {String parentPath = ''}) {
+  final cleanLocation = location.split('?').first;
+  
+  for (final route in routes) {
+    // Construct full path for comparison
+    String fullPath = route.path;
+    if (!fullPath.startsWith('/') && parentPath.isNotEmpty) {
+      fullPath = parentPath.endsWith('/') ? '$parentPath$fullPath' : '$parentPath/$fullPath';
+    }
+    
+    // Normalize path to remove double slashes
+    fullPath = fullPath.replaceAll('//', '/');
 
-  // Second pass: Prefix match with children (recursive)
-  for (final r in routes) {
-    if (r.path.startsWith('/') && location.startsWith(r.path)) {
-      if (location.length == r.path.length || location[r.path.length] == '/') {
-        final child = findAppRoute(r.children, location);
-        if (child != null) return child;
-        return r;
+    // Simple path matching logic (handling :id parameters)
+    if (_pathMatches(fullPath, cleanLocation)) {
+      // If there are children, try to find a deeper match first
+      if (route.children.isNotEmpty) {
+        final childMatch = findAppRoute(route.children, cleanLocation, parentPath: fullPath);
+        if (childMatch != null) return childMatch;
       }
-    } else if (location.contains('/' + r.path) || location == r.path) {
-       // Deeply nested relative route match
-       final child = findAppRoute(r.children, location);
-       if (child != null) return child;
-       return r;
+      return route;
+    }
+
+    // Even if parent doesn't match cleanLocation exactly (e.g. parent is /employees, loc is /employees/deps/create)
+    // we should still recurse if the parent is a prefix
+    if (fullPath.startsWith('/') && cleanLocation.startsWith(fullPath)) {
+       final childMatch = findAppRoute(route.children, cleanLocation, parentPath: fullPath);
+       if (childMatch != null) return childMatch;
     }
   }
   return null;
+}
+
+bool _pathMatches(String routePath, String location) {
+  if (routePath == location) return true;
+  
+  // Handle path parameters like :id
+  final pattern = routePath.replaceAllMapped(RegExp(r':\w+'), (match) => r'[^/]+');
+  final regex = RegExp('^' + pattern + r'$');
+  return regex.hasMatch(location);
 }
 
 final routerProvider = Provider<GoRouter>((ref) {

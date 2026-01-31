@@ -187,22 +187,22 @@ final List<AppRoute> employeeRoutes = [
     routeName: RouteNames.employees,
     module: 'employees',
     icon: Icons.badge,
-    roles: [UserRole.admin],
+    roles: [UserRole.admin, UserRole.staff],
     builder: (_, __) => const EmployeeListScreen(),
     children: [
-       AppRoute(path: 'create', title: 'Add Employee', routeName: RouteNames.employeeCreate, module: 'employees', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const EmployeeFormScreen()),
-       AppRoute(path: 'edit/:id', title: 'Edit Employee', routeName: RouteNames.employeeEdit, module: 'employees', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => EmployeeFormScreen(employeeId: state.pathParameters['id']!)),
-       AppRoute(path: 'departments', title: 'Departments', routeName: RouteNames.departments, module: 'employees', roles: [UserRole.admin], builder: (_, __) => const DepartmentListScreen(), children: [
-          AppRoute(path: 'create', title: 'Add Dept', routeName: RouteNames.departmentCreate, module: 'employees', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const DepartmentFormScreen()),
-          AppRoute(path: 'edit/:id', title: 'Edit Dept', routeName: RouteNames.departmentEdit, module: 'employees', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => DepartmentFormScreen(departmentId: state.pathParameters['id'])),
+       AppRoute(path: 'create', title: 'Add Employee', routeName: RouteNames.employeeCreate, module: 'employees', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const EmployeeFormScreen()),
+       AppRoute(path: 'edit/:id', title: 'Edit Employee', routeName: RouteNames.employeeEdit, module: 'employees', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => EmployeeFormScreen(employeeId: state.pathParameters['id']!)),
+       AppRoute(path: 'departments', title: 'Departments', routeName: RouteNames.departments, module: 'employees', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const DepartmentListScreen(), children: [
+          AppRoute(path: 'create', title: 'Add Dept', routeName: RouteNames.departmentCreate, module: 'employees', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const DepartmentFormScreen()),
+          AppRoute(path: 'edit/:id', title: 'Edit Dept', routeName: RouteNames.departmentEdit, module: 'employees', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => DepartmentFormScreen(departmentId: state.pathParameters['id'])),
        ]),
-       AppRoute(path: 'roles', title: 'Roles', routeName: RouteNames.roles, module: 'employees', roles: [UserRole.admin], builder: (_, __) => const RoleListScreen(), children: [
-          AppRoute(path: 'create', title: 'Add Role', routeName: RouteNames.roleCreate, module: 'employees', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const RoleFormScreen()),
-          AppRoute(path: 'edit/:id', title: 'Edit Role', routeName: RouteNames.roleEdit, module: 'employees', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => RoleFormScreen(roleId: state.pathParameters['id'])),
+       AppRoute(path: 'roles', title: 'Roles', routeName: RouteNames.roles, module: 'employees', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const RoleListScreen(), children: [
+          AppRoute(path: 'create', title: 'Add Role', routeName: RouteNames.roleCreate, module: 'employees', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const RoleFormScreen()),
+          AppRoute(path: 'edit/:id', title: 'Edit Role', routeName: RouteNames.roleEdit, module: 'employees', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => RoleFormScreen(roleId: state.pathParameters['id'])),
        ]),
-       AppRoute(path: 'users', title: 'Users', routeName: RouteNames.users, module: 'employees', roles: [UserRole.admin], builder: (_, __) => const UserListScreen(), children: [
-          AppRoute(path: 'create', title: 'Add User', routeName: RouteNames.userCreate, module: 'employees', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const UserFormScreen()),
-          AppRoute(path: 'edit/:id', title: 'Edit User', routeName: RouteNames.userEdit, module: 'employees', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => UserFormScreen(userId: state.pathParameters['id']!)),
+       AppRoute(path: 'users', title: 'Users', routeName: RouteNames.users, module: 'employees', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const UserListScreen(), children: [
+          AppRoute(path: 'create', title: 'Add User', routeName: RouteNames.userCreate, module: 'employees', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const UserFormScreen()),
+          AppRoute(path: 'edit/:id', title: 'Edit User', routeName: RouteNames.userEdit, module: 'employees', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => UserFormScreen(userId: state.pathParameters['id']!)),
        ]),
         AppRoute(
           path: 'privileges',
@@ -210,7 +210,7 @@ final List<AppRoute> employeeRoutes = [
           routeName: RouteNames.privileges,
           module: 'employees',
           icon: Icons.admin_panel_settings,
-          roles: [UserRole.admin],
+          roles: [UserRole.admin, UserRole.staff],
           builder: (_, __) => const PrivilegeManagementScreen(),
         ),
     ]
