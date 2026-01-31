@@ -63,15 +63,21 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final settings = ref.read(settingsProvider);
       final auth = ref.read(authProvider);
-
-      // 1. Auth Check (Login/Splash logic)
+      
+      // 1. Password Recovery Guard (Highest Priority)
+      if (auth.isPasswordRecovery && state.matchedLocation != '/reset-password') {
+         debugPrint('Router: Redirecting to password recovery');
+         return '/reset-password';
+      }
+ 
+      // 2. Auth Check (Login/Splash logic)
       final authRedirect = authGuard(context, state, settings.landingPage, auth);
       if (authRedirect != null) return authRedirect;
 
-      // 2. Logic for Logged In Users
+      // 3. Logic for Logged In Users
       if (!auth.isLoggedIn) return '/login';
       
-      // 3. Permission & Role Guard
+      // 4. Permission & Role Guard
       final route = findAppRoute(appRoutes, state.matchedLocation);
 
       if (route != null) {
