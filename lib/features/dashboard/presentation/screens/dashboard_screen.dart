@@ -192,6 +192,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerPr
             });
         }
       }
+      }
+      
+      // Redirect to Organization Selection if multiple available and none selected
+      if (!next.isLoading &&
+          next.organizations.isNotEmpty &&
+          next.selectedOrganization == null &&
+          next.error == null) {
+         if (previous?.isLoading == true || previous?.selectedOrganization != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+               if (mounted) context.go('/organizations-list');
+            });
+         }
+      }
     });
 
     final dashboardState = ref.watch(dashboardProvider);

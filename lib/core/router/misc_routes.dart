@@ -240,7 +240,7 @@ final List<AppRoute> organizationRoutes = [
     routeName: RouteNames.organizations,
     module: 'organization',
     icon: Icons.business,
-    roles: [UserRole.admin],
+    roles: [UserRole.admin, UserRole.staff],
     builder: (_, __) => const OrganizationListScreen(),
     children: [
       AppRoute(

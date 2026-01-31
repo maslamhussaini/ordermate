@@ -81,7 +81,9 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
       }
       
       if (selected == null && orgs.isNotEmpty) {
-        selected = orgs.first;
+        if (orgs.length == 1) {
+          selected = orgs.first;
+        }
       }
 
       state = state.copyWith(
