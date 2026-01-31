@@ -80,6 +80,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
     try {
       final remoteOrders =
           await repository.getOrders(organizationId: store?.organizationId, storeId: store?.id, sYear: effectiveSYear);
+      if (!mounted) return;
       // Merge local and remote data
       List<Order> mergedOrders = [...localData];
       for (var remoteOrder in remoteOrders) {
@@ -94,7 +95,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
       state = state.copyWith(isLoading: false, orders: mergedOrders);
     } catch (e) {
       debugPrint('Remote fetch failed, using local cache: $e');
-      state = state.copyWith(isLoading: false, orders: localData);
+      if (mounted) state = state.copyWith(isLoading: false, orders: localData);
     }
   }
 
@@ -180,6 +181,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
        
        try {
          final newOrder = await repository.createOrder(orderWithLocation);
+         if (!mounted) return orderWithLocation; // Or some default
          // Ideally cache local too
          state = state.copyWith(isLoading: false, orders: [newOrder, ...state.orders]);
          ref.read(dashboardProvider.notifier).refresh();
@@ -188,6 +190,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
           if (netErr.toString().contains('SocketException') || netErr.toString().contains('Network')) {
               debugPrint('Network error, saving locally');
               await localRepository.addOrder(orderWithLocation);
+              if (!mounted) return orderWithLocation;
               state = state.copyWith(isLoading: false, orders: [orderWithLocation, ...state.orders]);
               ref.read(dashboardProvider.notifier).refresh();
               return orderWithLocation;
@@ -195,7 +198,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
           rethrow;
        }
      } catch (e) {
-       state = state.copyWith(isLoading: false, error: e.toString());
+       if (mounted) state = state.copyWith(isLoading: false, error: e.toString());
        rethrow;
      }
   }
@@ -206,6 +209,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
       final orderWithYear = order.copyWith(sYear: sYear);
 
       await repository.updateOrder(orderWithYear);
+      if (!mounted) return;
       state = state.copyWith(
         orders: state.orders.map((o) => o.id == order.id ? orderWithYear : o).toList(),
       );
@@ -223,6 +227,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
            final orderLocal = order.copyWith(sYear: sYearLocal);
 
           await localRepository.updateOrder(orderLocal);
+          if (!mounted) return;
           state = state.copyWith(
             orders:
                 state.orders.map((o) => o.id == order.id ? orderLocal : o).toList(),
@@ -230,11 +235,12 @@ class OrderNotifier extends StateNotifier<OrderState> {
           ref.read(dashboardProvider.notifier).refresh();
           return;
         } catch (localE) {
+          if (!mounted) return;
           state = state.copyWith(error: 'Offline update failed: $localE');
           rethrow;
         }
       }
-      state = state.copyWith(error: e.toString());
+      if (mounted) state = state.copyWith(error: e.toString());
       rethrow;
     }
   }
@@ -343,6 +349,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
 
       // 4. Create Items
       await repository.createOrderItems(itemsWithOrderId);
+      if (!mounted) return;
 
       state = state.copyWith(
         isLoading: false,
@@ -350,19 +357,16 @@ class OrderNotifier extends StateNotifier<OrderState> {
       );
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
-      // Logic for network error needs fallback with sYear too
       if (e.toString().contains('SocketException') ||
           e.toString().contains('Network')) {
         debugPrint(
             'Network error creating order with items, saving locally: $e');
         try {
-           // We need to assume orderWithOrg was created successfully if validation passed.
-           // But variables are scoped. Re-validate/assign.
            final sYear = _validateAndGetSYear(order.orderDate);
            final orderWithOrg = order.copyWith(organizationId: orgId, sYear: sYear);
 
-          // For now, offline only supports Order Header creation.
           await localRepository.addOrder(orderWithOrg, items: items);
+          if (!mounted) return;
 
           state = state.copyWith(
             isLoading: false,
@@ -371,13 +375,14 @@ class OrderNotifier extends StateNotifier<OrderState> {
           ref.read(dashboardProvider.notifier).refresh();
           return;
         } catch (localE) {
+          if (!mounted) return;
           state = state.copyWith(
               isLoading: false,
               error: 'Offline createWithItems failed: $localE');
           rethrow;
         }
       }
-      state = state.copyWith(isLoading: false, error: e.toString());
+      if (mounted) state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
   }
@@ -421,6 +426,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
         }).toList();
         await repository.createOrderItems(itemsWithOrderId);
       }
+      if (!mounted) return;
 
       // 4. Update State
       final updatedOrders =
@@ -435,12 +441,14 @@ class OrderNotifier extends StateNotifier<OrderState> {
            final orderWithYear = order.copyWith(sYear: sYear);
            
           await localRepository.updateOrder(orderWithYear, items: items);
+          if (!mounted) return;
           final updatedOrders =
               state.orders.map((o) => o.id == order.id ? orderWithYear : o).toList();
           state = state.copyWith(isLoading: false, orders: updatedOrders);
           ref.read(dashboardProvider.notifier).refresh();
           return;
         } catch (localE) {
+          if (!mounted) return;
           state = state.copyWith(
               isLoading: false, error: 'Offline update failed: $localE');
           rethrow;

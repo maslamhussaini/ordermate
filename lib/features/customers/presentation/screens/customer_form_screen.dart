@@ -150,11 +150,13 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         }
       }
       
-      setState(() {});
+      if (mounted) setState(() {});
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error loading customer data')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error loading customer data')),
+        );
+      }
     }
   }
 
@@ -247,15 +249,17 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         addressText = 'GPS Coordinates Only';
       }
 
-      setState(() {
-        _latitude = position.latitude;
-        _longitude = position.longitude;
-        _matchedAddress = addressText ?? 'GPS Location';
-      });
+      if (mounted) {
+        setState(() {
+          _latitude = position.latitude;
+          _longitude = position.longitude;
+          _matchedAddress = addressText ?? 'GPS Location';
+        });
+      }
     } catch (e) {
-      setState(() => _locationError = e.toString());
+      if (mounted) setState(() => _locationError = e.toString());
     } finally {
-      setState(() => _isFetchingLocation = false);
+      if (mounted) setState(() => _isFetchingLocation = false);
     }
   }
 
@@ -350,7 +354,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
             const SnackBar(content: Text('Error: Organization or Store not selected. Please restart the app.')),
           );
         }
-        setState(() => _isSubmitting = false);
+        if (mounted) setState(() => _isSubmitting = false);
         return;
       }
 
@@ -657,12 +661,14 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                                         if (state.toString().isNotEmpty) await _setStateByName(state.toString());
                                         if (country.toString().isNotEmpty) await _setCountryByName(country);
 
-                                        setState(() {
-                                          _latitude = double.tryParse(option['lat'].toString());
-                                          _longitude = double.tryParse(option['lon'].toString());
-                                          _matchedAddress = option['display_name'];
-                                          _locationError = null;
-                                        });
+                                         if (mounted) {
+                                          setState(() {
+                                            _latitude = double.tryParse(option['lat'].toString());
+                                            _longitude = double.tryParse(option['lon'].toString());
+                                            _matchedAddress = option['display_name'];
+                                            _locationError = null;
+                                          });
+                                        }
                                       },
                                     );
                                   },

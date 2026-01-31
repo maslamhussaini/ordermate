@@ -109,6 +109,7 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
 
     // Check connectivity first
     final connectivityResult = await ConnectivityHelper.check();
+    if (!mounted) return;
     if (connectivityResult.contains(ConnectivityResult.none)) {
       state = state.copyWith(isLoading: false, customers: localData);
       return;
@@ -142,6 +143,7 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
 
     // Check connectivity first
     final connectivityResult = await ConnectivityHelper.check();
+    if (!mounted) return;
     if (connectivityResult.contains(ConnectivityResult.none)) {
       state = state.copyWith(isLoading: false, vendors: localData);
       return;
@@ -172,6 +174,7 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
 
     // Check connectivity first
     final connectivityResult = await ConnectivityHelper.check();
+    if (!mounted) return;
     if (connectivityResult.contains(ConnectivityResult.none)) {
       state = state.copyWith(isLoading: false, employees: localData);
       return;
@@ -195,8 +198,10 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     Future.microtask(() => state = state.copyWith(isLoading: true));
     try {
       final users = await repository.getAppUsers(orgId);
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, appUsers: users);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -281,8 +286,10 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     try {
       final orgId = organizationId ?? ref.read(organizationProvider).selectedOrganizationId;
       final list = await repository.getRoles(organizationId: orgId);
+      if (!mounted) return;
       state = state.copyWith(roles: list);
     } catch (e) {
+      if (!mounted) return;
       debugPrint('Error loading roles: $e');
     }
   }
@@ -543,6 +550,7 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       );
       await loadAppUsers();
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
@@ -589,8 +597,10 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       } else if (employeeId != null) {
         access = await repository.getUserStoreAccess(employeeId);
       }
+      if (!mounted) return;
       state = state.copyWith(storeAccess: access, isLoading: false);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
   }
@@ -606,8 +616,10 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       } else if (employeeId != null) {
         await repository.saveUserStoreAccess(employeeId, storeIds, orgId);
       }
+      if (!mounted) return;
       state = state.copyWith(storeAccess: storeIds, isLoading: false);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: e.toString(), isLoading: false);
       rethrow;
     }

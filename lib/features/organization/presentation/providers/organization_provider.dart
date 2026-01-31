@@ -86,6 +86,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         }
       }
 
+      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         organizations: orgs,
@@ -96,6 +97,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         await loadStores(selected.id);
       }
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -146,9 +148,12 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
       // Reload to refresh list and select new org
       await loadOrganizations();
       await selectOrganization(newOrg); // Ensure we select the new one
+      if (!mounted) return newOrg;
       return newOrg;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      if (mounted) {
+        state = state.copyWith(isLoading: false, error: e.toString());
+      }
       rethrow;
     }
   }
@@ -173,8 +178,10 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
 
       await _repository.updateOrganization(orgToUpdate);
       await loadOrganizations(); // Refresh list
+      if (!mounted) return;
       state = state.copyWith(selectedOrganization: orgToUpdate);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
@@ -216,8 +223,10 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
           selected = allowedStores.first;
       }
       
+      if (!mounted) return;
       state = state.copyWith(stores: allowedStores, selectedStore: selected);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: e.toString());
     }
   }

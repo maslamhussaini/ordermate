@@ -251,12 +251,16 @@ class SettingsScreen extends ConsumerWidget {
                  debugPrint('Logout error: $e');
                } finally {
                  // 2. Safety Check: If session persists locally, force kill it
-                 if (SupabaseConfig.client.auth.currentUser != null) {
-                    try {
-                       debugPrint('Forcing local signout...');
-                       await SupabaseConfig.client.auth.signOut(scope: SignOutScope.local);
-                    } catch (_) {}
-                 }
+                  // 2. Always Force Local Signout to ensure cache is cleared
+                  // This is critical because sometimes 'signOut()' clears memory but fails network/storage,
+                  // leaving a ghost token. We unconditionally wipe local storage here.
+                  try {
+                     debugPrint('Forcing local signout cleanup...');
+                     await SupabaseConfig.client.auth.signOut(scope: SignOutScope.local);
+                  } catch (e) {
+                     // Ignore errors (e.g. "AuthSessionMissingException") since we are just cleaning up
+                     debugPrint('Local signout cleanup warning: $e');
+                  }
 
                  // 3. Navigate
                  if (context.mounted) context.go('/login');

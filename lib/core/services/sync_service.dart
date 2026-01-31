@@ -174,6 +174,12 @@ class SyncService {
     SupabaseConfig.isOfflineLoggedIn = false;
 
     try {
+      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      if (orgId == null) {
+        debugPrint('SyncService: Sync Aborted. No Organization Selected.');
+        return;
+      }
+
       _ref.read(syncProgressProvider.notifier).setSyncing(true, message: 'Starting Sync...', progress: 0.0);
       debugPrint('SyncService: Starting Full Sync...');
 

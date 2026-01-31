@@ -237,8 +237,9 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isPasswordRecovery: false);
   }
 
+  /// FIXED: Reset all auth state fields to their defaults on logout
   void logout() {
-    state = const AuthState(isLoggedIn: false);
+    state = const AuthState();  // ✅ Reset everything
     AuthService.testRole = null;
   }
 }

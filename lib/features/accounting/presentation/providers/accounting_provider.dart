@@ -128,6 +128,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         _repository.getInvoiceTypes(organizationId: orgId),
       ]);
 
+      if (!mounted) return;
       state = state.copyWith(
         accounts: List<ChartOfAccount>.from(results[0] as Iterable),
         types: List<AccountType>.from(results[1] as Iterable),
@@ -140,6 +141,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         isLoading: false,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -168,8 +170,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     try {
       final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
       final accounts = await _repository.getBankCashAccounts(organizationId: orgId);
+      if (!mounted) return;
       state = state.copyWith(bankCashAccounts: accounts);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: e.toString());
     }
   }
@@ -178,8 +182,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     try {
       final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
       final prefixes = await _repository.getVoucherPrefixes(organizationId: orgId);
+      if (!mounted) return;
       state = state.copyWith(voucherPrefixes: prefixes);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: e.toString());
     }
   }
@@ -188,8 +194,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     try {
       final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
       final terms = await _repository.getPaymentTerms(organizationId: orgId);
+      if (!mounted) return;
       state = state.copyWith(paymentTerms: terms);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: e.toString());
     }
   }
@@ -198,8 +206,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     try {
       final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
       final txs = await _repository.getTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
+      if (!mounted) return;
       state = state.copyWith(transactions: txs);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: e.toString());
     }
   }
@@ -594,8 +604,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         return;
       }
       final invoices = await _repository.getInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
+      if (!mounted) return;
       state = state.copyWith(invoices: invoices, isLoading: false);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -795,8 +807,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
       if (orgId == null) return;
       final setup = await _repository.getGLSetup(orgId);
+      if (!mounted) return;
       state = state.copyWith(glSetup: setup);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: e.toString());
     }
   }

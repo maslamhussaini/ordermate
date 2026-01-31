@@ -43,7 +43,7 @@ class DashboardState {
 class DashboardNotifier extends StateNotifier<DashboardState> {
   DashboardNotifier(this.syncService, {required this.ref, this.storeId, this.organizationId}) : super(DashboardState()) {
     // Automatically load stats when the notifier is created
-    refresh();
+    Future.microtask(() => refresh());
 
     // Listen for sync completion to refresh local stats
     _listenToSync();
@@ -72,6 +72,14 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   final Ref ref;
 
   Future<void> refresh() async {
+    // If no organization is selected (e.g. during logout or initial load), 
+    // do not attempt to fetch stats.
+    if (organizationId == null) {
+      debugPrint('Dashboard: No organization selected. Skipping stats refresh.');
+      state = state.copyWith(isLoading: false);
+      return;
+    }
+
     debugPrint('Dashboard: Refreshing stats for orgId: $organizationId, storeId: $storeId');
     
     // CONSISTENT BEHAVIOR:
@@ -87,7 +95,12 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     }
     
     // Background Sync
-    if (tryOnline && organizationId != null && !ref.read(syncProgressProvider).isSyncing) {
+    if (tryOnline && !ref.read(syncProgressProvider).isSyncing) {
+       // Add null check for organizationId before syncing
+       if (organizationId == null) {
+         debugPrint('Dashboard: Cannot start background sync, no organization selected.');
+         return;
+       }
        syncService.syncAll().catchError((e) => debugPrint('Dashboard Sync Bg Error: $e'));
     }
   }

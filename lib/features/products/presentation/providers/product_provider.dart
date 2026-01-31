@@ -46,12 +46,15 @@ class ProductNotifier extends StateNotifier<ProductState> {
 
     // Check Connectivity usually or just Try-Catch
     try {
+      if (!mounted) return;
       final products = await repository.getProducts(storeId: storeId, organizationId: orgId);
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, products: products);
     } catch (e) {
       // Fallback to local
       try {
         final localProducts = await localRepository.getLocalProducts(organizationId: orgId, storeId: storeId);
+        if (!mounted) return;
         if (localProducts.isNotEmpty) {
           state = state.copyWith(
               isLoading: false, products: localProducts, error: null);
@@ -59,6 +62,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
           state = state.copyWith(isLoading: false, error: e.toString());
         }
       } catch (localE) {
+        if (!mounted) return;
         state = state.copyWith(
             isLoading: false, error: 'Online: $e, Offline: $localE');
       }
@@ -71,6 +75,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
     final productWithOrg = product.copyWith(organizationId: orgId);
     try {
       await repository.createProduct(productWithOrg);
+      if (!mounted) return;
       await loadProducts();
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
@@ -78,18 +83,22 @@ class ProductNotifier extends StateNotifier<ProductState> {
           e.toString().contains('Network')) {
         try {
           await localRepository.addProduct(product);
+          if (!mounted) return;
           // Manually update state or reload local
           final storeId = ref.read(organizationProvider).selectedStore?.id;
           final localProducts = await localRepository.getLocalProducts(organizationId: orgId, storeId: storeId);
+          if (!mounted) return;
           state = state.copyWith(isLoading: false, products: localProducts);
           ref.read(dashboardProvider.notifier).refresh();
           return;
         } catch (localE) {
+          if (!mounted) return;
           state = state.copyWith(
               isLoading: false, error: 'Offline add failed: $localE');
           rethrow;
         }
       }
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
@@ -101,6 +110,7 @@ class ProductNotifier extends StateNotifier<ProductState> {
     final productWithOrg = product.copyWith(organizationId: orgId);
     try {
       await repository.updateProduct(productWithOrg);
+      if (!mounted) return;
       await loadProducts();
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
@@ -108,18 +118,22 @@ class ProductNotifier extends StateNotifier<ProductState> {
           e.toString().contains('Network')) {
         try {
           await localRepository.updateProduct(product);
+          if (!mounted) return;
           // Manually update state or reload local
           final storeId = ref.read(organizationProvider).selectedStore?.id;
           final localProducts = await localRepository.getLocalProducts(organizationId: orgId, storeId: storeId);
+          if (!mounted) return;
           state = state.copyWith(isLoading: false, products: localProducts);
           ref.read(dashboardProvider.notifier).refresh();
           return;
         } catch (localE) {
+          if (!mounted) return;
           state = state.copyWith(
               isLoading: false, error: 'Offline update failed: $localE');
           rethrow;
         }
       }
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
@@ -129,9 +143,11 @@ class ProductNotifier extends StateNotifier<ProductState> {
     state = state.copyWith(isLoading: true);
     try {
       await repository.deleteProduct(id);
+      if (!mounted) return;
       await loadProducts();
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }

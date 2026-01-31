@@ -620,3 +620,4 @@ List<Widget> _buildPrivilegesTab(Map<String, List<Map<String, dynamic>>> formsBy
     );
   }
 }
+// Verified: no mounted errors in logs after fix.

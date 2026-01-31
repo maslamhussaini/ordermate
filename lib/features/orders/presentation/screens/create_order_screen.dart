@@ -206,7 +206,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() => _orderDate = picked);
     }
   }
