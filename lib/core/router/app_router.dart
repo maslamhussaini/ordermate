@@ -64,6 +64,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       final settings = ref.read(settingsProvider);
       final auth = ref.read(authProvider);
       
+      // 0. Safeguard for Supabase tokens in URL fragment being parsed as paths
+      if (state.matchedLocation.contains('access_token')) {
+         debugPrint('Router: Token detected in path, redirecting to splash/handle');
+         return '/splash';
+      }
+ 
       // 1. Password Recovery Guard (Highest Priority)
       if (auth.isPasswordRecovery && state.matchedLocation != '/reset-password') {
          debugPrint('Router: Redirecting to password recovery');
@@ -116,6 +122,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
         routes: buildGoRoutes(appRoutes),
       ),
+      
+      // Catch-all route for malformed URLs or Supabase tokens
+      GoRoute(path: '/:catchAll(.*)', builder: (_, __) => const SplashScreen()),
     ],
     errorBuilder: (context, state) => Scaffold(body: Center(child: Text('Page Not Found: ${state.error}')))
   );

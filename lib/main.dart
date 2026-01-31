@@ -13,10 +13,16 @@ import 'package:ordermate/core/utils/logger.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'; // Web support
 import 'package:ordermate/core/utils/bug_reporter.dart';
+import 'package:flutter_web_plugins/url_strategy.dart'; // Add this for path URL strategy
 
 Future<void> main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Enable Path URL Strategy for Web
+  if (kIsWeb) {
+    usePathUrlStrategy();
+  }
 
   // Initialize database factory
   try {
