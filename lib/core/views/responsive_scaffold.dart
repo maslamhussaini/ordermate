@@ -89,40 +89,51 @@ class ResponsiveScaffold extends ConsumerWidget {
             },
           ),
           
-          if (selectedYear != null)
-            Center(
+          // Year Indicator
+          Container(
+            alignment: Alignment.center,
+            margin: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              onTap: () {
+                // You can also trigger the year selector here for convenience
+              },
               child: Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white10 
-                      : Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(12),
+                  color: selectedYear != null 
+                      ? Theme.of(context).colorScheme.primaryContainer.withAlpha(51) // Suble highlight
+                      : (Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.grey.shade100),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white24 
-                        : Colors.grey.shade300,
+                    color: selectedYear != null 
+                        ? Theme.of(context).colorScheme.primary.withAlpha(76)
+                        : (Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.grey.shade300),
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.event_note, size: 14, 
-                         color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(width: 4),
+                    Icon(
+                      selectedYear != null ? Icons.event_available : Icons.event_note, 
+                      size: 16, 
+                      color: selectedYear != null ? Theme.of(context).colorScheme.primary : Colors.grey
+                    ),
+                    const SizedBox(width: 6),
                     Text(
-                      '$selectedYear',
+                      selectedYear?.toString() ?? 'All Years',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 13,
+                        color: selectedYear != null 
+                            ? Theme.of(context).colorScheme.onPrimaryContainer
+                            : Theme.of(context).colorScheme.onSurface.withAlpha(178),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+          ),
 
           // User Profile / Logout
           PopupMenuButton<String>(
