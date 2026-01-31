@@ -51,15 +51,12 @@ class SupabaseConfig {
   static bool isOfflineLoggedIn = false;
 
   static String get frontendUrl {
+    // 1. Check .env first (useful for local testing if someone set it to localhost)
     final envUrl = dotenv.env['FRONTEND_URL']?.trim();
     if (envUrl != null && envUrl.isNotEmpty) return envUrl;
     
-    if (kIsWeb) {
-      // On web, Uri.base.origin is the current URL (e.g., https://ordermate-v619.vercel.app)
-      return Uri.base.origin;
-    }
-    
-    // Default fallback for mobile
+    // 2. Default to production Vercel URL for ALL platforms (Mobile, Mac, PC, Web)
+    // This ensures links sent in emails always work for the recipient.
     return 'https://ordermate-v619.vercel.app';
   }
 }
