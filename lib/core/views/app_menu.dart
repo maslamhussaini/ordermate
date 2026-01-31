@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ordermate/core/enums/permission.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/core/router/app_routes_config.dart';
+import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
 class AppMenu extends ConsumerWidget {
   const AppMenu({super.key});
