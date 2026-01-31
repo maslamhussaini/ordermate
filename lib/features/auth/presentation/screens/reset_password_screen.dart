@@ -13,10 +13,18 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
 }
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    final user = SupabaseConfig.client.auth.currentUser;
+    _emailController.text = user?.email ?? '';
+  }
 
   Future<void> _updatePassword() async {
     if (!_formKey.currentState!.validate()) return;
@@ -33,31 +41,27 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // 1. Update Password in Supabase
       await SupabaseConfig.client.auth.updateUser(
         UserAttributes(password: _passwordController.text.trim()),
       );
 
       if (mounted) {
-        // Clear recovery status in provider so we aren't redirected back here
+        // 2. Load dynamic permissions to check privileges (as requested)
+        await ref.read(authProvider.notifier).loadDynamicPermissions();
+        
+        // 3. Clear recovery status
         ref.read(authProvider.notifier).clearRecoveryStatus();
 
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Success'),
-            content: const Text(
-                'Password updated successfully! You can now log in with your new password.',),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                  context.go('/login');
-                },
-                child: const Text('Go to Login'),
-              ),
-            ],
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password updated successfully! Welcome back.'),
+            backgroundColor: Colors.green,
           ),
         );
+
+        // 4. Redirect to Dashboard (Auto-login effect)
+        context.go('/dashboard');
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -78,6 +82,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   @override
   void dispose() {
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -100,10 +105,29 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'Enter New Password',
+                  'Update Your Password',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Please enter your new password below.',
+                  style: TextStyle(color: Colors.grey),
+                ),
                 const SizedBox(height: 32),
+                
+                // Email Field (Disabled)
+                TextFormField(
+                  controller: _emailController,
+                  enabled: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Email Address',
+                    prefixIcon: Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(),
+                    filled: true,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
