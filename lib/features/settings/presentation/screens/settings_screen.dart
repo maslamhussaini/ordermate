@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/database/database_helper.dart' as import_database_helper;
 import 'package:ordermate/core/services/auth_service_biometrics.dart';
@@ -247,6 +248,11 @@ class SettingsScreen extends ConsumerWidget {
                  await SupabaseConfig.client.auth.signOut();
                } catch (e) {
                  debugPrint('Logout error: $e');
+                 // Force local signout if network fails
+                 // This ensures the local session is cleared so auto-login doesn't happen
+                 try {
+                    await SupabaseConfig.client.auth.signOut(scope: SignOutScope.local);
+                 } catch (_) {}
                } finally {
                  if (context.mounted) context.go('/login');
                }
