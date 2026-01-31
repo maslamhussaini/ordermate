@@ -91,18 +91,13 @@ class AuthNotifier extends Notifier<AuthState> {
            isPasswordRecovery: true,
          );
       } else if (event == supabase.AuthChangeEvent.signedIn) {
-         // Only update if not already logged in to avoid loops
-         if (!state.isLoggedIn) {
-             final fullName = session?.user.userMetadata?['full_name'] ?? '';
-             // Default to existing role or fetch? We'll rely on the existing login method logic ideally,
-             // but for auto-login we assume basic access until profile is fetched.
-             state = state.copyWith(
-               isLoggedIn: true,
-               userFullName: fullName,
-               isPasswordRecovery: false, 
-             );
-             loadDynamicPermissions();
-         }
+        final fullName = session?.user.userMetadata?['full_name'] ?? '';
+        state = state.copyWith(
+          isLoggedIn: true,
+          userFullName: fullName,
+          isPasswordRecovery: false, 
+        );
+        loadDynamicPermissions();
       } else if (event == supabase.AuthChangeEvent.signedOut) {
          logout();
       }
@@ -145,12 +140,19 @@ class AuthNotifier extends Notifier<AuthState> {
       final roleStr = (userResponse['role'] as String?)?.toUpperCase();
       final fullName = userResponse['full_name'] as String?;
 
-      if (fullName != null && fullName.isNotEmpty) {
-         state = state.copyWith(userFullName: fullName);
+      // Determine the role
+      UserRole determinedRole = UserRole.staff;
+      if (roleStr == 'CORPORATE_ADMIN' || roleStr == 'ADMIN') {
+        determinedRole = UserRole.admin;
       }
+      
+      state = state.copyWith(
+        userFullName: fullName ?? state.userFullName,
+        role: determinedRole,
+      );
 
       // Corporate Admins bypass all checks
-      if (roleStr == 'CORPORATE_ADMIN') return;
+      if (determinedRole == UserRole.admin) return;
 
       // 2. Fetch Privileges
       final privsResponse = await SupabaseConfig.client

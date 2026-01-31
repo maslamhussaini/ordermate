@@ -155,10 +155,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       debugPrint('Splash: Has Session? $hasSession');
       
       if (hasSession) {
-        debugPrint('Splash: Syncing Auth State (Admin)...');
-        // Sync Auth Provider State a second time just in case
-        final fullName = SupabaseConfig.client.auth.currentUser?.userMetadata?['full_name'] ?? 'User';
-        ref.read(authProvider.notifier).login(UserRole.admin, fullName: fullName);
+        debugPrint('Splash: Session detected. Loading profile...');
+        
+        // Ensure dynamic permissions/role are loaded before navigating
+        await ref.read(authProvider.notifier).loadDynamicPermissions();
 
         debugPrint('Splash: Triggering Sync...');
         ref.read(syncServiceProvider).syncAll();
