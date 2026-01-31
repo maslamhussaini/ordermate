@@ -97,6 +97,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', name: RouteNames.login, builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', name: RouteNames.register, builder: (_, __) => const RegisterScreen()),
       GoRoute(path: '/reset-password', name: RouteNames.resetPassword, builder: (_, __) => const ResetPasswordScreen()),
+      GoRoute(path: '/organizations', redirect: (context, state) => '/organizations-list'),
       GoRoute(path: '/onboarding', redirect: (context, state) => state.fullPath == '/onboarding' ? '/onboarding/organization' : null, routes: [
            GoRoute(path: 'organization', builder: (context, state) => OrganizationSetupScreen(userData: state.extra as Map<String, String>)),
            GoRoute(path: 'store', builder: (context, state) { final extra = state.extra as Map<String, dynamic>; return StoreSetupScreen(userData: extra['userData'] as Map<String, String>, orgData: extra['orgData'] as Map<String, String>); }),

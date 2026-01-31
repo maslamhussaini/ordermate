@@ -232,7 +232,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                       icon: Icons.list,
                       onTap: () {
                          _closeDrawerIfOpen(context);
-                         context.push('/organizations');
+                         context.push('/organizations-list');
                       },
                     ),
                     if (auth.can('stores', Permission.read))

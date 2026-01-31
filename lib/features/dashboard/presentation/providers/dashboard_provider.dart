@@ -310,13 +310,16 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
       // debugPrint('Dashboard: Stats loaded for store $storeId. Vendors: $vendorsCount');
       
-      if (!mounted) return;
-
+    } catch (e) {
       if (!mounted) return;
       
       // On web, SQLite errors are common but shouldn't distract from the main Online error
-      String displayError = originalError?.toString() ?? localError.toString();
-      if (kIsWeb && displayError.contains('SqfliteFfiWebException')) {
+      String displayError = originalError?.toString() ?? e.toString();
+      
+      // If we detect recursion error, make it more helpful
+      if (displayError.contains('infinite recursion')) {
+        displayError = 'Database Security Error (Infinite Recursion). Please run the fix script in Supabase SQL Editor.';
+      } else if (kIsWeb && displayError.contains('SqfliteFfiWebException')) {
         displayError = originalError?.toString() ?? 'Connection error. Please check your Supabase settings.';
       }
       
