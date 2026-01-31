@@ -401,6 +401,7 @@ class ResponsiveScaffold extends ConsumerWidget {
             onSelected: (value) {
               if (value == 'logout') {
                 ref.read(authProvider.notifier).logout();
+                ref.read(organizationProvider.notifier).clearSelection();
                 context.go('/login');
               }
             },

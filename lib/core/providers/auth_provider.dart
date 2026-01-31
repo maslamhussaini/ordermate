@@ -241,6 +241,7 @@ class AuthNotifier extends Notifier<AuthState> {
   void logout() {
     state = const AuthState();  // ✅ Reset everything
     AuthService.testRole = null;
+    _authSubscription?.cancel();
   }
 }
 

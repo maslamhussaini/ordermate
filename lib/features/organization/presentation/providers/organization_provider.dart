@@ -122,6 +122,10 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
      state = state.copyWith(selectedStore: store);
   }
 
+  void clearSelection() {
+    state = const OrganizationState();
+  }
+
   void reset() {
     state = const OrganizationState();
   }
