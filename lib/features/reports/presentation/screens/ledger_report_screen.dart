@@ -125,12 +125,14 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
 
   String _getEntityName() {
     if (_selectedEntity is BusinessPartner) return (_selectedEntity as BusinessPartner).name;
+    if (_selectedEntity is BankCash) return (_selectedEntity as BankCash).name;
     if (_selectedEntity is ChartOfAccount) return (_selectedEntity as ChartOfAccount).accountTitle;
     return "Unknown";
   }
 
   String? _getEntityAccountId() {
     if (_selectedEntity is BusinessPartner) return (_selectedEntity as BusinessPartner).chartOfAccountId;
+    if (_selectedEntity is BankCash) return (_selectedEntity as BankCash).chartOfAccountId;
     if (_selectedEntity is ChartOfAccount) return (_selectedEntity as ChartOfAccount).id;
     return null;
   }
@@ -213,7 +215,7 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
             title: Text(bc.name),
             subtitle: Text(account?.accountTitle ?? ''),
             onTap: () {
-              setState(() => _selectedEntity = account);
+              setState(() => _selectedEntity = bc);
               _loadLedger();
             },
           );
@@ -241,9 +243,24 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
   }
 
   Future<void> _loadLedger() async {
-    final accountId = _getEntityAccountId();
-    if (accountId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Critical: Account ID not linked to this entity.")));
+    String accountId = '';
+    String? moduleAccount;
+
+    if (_selectedEntity is BusinessPartner) {
+      final p = _selectedEntity as BusinessPartner;
+      moduleAccount = p.id;
+      // We pass the linked GL account if available, but filtering will prioritize moduleAccount
+      accountId = p.chartOfAccountId ?? ''; 
+    } else if (_selectedEntity is BankCash) {
+      final b = _selectedEntity as BankCash;
+      moduleAccount = b.id;
+      accountId = b.chartOfAccountId;
+    } else if (_selectedEntity is ChartOfAccount) {
+      accountId = (_selectedEntity as ChartOfAccount).id;
+    }
+
+    if (accountId.isEmpty && (moduleAccount == null || moduleAccount.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Critical: No Valid ID found for entity.")));
       return;
     }
 
@@ -254,6 +271,7 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
         accountId,
         startDate: _startDate,
         endDate: _endDate,
+        moduleAccount: moduleAccount,
       );
       if (mounted) {
         setState(() {

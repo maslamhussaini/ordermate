@@ -7,7 +7,7 @@ class DatabaseHelper {
 
   DatabaseHelper._init();
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static const int _databaseVersion = 72;
+  static const int _databaseVersion = 73;
   static Database? _database;
   static Future<Database>? _dbOpenFuture;
 
@@ -1702,6 +1702,17 @@ class DatabaseHelper {
          } catch (_) {}
       }
       debugPrint('Database: v72 migration checking complete.');
+    }
+
+    if (oldVersion < 73) {
+      debugPrint('Database: Starting v73 migration (Sub-Ledger Columns)...');
+      try {
+        await db.execute('ALTER TABLE local_transactions ADD COLUMN module_account TEXT');
+        await db.execute('ALTER TABLE local_transactions ADD COLUMN offset_module_account TEXT');
+      } catch (e) {
+        debugPrint('Database: v73 migration error: $e');
+      }
+      debugPrint('Database: v73 migration complete.');
     }
   }
 

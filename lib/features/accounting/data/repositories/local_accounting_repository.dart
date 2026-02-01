@@ -389,6 +389,8 @@ class LocalAccountingRepository {
       'organization_id': transaction.organizationId,
       'store_id': transaction.storeId,
       'syear': transaction.sYear,
+      'module_account': transaction.moduleAccount,
+      'offset_module_account': transaction.offsetModuleAccount,
       'is_synced': isSynced ? 1 : 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
@@ -436,6 +438,8 @@ class LocalAccountingRepository {
       organizationId: (e['organization_id'] as int?) ?? 0,
       storeId: (e['store_id'] as int?) ?? 0,
       sYear: e['syear'] as int?,
+      moduleAccount: e['module_account'] as String?,
+      offsetModuleAccount: e['offset_module_account'] as String?,
     )).toList();
   }
 
@@ -565,6 +569,9 @@ class LocalAccountingRepository {
       status: e['status'] as String? ?? 'posted',
       organizationId: (e['organization_id'] as int?) ?? 0,
       storeId: (e['store_id'] as int?) ?? 0,
+      sYear: e['syear'] as int?,
+      moduleAccount: e['module_account'] as String?,
+      offsetModuleAccount: e['offset_module_account'] as String?,
     )).toList();
   }
 

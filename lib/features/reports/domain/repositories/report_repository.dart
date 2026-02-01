@@ -5,7 +5,13 @@ import '../../../accounting/domain/entities/invoice.dart';
 import '../../../accounting/domain/entities/invoice_item.dart';
 
 abstract class ReportRepository {
-  Future<List<Transaction>> getAccountLedger(String accountId, {DateTime? startDate, DateTime? endDate, int? organizationId});
+  Future<List<Transaction>> getAccountLedger(
+    String accountId, {
+    DateTime? startDate, 
+    DateTime? endDate, 
+    int? organizationId,
+    String? moduleAccount, // New Param
+  });
   
   Future<List<Map<String, dynamic>>> getSalesByProduct({
     DateTime? startDate, 

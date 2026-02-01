@@ -122,7 +122,8 @@ class VoucherService {
       voucherPrefixId: sinvPrefix.id, 
       voucherNumber: voucherNumber,
       voucherDate: voucherDate,
-      accountId: order.businessPartnerId, // Debit Receivable (Use Customer ID directly)
+      accountId: receivableAccountId, // Debit Receivable (GL Account)
+      moduleAccount: order.businessPartnerId, // Sub-Ledger: Customer
       offsetAccountId: glSetup.salesAccountId, // Credit Sales
       amount: order.totalAmount,
       description: 'Sales Invoice for Order #${order.orderNumber}',
@@ -195,7 +196,8 @@ class VoucherService {
           voucherNumber: receiptVoucherNumber,
           voucherDate: voucherDate,
           accountId: cashAcctId ?? receivableAccountId, // Debit Cash
-          offsetAccountId: order.businessPartnerId, // Credit Receivable (Use Customer ID)
+          offsetAccountId: receivableAccountId, // Credit Receivable (GL Account)
+          offsetModuleAccount: order.businessPartnerId, // Sub-Ledger: Customer
           amount: order.totalAmount,
           description: 'Receipt for Order #${order.orderNumber}',
           organizationId: order.organizationId,

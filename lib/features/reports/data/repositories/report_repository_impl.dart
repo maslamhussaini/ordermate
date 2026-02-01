@@ -9,10 +9,28 @@ class ReportRepositoryImpl implements ReportRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
-  Future<List<Transaction>> getAccountLedger(String accountId, {DateTime? startDate, DateTime? endDate, int? organizationId}) async {
+  Future<List<Transaction>> getAccountLedger(
+    String accountId, {
+    DateTime? startDate, 
+    DateTime? endDate, 
+    int? organizationId,
+    String? moduleAccount, // New Param
+  }) async {
     final db = await _dbHelper.database;
-    String where = '(account_id = ? OR offset_account_id = ?)';
-    List<dynamic> args = [accountId, accountId];
+    
+    // Determine Filter: Sub-Ledger (Customer/Vendor) OR General Ledger (Account)
+    String where = '';
+    List<dynamic> args = [];
+
+    if (moduleAccount != null && moduleAccount.isNotEmpty) {
+       // Search by Sub-Ledger ID (e.g. Customer ID)
+       where = '(module_account = ? OR offset_module_account = ?)';
+       args = [moduleAccount, moduleAccount];
+    } else {
+       // Search by General Ledger Account ID
+       where = '(account_id = ? OR offset_account_id = ?)';
+       args = [accountId, accountId];
+    }
     
     if (organizationId != null) {
       where += ' AND organization_id = ?';
@@ -43,6 +61,8 @@ class ReportRepositoryImpl implements ReportRepository {
       organizationId: (e['organization_id'] as int?) ?? 0,
       storeId: (e['store_id'] as int?) ?? 0,
       sYear: e['syear'] as int?,
+      moduleAccount: e['module_account'] as String?,
+      offsetModuleAccount: e['offset_module_account'] as String?,
     )).toList();
   }
 

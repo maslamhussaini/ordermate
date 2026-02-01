@@ -153,10 +153,27 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                  return selectedId;
               }
 
+              String? resolveModuleId(String selectedId) {
+                 final bank = accountingState.bankCashAccounts.where((b) => b.id == selectedId).firstOrNull;
+                 if (bank != null) return bank.id; 
+                 
+                 final cust = partnerState.customers.where((c) => c.id == selectedId).firstOrNull;
+                 if (cust != null) return cust.id;
+                 
+                 final vend = partnerState.vendors.where((v) => v.id == selectedId).firstOrNull;
+                 if (vend != null) return vend.id;
+
+                 return null;
+              }
+
               final accountId = resolveGlId(values['account_id']);
+              final moduleAccount = resolveModuleId(values['account_id']);
+              
               String? offsetAccountId;
+              String? offsetModuleAccount;
               if (values['offset_account_id'] != null) {
                 offsetAccountId = resolveGlId(values['offset_account_id']);
+                offsetModuleAccount = resolveModuleId(values['offset_account_id']);
               }
               
               if (accountId.isEmpty) throw Exception("Selected entity does not have a linked GL Account");
@@ -174,6 +191,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                 organizationId: org?.id ?? 0,
                 storeId: store?.id ?? 0,
                 sYear: sYear,
+                moduleAccount: moduleAccount,
+                offsetModuleAccount: offsetModuleAccount,
               );
 
               if (widget.transaction != null) {
