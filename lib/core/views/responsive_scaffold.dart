@@ -105,12 +105,14 @@ class ResponsiveScaffold extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      selectedYear != null ? Icons.calendar_month : Icons.calendar_today, 
-                      size: 16, 
-                      color: selectedYear != null ? Theme.of(context).colorScheme.primary : Colors.grey
-                    ),
-                    const SizedBox(width: 6),
+                    if (selectedYear != null) ...[
+                      Icon(
+                        Icons.calendar_month, 
+                        size: 16, 
+                        color: Theme.of(context).colorScheme.primary
+                      ),
+                      const SizedBox(width: 6),
+                    ],
                     Text(
                       accountingState.selectedFinancialSession != null
                           ? '${accountingState.selectedFinancialSession!.sYear} (${DateFormat('MMM yy').format(accountingState.selectedFinancialSession!.startDate)} - ${DateFormat('MMM yy').format(accountingState.selectedFinancialSession!.endDate)})'
