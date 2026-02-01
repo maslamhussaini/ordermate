@@ -84,7 +84,15 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           await task.$2().timeout(const Duration(seconds: 10));
         } catch (e) {
           debugPrint('ProductForm: Failed to load ${task.$1}: $e');
-          // We continue to allow the screen to open even if one fails
+          if (mounted) {
+             ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to load ${task.$1}. Please check your connection.'),
+                  duration: const Duration(seconds: 5),
+                  action: SnackBarAction(label: 'Retry', onPressed: _loadInitialData),
+                )
+             );
+          }
         }
       }
       

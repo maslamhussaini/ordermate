@@ -35,7 +35,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     try {
       var query = SupabaseConfig.client
           .from('omtbl_brands')
-          .select('*, product_count:omtbl_products(count)')
+          .select('*')
           .eq('status', 1);
           
       // NOTE: omtbl_brands is global and does not have organization_id
@@ -200,7 +200,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     try {
       var query = SupabaseConfig.client
           .from('omtbl_categories')
-          .select('*, product_count:omtbl_products(count)')
+          .select('*')
           .eq('status', 1);
 
       // NOTE: omtbl_categories is global and does not have organization_id
@@ -357,7 +357,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     try {
       var query = SupabaseConfig.client
           .from('omtbl_producttypes')
-          .select('*, product_count:omtbl_products(count)')
+          .select('*')
           .eq('status', 1);
 
       // NOTE: omtbl_producttypes is global and does not have organization_id
