@@ -34,11 +34,13 @@ class ResponsiveScaffold extends ConsumerWidget {
         leading: isDesktop ? const SizedBox.shrink() : null,
         title: _buildAppBarTitle(context, ref, state),
         actions: [
-          // Financial Year Selector
-          IconButton(
-            icon: const Icon(Icons.date_range),
-            tooltip: 'Select Financial Year',
-            onPressed: () {
+
+// Year Indicator
+          Container(
+            alignment: Alignment.center,
+            margin: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              onTap: () {
                final sessions = accountingState.financialSessions;
                final currentSession = accountingState.selectedFinancialSession;
                
@@ -86,16 +88,6 @@ class ResponsiveScaffold extends ConsumerWidget {
                     );
                  }
                );
-            },
-          ),
-          
-          // Year Indicator
-          Container(
-            alignment: Alignment.center,
-            margin: const EdgeInsets.only(right: 8),
-            child: InkWell(
-              onTap: () {
-                // You can also trigger the year selector here for convenience
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
