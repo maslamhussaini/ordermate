@@ -320,6 +320,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                           items: inventoryState.productTypes,
                           hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.productTypes.isEmpty ? 'No Product Types Found' : 'Select Product Type'),
                           onChanged: (v) => setState(() => _selectedTypeId = v),
+                          validator: (v) => v == null ? 'Please select a Product Type' : null,
                           labelBuilder: (item) => item.name,
                           valueBuilder: (item) => item.id,
                           onAdd: (name) async {
@@ -335,6 +336,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                           items: inventoryState.categories,
                           hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.categories.isEmpty ? 'No Categories Found' : 'Select Category'),
                           onChanged: (v) => setState(() => _selectedCategoryId = v),
+                          validator: (v) => v == null ? 'Please select a Category' : null,
                           labelBuilder: (item) => item.name,
                           valueBuilder: (item) => item.id,
                           onAdd: (name) async {
@@ -350,6 +352,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                           items: inventoryState.brands,
                           hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.brands.isEmpty ? 'No Brands Found' : 'Select Brand'),
                           onChanged: (v) => setState(() => _selectedBrandId = v),
+                          validator: (v) => v == null ? 'Please select a Brand' : null, // Optional in some cases, but good to enforce if needed. Let's enforce for now.
                           labelBuilder: (item) => item.name,
                           valueBuilder: (item) => item.id,
                           onAdd: (name) async {
@@ -371,6 +374,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         _buildSectionHeader('Pricing & Inventory'),
                         const SizedBox(height: 16),
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: LookupField<UnitOfMeasure, int>(
@@ -384,6 +388,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                     _uomSymbol = uom.symbol;
                                   });
                                 },
+                                validator: (v) => v == null ? 'Required' : null,
                                 labelBuilder: (item) => '${item.name} (${item.symbol})',
                                 valueBuilder: (item) => item.id,
                               ),

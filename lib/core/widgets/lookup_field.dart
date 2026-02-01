@@ -23,96 +23,107 @@ class LookupField<TItem, TValue> extends StatelessWidget {
   final TValue Function(TItem) valueBuilder;
   final ValueChanged<TValue?> onChanged;
   final Future<void> Function(String)? onAdd;
-  final String? validationError;
-  final bool enabled;
-  final String? hint;
+  final FormFieldValidator<TValue>? validator;
 
   @override
   Widget build(BuildContext context) {
-    // Find the current selected item object to display its label
-    TItem? selectedItem;
-    try {
-      if (value != null) {
-        selectedItem = items.firstWhere((item) => valueBuilder(item) == value);
-      }
-    } catch (_) {
-      // If value not found in items (e.g. inactive), selectedItem stays null
-    }
+    return FormField<TValue>(
+      initialValue: value,
+      validator: validator,
+      builder: (FormFieldState<TValue> field) {
+        // Find the current selected item object to display its label
+        TItem? selectedItem;
+        try {
+          if (value != null) {
+            selectedItem = items.firstWhere((item) => valueBuilder(item) == value);
+          }
+        } catch (_) {
+          // If value not found in items (e.g. inactive), selectedItem stays null
+        }
 
-    final displayLabel =
-        selectedItem != null ? labelBuilder(selectedItem) : (hint ?? 'Select $label');
+        final displayLabel =
+            selectedItem != null ? labelBuilder(selectedItem) : (hint ?? 'Select $label');
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label.isNotEmpty) ...[
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 8),
-        ],
-        Row(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: InkWell(
-                onTap: enabled ? () async {
-                  final result = await Navigator.push<TItem>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => GenericSelectionScreen<TItem>(
-                        title: 'Select $label',
-                        items: items,
-                        labelBuilder: labelBuilder,
+            if (label.isNotEmpty) ...[
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: enabled
+                        ? () async {
+                            final result = await Navigator.push<TItem>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => GenericSelectionScreen<TItem>(
+                                  title: 'Select $label',
+                                  items: items,
+                                  labelBuilder: labelBuilder,
+                                ),
+                              ),
+                            );
+
+                            if (result != null) {
+                              final newValue = valueBuilder(result);
+                              field.didChange(newValue);
+                              onChanged(newValue);
+                            }
+                          }
+                        : null,
+                    borderRadius: BorderRadius.circular(4),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        errorText: field.errorText ?? validationError,
+                        suffixIcon:
+                            enabled ? const Icon(Icons.arrow_drop_down) : null,
+                        fillColor: enabled ? null : Colors.grey.shade200,
+                        filled: !enabled,
+                      ),
+                      child: Text(
+                        displayLabel,
+                        style: TextStyle(
+                          color: selectedItem != null
+                              ? Theme.of(context).textTheme.bodyLarge?.color
+                              : Theme.of(context).hintColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  );
-
-                  if (result != null) {
-                    onChanged(valueBuilder(result));
-                  }
-                } : null,
-                borderRadius: BorderRadius.circular(4),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 16,),
-                    errorText: validationError,
-                    suffixIcon: enabled ? const Icon(Icons.arrow_drop_down) : null,
-                    fillColor: enabled ? null : Colors.grey.shade200,
-                    filled: !enabled,
                   ),
-                  child: Text(
-                    displayLabel,
-                    style: TextStyle(
-                      color: selectedItem != null
-                          ? Theme.of(context).textTheme.bodyLarge?.color
-                          : Theme.of(context).hintColor,
+                ),
+                if (onAdd != null && enabled) ...[
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
+                    onPressed: () => _showAddDialog(context),
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Add new $label',
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(12),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ),
+                ],
+              ],
             ),
-            if (onAdd != null && enabled) ...[
-              const SizedBox(width: 8),
-              IconButton.filledTonal(
-                onPressed: () => _showAddDialog(context),
-                icon: const Icon(Icons.add),
-                tooltip: 'Add new $label',
-                style: IconButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.all(12),
-                ),
-              ),
-            ],
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
