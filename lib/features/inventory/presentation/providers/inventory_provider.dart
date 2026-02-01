@@ -60,17 +60,13 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
   Future<void> loadAll() async {
     state = state.copyWith(isLoading: true);
     final orgId = ref.read(organizationProvider).selectedOrganizationId;
-    print('InventoryNotifier: Loading all inventory data for Org ID: $orgId');
 
     // Helper to safely load data
     Future<List<T>> safeLoad<T>(String name, Future<List<T>> Function() fetcher) async {
       try {
-        print('InventoryNotifier: Fetching $name...');
-        final result = await fetcher();
-        print('InventoryNotifier: Loaded ${result.length} $name.');
-        return result;
+        return await fetcher();
       } catch (e) {
-        print('InventoryNotifier: Failed to load $name: $e');
+        debugPrint('InventoryNotifier: Failed to load $name: $e');
         return [];
       }
     }

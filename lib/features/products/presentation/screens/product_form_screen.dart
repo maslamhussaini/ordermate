@@ -274,7 +274,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.productId == null ? 'Add Product (Updated)' : 'Edit Product'),
+        title: Text(widget.productId == null ? 'Add Product' : 'Edit Product'),
         actions: [
           IconButton(onPressed: _isLoading ? null : _saveProduct, icon: const Icon(Icons.save)),
         ],
