@@ -373,7 +373,6 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
 
     final filteredBrands = brands.where((b) {
       if (b.status == 0) return false;
-      if (b.id == 0) return false; // Hide invalid brands
       final query = _searchQuery.toLowerCase();
       return b.name.toLowerCase().contains(query);
     }).toList();

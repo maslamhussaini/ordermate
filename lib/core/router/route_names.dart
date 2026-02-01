@@ -41,6 +41,7 @@ class RouteNames {
   static const products = 'products';
   static const productCreate = 'product-create';
   static const productEdit = 'product-edit';
+  static const productDebug = 'product-debug';
 
   // Orders
   static const orders = 'orders';

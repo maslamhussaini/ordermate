@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordermate/features/vendors/data/repositories/vendor_repository_impl.dart';
 import 'package:ordermate/features/vendors/domain/entities/vendor.dart';
 import 'package:ordermate/features/vendors/domain/repositories/vendor_repository.dart';
+import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
 import 'package:ordermate/features/dashboard/presentation/providers/dashboard_provider.dart';
 
@@ -42,7 +43,8 @@ class VendorNotifier extends StateNotifier<VendorState> {
   Future<void> loadVendors() async {
     state = state.copyWith(isLoading: true);
     try {
-      final vendors = await repository.getVendors();
+      final orgId = ref.read(organizationProvider).selectedOrganizationId;
+      final vendors = await repository.getVendors(organizationId: orgId);
       state = state.copyWith(isLoading: false, vendors: vendors);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -52,11 +54,24 @@ class VendorNotifier extends StateNotifier<VendorState> {
   Future<void> loadSuppliers() async {
     state = state.copyWith(isLoading: true);
     try {
-      final suppliers = await repository.getSuppliers();
+      final orgId = ref.read(organizationProvider).selectedOrganizationId;
+      final suppliers = await repository.getSuppliers(organizationId: orgId);
       state = state.copyWith(isLoading: false, suppliers: suppliers);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  Future<void> loadAll() async {
+     state = state.copyWith(isLoading: true);
+     final orgId = ref.read(organizationProvider).selectedOrganizationId;
+     try {
+       final vendors = await repository.getVendors(organizationId: orgId);
+       final suppliers = await repository.getSuppliers(organizationId: orgId);
+       state = state.copyWith(isLoading: false, vendors: vendors, suppliers: suppliers);
+     } catch (e) {
+       state = state.copyWith(isLoading: false, error: e.toString());
+     }
   }
 
   Future<void> addVendor(Vendor vendor) async {

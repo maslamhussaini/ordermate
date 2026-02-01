@@ -1,5 +1,6 @@
 import 'dart:async';
 
+// Product List Screen - Updated to remove dependency check dialog
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import 'package:ordermate/features/products/domain/entities/product.dart';
 import 'package:ordermate/features/products/presentation/providers/product_provider.dart';
 import 'package:ordermate/features/vendors/presentation/providers/vendor_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
+import 'package:ordermate/core/router/route_names.dart';
 
 
 class ProductListScreen extends ConsumerStatefulWidget {
@@ -498,6 +500,11 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             onPressed: _removeDuplicates,
           ),
           IconButton(
+            icon: const Icon(Icons.bug_report_outlined),
+            tooltip: 'Debug Data',
+            onPressed: () => context.pushNamed(RouteNames.productDebug),
+          ),
+          IconButton(
             icon: const Icon(Icons.file_upload_outlined),
             tooltip: 'Import CSV',
             onPressed: _showImportDialog,
@@ -505,73 +512,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           TextButton.icon(
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text('New', style: TextStyle(color: Colors.white)),
-            onPressed: () async {
-              debugPrint('Navigating to product-create');
-              
-              // Dependency Check
-              try {
-                // Show loading indicator
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (ctx) => const Center(child: CircularProgressIndicator()),
-                );
-                
-                // Load Dependencies
-                try {
-                  await ref.read(inventoryProvider.notifier).loadAll().timeout(const Duration(seconds: 15));
-                  await ref.read(vendorProvider.notifier).loadSuppliers().timeout(const Duration(seconds: 15));
-                } catch (e) {
-                  debugPrint('ProductList: Dependency load error: $e');
-                }
-                
-                if (!context.mounted) return;
-                Navigator.pop(context); // Close loading
-
-                final invState = ref.read(inventoryProvider);
-                final vendorState = ref.read(vendorProvider);
-                
-                final missing = <String>[];
-                if (invState.categories.isEmpty) missing.add('Product Category');
-                if (invState.productTypes.isEmpty) missing.add('Product Type');
-                if (invState.unitsOfMeasure.isEmpty) missing.add('Unit of Measure');
-                // Brands and Suppliers are often optional, but if requested to check all FKs:
-                if (invState.brands.isEmpty) missing.add('Brand'); 
-                if (vendorState.suppliers.isEmpty) missing.add('Supplier');
-
-                if (missing.isNotEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Missing Requirements'),
-                      content: Text('Please create the following before creating a Product:\n\n• ${missing.join('\n• ')}\n\nYou can create these in the Inventory or Vendor sections.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-                  return;
-                }
-                
-                context.pushNamed('product-create');
-              } catch (e) {
-                // In case of error (e.g. offline), we might want to let them through or show error
-                if (context.mounted) {
-                   Navigator.pop(context); // Close loading if still open (tricky if popped already, but loading barrier usually prevents interaction)
-                   // But if we popped loading already, this might pop the screen? Validate logic.
-                   // Actually, if loadAll fails, it throws.
-                }
-                debugPrint('Dependency check failed: $e');
-                // Fallback: Just let them try, or show error? 
-                // Context might be unstable if dialog logic was imperfect.
-                // Safer to just show error.
-                if (context.mounted) {
-                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error checking dependencies: $e')));
-                }
-              }
+            onPressed: () {
+              // Direct navigation - ProductFormScreen handles its own data loading now
+              context.pushNamed(RouteNames.productCreate);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.white),
           ),

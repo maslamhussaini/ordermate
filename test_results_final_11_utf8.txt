@@ -1,0 +1,880 @@
+﻿Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 85.0.0 (94.0.0 available)
+  analyzer 7.6.0 (10.0.2 available)
+  analyzer_plugin 0.13.4 (0.14.2 available)
+  app_links 6.4.1 (7.0.0 available)
+  build 2.5.4 (4.0.4 available)
+  build_config 1.1.2 (1.2.0 available)
+  build_resolvers 2.5.4 (3.0.4 available)
+  build_runner 2.5.4 (2.10.5 available)
+  build_runner_core 9.1.2 (9.3.2 available)
+  built_value 8.12.1 (8.12.3 available)
+  characters 1.4.0 (1.4.1 available)
+  code_builder 4.11.0 (4.11.1 available)
+  connectivity_plus 6.1.5 (7.0.0 available)
+  cross_file 0.3.5+1 (0.3.5+2 available)
+  custom_lint_core 0.7.5 (0.8.2 available)
+  custom_lint_visitor 1.0.0+7.7.0 (1.0.0+9.0.0 available)
+  dart_style 3.1.1 (3.1.5 available)
+  dio 5.9.0 (5.9.1 available)
+  equatable 2.0.7 (2.0.8 available)
+  ffi 2.1.4 (2.1.5 available)
+  file_picker 8.3.7 (10.3.10 available)
+  flutter_dotenv 5.2.1 (6.0.0 available)
+  flutter_launcher_icons 0.13.1 (0.14.4 available)
+  flutter_lints 4.0.0 (6.0.0 available)
+  flutter_local_notifications 19.5.0 (20.0.0 available)
+  flutter_local_notifications_linux 6.0.0 (7.0.0 available)
+  flutter_local_notifications_platform_interface 9.1.0 (10.0.0 available)
+  flutter_local_notifications_windows 1.0.3 (2.0.0 available)
+  flutter_native_splash 2.3.0 (2.4.7 available)
+  flutter_riverpod 2.6.1 (3.2.0 available)
+  freezed 2.5.8 (3.2.4 available)
+  freezed_annotation 2.4.4 (3.1.0 available)
+  geocoding 3.0.0 (4.0.0 available)
+  geocoding_android 3.3.1 (4.0.1 available)
+  geocoding_platform_interface 3.2.0 (5.0.0 available)
+  geolocator 12.0.0 (14.0.2 available)
+  geolocator_android 4.6.2 (5.0.2 available)
+  go_router 14.8.1 (17.0.1 available)
+  google_fonts 6.3.3 (8.0.0 available)
+  google_maps_flutter_android 2.18.6 (2.18.12 available)
+  google_maps_flutter_ios 2.15.7 (2.17.0 available)
+  google_sign_in 6.3.0 (7.2.0 available)
+  google_sign_in_android 6.2.1 (7.2.7 available)
+  google_sign_in_ios 5.9.0 (6.2.5 available)
+  google_sign_in_platform_interface 2.5.0 (3.1.0 available)
+  google_sign_in_web 0.12.4+4 (1.1.0 available)
+  image 4.5.4 (4.7.2 available)
+  image_cropper 8.1.0 (11.0.0 available)
+  image_cropper_for_web 6.1.0 (7.0.0 available)
+  image_cropper_platform_interface 7.2.0 (8.0.0 available)
+  image_picker_android 0.8.13+10 (0.8.13+13 available)
+  image_picker_ios 0.8.13+3 (0.8.13+6 available)
+  js 0.6.7 (0.7.2 available)
+  json_annotation 4.9.0 (4.10.0 available)
+  json_serializable 6.9.5 (6.12.0 available)
+  lints 4.0.0 (6.1.0 available)
+  local_auth 2.3.0 (3.0.0 available)
+  local_auth_android 1.0.56 (2.0.4 available)
+  local_auth_darwin 1.6.1 (2.0.1 available)
+  local_auth_windows 1.0.11 (2.0.1 available)
+  matcher 0.12.17 (0.12.18 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.17.0 (1.18.1 available)
+  path_provider_foundation 2.5.1 (2.6.0 available)
+  permission_handler 11.4.0 (12.0.1 available)
+  permission_handler_android 12.1.0 (13.0.1 available)
+  riverpod 2.6.1 (3.2.0 available)
+  riverpod_analyzer_utils 0.5.9 (0.5.10 available)
+  riverpod_annotation 2.6.1 (4.0.1 available)
+  riverpod_generator 2.6.4 (4.0.2 available)
+  shared_preferences_android 2.4.18 (2.4.20 available)
+  sign_in_with_apple 6.1.4 (7.0.1 available)
+  sign_in_with_apple_platform_interface 1.1.0 (2.0.0 available)
+  sign_in_with_apple_web 2.1.1 (3.0.0 available)
+  source_gen 2.0.0 (4.2.0 available)
+  source_helper 1.3.7 (1.3.10 available)
+  sqflite_common_ffi 2.4.0+1 (2.4.0+2 available)
+  sqlite3 3.1.2 (3.1.4 available)
+  test_api 0.7.7 (0.7.9 available)
+  timezone 0.10.1 (0.11.0 available)
+  url_launcher 6.3.0 (6.3.2 available)
+  url_launcher_web 2.4.1 (2.4.2 available)
+  vector_graphics_compiler 1.1.19 (1.1.20 available)
+  watcher 1.2.0 (1.2.1 available)
+Got dependencies!
+84 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading D:/Projects/flutter/ordermate/test/features/products/presentation/screens/product_form_test.dart
+flutter : test/features/products/presentation/s
+creens/product_form_test.dart:60:28: Error: 
+Type 'Store' not found.
+At line:1 char:1
++ flutter test --no-color --reporter=expanded 
+test/features/products/pr ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (t 
+   est/features/p...ore' not found.:String) [  
+  ], RemoteException
+    + FullyQualifiedErrorId : NativeCommandErr 
+   or
+ 
+  Future<void> selectStore(Store? store) async 
+{}
+                           ^^^^^
+test/features/products/presentation/screens/pro
+duct_form_test.dart:31:7: Error: The 
+non-abstract class 
+'SimpleOrganizationNotifier' is missing 
+implementations for these members:
+ - OrganizationNotifier.addStore
+ - OrganizationNotifier.clearSelection
+ - OrganizationNotifier.createOrganization
+ - OrganizationNotifier.deleteOrganization
+ - OrganizationNotifier.deleteStore
+ - OrganizationNotifier.loadStores
+ - OrganizationNotifier.ref
+ - OrganizationNotifier.reset
+ - OrganizationNotifier.selectFinancialYear
+ - OrganizationNotifier.updateOrganization
+ - OrganizationNotifier.updateStore
+Try to either
+ - provide an implementation,
+ - inherit an implementation from a superclass 
+or mixin,
+ - mark the class as abstract, or
+ - provide a 'noSuchMethod' implementation.
+class SimpleOrganizationNotifier extends 
+StateNotifier<OrganizationState> implements 
+OrganizationNotifier {
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:238:16: Context: 
+'OrganizationNotifier.addStore' is defined 
+here.
+  Future<void> addStore(Store params) async {
+               ^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:125:8: Context: 
+'OrganizationNotifier.clearSelection' is 
+defined here.
+  void clearSelection() {
+       ^^^^^^^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:137:24: Context: 
+'OrganizationNotifier.createOrganization' is 
+defined here.
+  Future<Organization> createOrganization(
+                       ^^^^^^^^^^^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:105:16: Context: 
+'OrganizationNotifier.deleteOrganization' is 
+defined here.
+  Future<void> deleteOrganization(int id) 
+async {
+               ^^^^^^^^^^^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:259:16: Context: 
+'OrganizationNotifier.deleteStore' is defined 
+here.
+  Future<void> deleteStore(int storeId, int 
+orgId) async {
+               ^^^^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:195:16: Context: 
+'OrganizationNotifier.loadStores' is defined 
+here.
+  Future<void> loadStores(int orgId) async {
+               ^^^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:61:13: Context: 
+'OrganizationNotifier.ref' is defined here.
+  final Ref ref;
+            ^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:129:8: Context: 
+'OrganizationNotifier.reset' is defined here.
+  void reset() {
+       ^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:133:8: Context: 
+'OrganizationNotifier.selectFinancialYear' is 
+defined here.
+  void selectFinancialYear(int? year) {
+       ^^^^^^^^^^^^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:165:16: Context: 
+'OrganizationNotifier.updateOrganization' is 
+defined here.
+  Future<void> updateOrganization(Organization 
+org, {File? newLogoFile}) async {
+               ^^^^^^^^^^^^^^^^^^
+lib/features/organization/presentation/provider
+s/organization_provider.dart:249:16: Context: 
+'OrganizationNotifier.updateStore' is defined 
+here.
+  Future<void> updateStore(Store params) async 
+{
+               ^^^^^^^^^^^
+test/features/products/presentation/screens/pro
+duct_form_test.dart:65:7: Error: The 
+non-abstract class 'SimpleVendorNotifier' is 
+missing implementations for these members:
+ - VendorNotifier.addVendor
+ - VendorNotifier.deleteVendor
+ - VendorNotifier.ref
+ - VendorNotifier.repository
+ - VendorNotifier.updateVendor
+Try to either
+ - provide an implementation,
+ - inherit an implementation from a superclass 
+or mixin,
+ - mark the class as abstract, or
+ - provide a 'noSuchMethod' implementation.
+class SimpleVendorNotifier extends 
+StateNotifier<VendorState> implements 
+VendorNotifier {
+      ^^^^^^^^^^^^^^^^^^^^
+lib/features/vendors/presentation/providers/ven
+dor_provider.dart:62:16: Context: 
+'VendorNotifier.addVendor' is defined here.
+  Future<void> addVendor(Vendor vendor) async {
+               ^^^^^^^^^
+lib/features/vendors/presentation/providers/ven
+dor_provider.dart:86:16: Context: 
+'VendorNotifier.deleteVendor' is defined here.
+  Future<void> deleteVendor(String id) async {
+               ^^^^^^^^^^^^
+lib/features/vendors/presentation/providers/ven
+dor_provider.dart:39:13: Context: 
+'VendorNotifier.ref' is defined here.
+  final Ref ref;
+            ^^^
+lib/features/vendors/presentation/providers/ven
+dor_provider.dart:40:26: Context: 
+'VendorNotifier.repository' is defined here.
+  final VendorRepository repository;
+                         ^^^^^^^^^^
+lib/features/vendors/presentation/providers/ven
+dor_provider.dart:74:16: Context: 
+'VendorNotifier.updateVendor' is defined here.
+  Future<void> updateVendor(Vendor vendor) 
+async {
+               ^^^^^^^^^^^^
+test/features/products/presentation/screens/pro
+duct_form_test.dart:75:7: Error: The 
+non-abstract class 'SimpleAccountingNotifier' 
+is missing implementations for these members:
+ - AccountingNotifier.addAccount
+ - AccountingNotifier.addAccountCategory
+ - AccountingNotifier.addAccountType
+ - AccountingNotifier.addFinancialSession
+ - AccountingNotifier.addInvoice
+ - AccountingNotifier.addInvoiceType
+ - AccountingNotifier.addPaymentTerm
+ - AccountingNotifier.addVoucherPrefix
+ - AccountingNotifier.bulkAddAccountCategories
+ - AccountingNotifier.bulkAddAccountTypes
+ - AccountingNotifier.createBankCashAccount
+ - AccountingNotifier.createInvoiceWithItems
+ - AccountingNotifier.createTransaction
+ - AccountingNotifier.deleteAccount
+ - AccountingNotifier.deleteAccountCategory
+ - AccountingNotifier.deleteAccountType
+ - AccountingNotifier.deleteBankCashAccount
+ - AccountingNotifier.deletePaymentTerm
+ - AccountingNotifier.deleteTransaction
+ - AccountingNotifier.deleteVoucherPrefix
+ - AccountingNotifier.getInvoiceItems
+ - AccountingNotifier.isBankCashUsed
+ - AccountingNotifier.loadBankCashAccounts
+ - AccountingNotifier.loadDailyBalance
+ - AccountingNotifier.loadInvoices
+ - AccountingNotifier.loadPaymentTerms
+ - AccountingNotifier.loadTransactions
+ - AccountingNotifier.loadVoucherPrefixes
+ - AccountingNotifier.postInvoice
+ - AccountingNotifier.saveDailyBalance
+ - AccountingNotifier.saveGLSetup
+ - AccountingNotifier.selectFinancialSession
+ - AccountingNotifier.updateAccount
+ - AccountingNotifier.updateAccountCategory
+ - AccountingNotifier.updateAccountType
+ - AccountingNotifier.updateBankCashAccount
+ - AccountingNotifier.updateFinancialSession
+ - AccountingNotifier.updateInvoice
+ - AccountingNotifier.updateInvoiceWithItems
+ - AccountingNotifier.updatePaymentTerm
+ - AccountingNotifier.updateTransaction
+ - AccountingNotifier.updateVoucherPrefix
+Try to either
+ - provide an implementation,
+ - inherit an implementation from a superclass 
+or mixin,
+ - mark the class as abstract, or
+ - provide a 'noSuchMethod' implementation.
+class SimpleAccountingNotifier extends 
+StateNotifier<AccountingState> implements 
+AccountingNotifier {
+      ^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:313:16: Context: 
+'AccountingNotifier.addAccount' is defined 
+here.
+  Future<void> addAccount(ChartOfAccount 
+account, {int? organizationId}) async {
+               ^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:475:16: Context: 
+'AccountingNotifier.addAccountCategory' is 
+defined here.
+  Future<void> 
+addAccountCategory(AccountCategory category, 
+{int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:437:16: Context: 
+'AccountingNotifier.addAccountType' is defined 
+here.
+  Future<void> addAccountType(AccountType 
+type, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:534:16: Context: 
+'AccountingNotifier.addFinancialSession' is 
+defined here.
+  Future<void> 
+addFinancialSession(FinancialSession session, 
+{int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:627:16: Context: 
+'AccountingNotifier.addInvoice' is defined 
+here.
+  Future<void> addInvoice(Invoice invoice) 
+async {
+               ^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:795:16: Context: 
+'AccountingNotifier.addInvoiceType' is defined 
+here.
+  Future<void> addInvoiceType(InvoiceType 
+type, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:398:16: Context: 
+'AccountingNotifier.addPaymentTerm' is defined 
+here.
+  Future<void> addPaymentTerm(PaymentTerm 
+term, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:359:16: Context: 
+'AccountingNotifier.addVoucherPrefix' is 
+defined here.
+  Future<void> addVoucherPrefix(VoucherPrefix 
+prefix, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:524:16: Context: 
+'AccountingNotifier.bulkAddAccountCategories' 
+is defined here.
+  Future<void> 
+bulkAddAccountCategories(List<AccountCategory> 
+categories, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:514:16: Context: 
+'AccountingNotifier.bulkAddAccountTypes' is 
+defined here.
+  Future<void> 
+bulkAddAccountTypes(List<AccountType> types, 
+{int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:564:16: Context: 
+'AccountingNotifier.createBankCashAccount' is 
+defined here.
+  Future<void> createBankCashAccount(BankCash 
+account, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:656:16: Context: 
+'AccountingNotifier.createInvoiceWithItems' is 
+defined here.
+  Future<void> createInvoiceWithItems(Invoice 
+invoice, List<Map<String, dynamic>> itemMaps) 
+async {
+               ^^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:242:16: Context: 
+'AccountingNotifier.createTransaction' is 
+defined here.
+  Future<void> createTransaction(Transaction 
+transaction) async {
+               ^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:349:16: Context: 
+'AccountingNotifier.deleteAccount' is defined 
+here.
+  Future<void> deleteAccount(String id, {int? 
+organizationId}) async {
+               ^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:504:16: Context: 
+'AccountingNotifier.deleteAccountCategory' is 
+defined here.
+  Future<void> deleteAccountCategory(int id, 
+{int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:465:16: Context: 
+'AccountingNotifier.deleteAccountType' is 
+defined here.
+  Future<void> deleteAccountType(int id, {int? 
+organizationId}) async {
+               ^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:595:16: Context: 
+'AccountingNotifier.deleteBankCashAccount' is 
+defined here.
+  Future<void> deleteBankCashAccount(String 
+id, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:427:16: Context: 
+'AccountingNotifier.deletePaymentTerm' is 
+defined here.
+  Future<void> deletePaymentTerm(int id, {int? 
+organizationId}) async {
+               ^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:302:16: Context: 
+'AccountingNotifier.deleteTransaction' is 
+defined here.
+  Future<void> deleteTransaction(String id) 
+async {
+               ^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:388:16: Context: 
+'AccountingNotifier.deleteVoucherPrefix' is 
+defined here.
+  Future<void> deleteVoucherPrefix(int id, 
+{int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:806:29: Context: 
+'AccountingNotifier.getInvoiceItems' is 
+defined here.
+  Future<List<InvoiceItem>> 
+getInvoiceItems(String invoiceId) async {
+                            ^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:605:16: Context: 
+'AccountingNotifier.isBankCashUsed' is defined 
+here.
+  Future<bool> isBankCashUsed(String id) async 
+{
+               ^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:169:16: Context: 
+'AccountingNotifier.loadBankCashAccounts' is 
+defined here.
+  Future<void> loadBankCashAccounts({int? 
+organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:840:16: Context: 
+'AccountingNotifier.loadDailyBalance' is 
+defined here.
+  Future<void> loadDailyBalance(String 
+accountId, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:610:16: Context: 
+'AccountingNotifier.loadInvoices' is defined 
+here.
+  Future<void> loadInvoices({int? 
+organizationId, int? storeId, int? sYear}) 
+async {
+               ^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:193:16: Context: 
+'AccountingNotifier.loadPaymentTerms' is 
+defined here.
+  Future<void> loadPaymentTerms({int? 
+organizationId}) async {
+               ^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:205:16: Context: 
+'AccountingNotifier.loadTransactions' is 
+defined here.
+  Future<void> loadTransactions({int? 
+organizationId, int? storeId, int? sYear}) 
+async {
+               ^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:181:16: Context: 
+'AccountingNotifier.loadVoucherPrefixes' is 
+defined here.
+  Future<void> loadVoucherPrefixes({int? 
+organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:859:16: Context: 
+'AccountingNotifier.postInvoice' is defined 
+here.
+  Future<void> postInvoice(Invoice invoice) 
+async {
+               ^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:850:16: Context: 
+'AccountingNotifier.saveDailyBalance' is 
+defined here.
+  Future<void> saveDailyBalance(DailyBalance 
+balance) async {
+               ^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:830:16: Context: 
+'AccountingNotifier.saveGLSetup' is defined 
+here.
+  Future<void> saveGLSetup(GLSetup setup) 
+async {
+               ^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:149:8: Context: 
+'AccountingNotifier.selectFinancialSession' is 
+defined here.
+  void 
+selectFinancialSession(FinancialSession? 
+session) {
+       ^^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:338:16: Context: 
+'AccountingNotifier.updateAccount' is defined 
+here.
+  Future<void> updateAccount(ChartOfAccount 
+account, {int? organizationId}) async {
+               ^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:494:16: Context: 
+'AccountingNotifier.updateAccountCategory' is 
+defined here.
+  Future<void> 
+updateAccountCategory(AccountCategory 
+category, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:455:16: Context: 
+'AccountingNotifier.updateAccountType' is 
+defined here.
+  Future<void> updateAccountType(AccountType 
+type, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:585:16: Context: 
+'AccountingNotifier.updateBankCashAccount' is 
+defined here.
+  Future<void> updateBankCashAccount(BankCash 
+account, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:554:16: Context: 
+'AccountingNotifier.updateFinancialSession' is 
+defined here.
+  Future<void> 
+updateFinancialSession(FinancialSession 
+session, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:766:16: Context: 
+'AccountingNotifier.updateInvoice' is defined 
+here.
+  Future<void> updateInvoice(Invoice invoice, 
+{int? organizationId, int? storeId}) async {
+               ^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:713:16: Context: 
+'AccountingNotifier.updateInvoiceWithItems' is 
+defined here.
+  Future<void> updateInvoiceWithItems(Invoice 
+invoice, List<Map<String, dynamic>> itemMaps) 
+async {
+               ^^^^^^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:417:16: Context: 
+'AccountingNotifier.updatePaymentTerm' is 
+defined here.
+  Future<void> updatePaymentTerm(PaymentTerm 
+term, {int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:272:16: Context: 
+'AccountingNotifier.updateTransaction' is 
+defined here.
+  Future<void> updateTransaction(Transaction 
+transaction) async {
+               ^^^^^^^^^^^^^^^^^
+lib/features/accounting/presentation/providers/
+accounting_provider.dart:378:16: Context: 
+'AccountingNotifier.updateVoucherPrefix' is 
+defined here.
+  Future<void> 
+updateVoucherPrefix(VoucherPrefix prefix, 
+{int? organizationId}) async {
+               ^^^^^^^^^^^^^^^^^^^
+test/features/products/presentation/screens/pro
+duct_form_test.dart:60:28: Error: 'Store' 
+isn't a type.
+  Future<void> selectStore(Store? store) async 
+{}
+                           ^^^^^
+00:00 +0 -1: loading D:/Projects/flutter/ordermate/test/features/products/presentation/screens/product_form_test.dart [E]
+  Failed to load "D:/Projects/flutter/ordermate/test/features/products/presentation/screens/product_form_test.dart":
+  Compilation failed for testPath=D:/Projects/flutter/ordermate/test/features/products/presentation/screens/product_form_test.dart: test/features/products/presentation/screens/product_form_test.dart:60:28: Error: Type 'Store' not found.
+    Future<void> selectStore(Store? store) async {}
+                             ^^^^^
+  test/features/products/presentation/screens/product_form_test.dart:31:7: Error: The non-abstract class 'SimpleOrganizationNotifier' is missing implementations for these members:
+   - OrganizationNotifier.addStore
+   - OrganizationNotifier.clearSelection
+   - OrganizationNotifier.createOrganization
+   - OrganizationNotifier.deleteOrganization
+   - OrganizationNotifier.deleteStore
+   - OrganizationNotifier.loadStores
+   - OrganizationNotifier.ref
+   - OrganizationNotifier.reset
+   - OrganizationNotifier.selectFinancialYear
+   - OrganizationNotifier.updateOrganization
+   - OrganizationNotifier.updateStore
+  Try to either
+   - provide an implementation,
+   - inherit an implementation from a superclass or mixin,
+   - mark the class as abstract, or
+   - provide a 'noSuchMethod' implementation.
+  class SimpleOrganizationNotifier extends StateNotifier<OrganizationState> implements OrganizationNotifier {
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:238:16: Context: 'OrganizationNotifier.addStore' is defined here.
+    Future<void> addStore(Store params) async {
+                 ^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:125:8: Context: 'OrganizationNotifier.clearSelection' is defined here.
+    void clearSelection() {
+         ^^^^^^^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:137:24: Context: 'OrganizationNotifier.createOrganization' is defined here.
+    Future<Organization> createOrganization(
+                         ^^^^^^^^^^^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:105:16: Context: 'OrganizationNotifier.deleteOrganization' is defined here.
+    Future<void> deleteOrganization(int id) async {
+                 ^^^^^^^^^^^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:259:16: Context: 'OrganizationNotifier.deleteStore' is defined here.
+    Future<void> deleteStore(int storeId, int orgId) async {
+                 ^^^^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:195:16: Context: 'OrganizationNotifier.loadStores' is defined here.
+    Future<void> loadStores(int orgId) async {
+                 ^^^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:61:13: Context: 'OrganizationNotifier.ref' is defined here.
+    final Ref ref;
+              ^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:129:8: Context: 'OrganizationNotifier.reset' is defined here.
+    void reset() {
+         ^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:133:8: Context: 'OrganizationNotifier.selectFinancialYear' is defined here.
+    void selectFinancialYear(int? year) {
+         ^^^^^^^^^^^^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:165:16: Context: 'OrganizationNotifier.updateOrganization' is defined here.
+    Future<void> updateOrganization(Organization org, {File? newLogoFile}) async {
+                 ^^^^^^^^^^^^^^^^^^
+  lib/features/organization/presentation/providers/organization_provider.dart:249:16: Context: 'OrganizationNotifier.updateStore' is defined here.
+    Future<void> updateStore(Store params) async {
+                 ^^^^^^^^^^^
+  test/features/products/presentation/screens/product_form_test.dart:65:7: Error: The non-abstract class 'SimpleVendorNotifier' is missing implementations for these members:
+   - VendorNotifier.addVendor
+   - VendorNotifier.deleteVendor
+   - VendorNotifier.ref
+   - VendorNotifier.repository
+   - VendorNotifier.updateVendor
+  Try to either
+   - provide an implementation,
+   - inherit an implementation from a superclass or mixin,
+   - mark the class as abstract, or
+   - provide a 'noSuchMethod' implementation.
+  class SimpleVendorNotifier extends StateNotifier<VendorState> implements VendorNotifier {
+        ^^^^^^^^^^^^^^^^^^^^
+  lib/features/vendors/presentation/providers/vendor_provider.dart:62:16: Context: 'VendorNotifier.addVendor' is defined here.
+    Future<void> addVendor(Vendor vendor) async {
+                 ^^^^^^^^^
+  lib/features/vendors/presentation/providers/vendor_provider.dart:86:16: Context: 'VendorNotifier.deleteVendor' is defined here.
+    Future<void> deleteVendor(String id) async {
+                 ^^^^^^^^^^^^
+  lib/features/vendors/presentation/providers/vendor_provider.dart:39:13: Context: 'VendorNotifier.ref' is defined here.
+    final Ref ref;
+              ^^^
+  lib/features/vendors/presentation/providers/vendor_provider.dart:40:26: Context: 'VendorNotifier.repository' is defined here.
+    final VendorRepository repository;
+                           ^^^^^^^^^^
+  lib/features/vendors/presentation/providers/vendor_provider.dart:74:16: Context: 'VendorNotifier.updateVendor' is defined here.
+    Future<void> updateVendor(Vendor vendor) async {
+                 ^^^^^^^^^^^^
+  test/features/products/presentation/screens/product_form_test.dart:75:7: Error: The non-abstract class 'SimpleAccountingNotifier' is missing implementations for these members:
+   - AccountingNotifier.addAccount
+   - AccountingNotifier.addAccountCategory
+   - AccountingNotifier.addAccountType
+   - AccountingNotifier.addFinancialSession
+   - AccountingNotifier.addInvoice
+   - AccountingNotifier.addInvoiceType
+   - AccountingNotifier.addPaymentTerm
+   - AccountingNotifier.addVoucherPrefix
+   - AccountingNotifier.bulkAddAccountCategories
+   - AccountingNotifier.bulkAddAccountTypes
+   - AccountingNotifier.createBankCashAccount
+   - AccountingNotifier.createInvoiceWithItems
+   - AccountingNotifier.createTransaction
+   - AccountingNotifier.deleteAccount
+   - AccountingNotifier.deleteAccountCategory
+   - AccountingNotifier.deleteAccountType
+   - AccountingNotifier.deleteBankCashAccount
+   - AccountingNotifier.deletePaymentTerm
+   - AccountingNotifier.deleteTransaction
+   - AccountingNotifier.deleteVoucherPrefix
+   - AccountingNotifier.getInvoiceItems
+   - AccountingNotifier.isBankCashUsed
+   - AccountingNotifier.loadBankCashAccounts
+   - AccountingNotifier.loadDailyBalance
+   - AccountingNotifier.loadInvoices
+   - AccountingNotifier.loadPaymentTerms
+   - AccountingNotifier.loadTransactions
+   - AccountingNotifier.loadVoucherPrefixes
+   - AccountingNotifier.postInvoice
+   - AccountingNotifier.saveDailyBalance
+   - AccountingNotifier.saveGLSetup
+   - AccountingNotifier.selectFinancialSession
+   - AccountingNotifier.updateAccount
+   - AccountingNotifier.updateAccountCategory
+   - AccountingNotifier.updateAccountType
+   - AccountingNotifier.updateBankCashAccount
+   - AccountingNotifier.updateFinancialSession
+   - AccountingNotifier.updateInvoice
+   - AccountingNotifier.updateInvoiceWithItems
+   - AccountingNotifier.updatePaymentTerm
+   - AccountingNotifier.updateTransaction
+   - AccountingNotifier.updateVoucherPrefix
+  Try to either
+   - provide an implementation,
+   - inherit an implementation from a superclass or mixin,
+   - mark the class as abstract, or
+   - provide a 'noSuchMethod' implementation.
+  class SimpleAccountingNotifier extends StateNotifier<AccountingState> implements AccountingNotifier {
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:313:16: Context: 'AccountingNotifier.addAccount' is defined here.
+    Future<void> addAccount(ChartOfAccount account, {int? organizationId}) async {
+                 ^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:475:16: Context: 'AccountingNotifier.addAccountCategory' is defined here.
+    Future<void> addAccountCategory(AccountCategory category, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:437:16: Context: 'AccountingNotifier.addAccountType' is defined here.
+    Future<void> addAccountType(AccountType type, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:534:16: Context: 'AccountingNotifier.addFinancialSession' is defined here.
+    Future<void> addFinancialSession(FinancialSession session, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:627:16: Context: 'AccountingNotifier.addInvoice' is defined here.
+    Future<void> addInvoice(Invoice invoice) async {
+                 ^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:795:16: Context: 'AccountingNotifier.addInvoiceType' is defined here.
+    Future<void> addInvoiceType(InvoiceType type, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:398:16: Context: 'AccountingNotifier.addPaymentTerm' is defined here.
+    Future<void> addPaymentTerm(PaymentTerm term, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:359:16: Context: 'AccountingNotifier.addVoucherPrefix' is defined here.
+    Future<void> addVoucherPrefix(VoucherPrefix prefix, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:524:16: Context: 'AccountingNotifier.bulkAddAccountCategories' is defined here.
+    Future<void> bulkAddAccountCategories(List<AccountCategory> categories, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:514:16: Context: 'AccountingNotifier.bulkAddAccountTypes' is defined here.
+    Future<void> bulkAddAccountTypes(List<AccountType> types, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:564:16: Context: 'AccountingNotifier.createBankCashAccount' is defined here.
+    Future<void> createBankCashAccount(BankCash account, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:656:16: Context: 'AccountingNotifier.createInvoiceWithItems' is defined here.
+    Future<void> createInvoiceWithItems(Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:242:16: Context: 'AccountingNotifier.createTransaction' is defined here.
+    Future<void> createTransaction(Transaction transaction) async {
+                 ^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:349:16: Context: 'AccountingNotifier.deleteAccount' is defined here.
+    Future<void> deleteAccount(String id, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:504:16: Context: 'AccountingNotifier.deleteAccountCategory' is defined here.
+    Future<void> deleteAccountCategory(int id, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:465:16: Context: 'AccountingNotifier.deleteAccountType' is defined here.
+    Future<void> deleteAccountType(int id, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:595:16: Context: 'AccountingNotifier.deleteBankCashAccount' is defined here.
+    Future<void> deleteBankCashAccount(String id, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:427:16: Context: 'AccountingNotifier.deletePaymentTerm' is defined here.
+    Future<void> deletePaymentTerm(int id, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:302:16: Context: 'AccountingNotifier.deleteTransaction' is defined here.
+    Future<void> deleteTransaction(String id) async {
+                 ^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:388:16: Context: 'AccountingNotifier.deleteVoucherPrefix' is defined here.
+    Future<void> deleteVoucherPrefix(int id, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:806:29: Context: 'AccountingNotifier.getInvoiceItems' is defined here.
+    Future<List<InvoiceItem>> getInvoiceItems(String invoiceId) async {
+                              ^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:605:16: Context: 'AccountingNotifier.isBankCashUsed' is defined here.
+    Future<bool> isBankCashUsed(String id) async {
+                 ^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:169:16: Context: 'AccountingNotifier.loadBankCashAccounts' is defined here.
+    Future<void> loadBankCashAccounts({int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:840:16: Context: 'AccountingNotifier.loadDailyBalance' is defined here.
+    Future<void> loadDailyBalance(String accountId, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:610:16: Context: 'AccountingNotifier.loadInvoices' is defined here.
+    Future<void> loadInvoices({int? organizationId, int? storeId, int? sYear}) async {
+                 ^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:193:16: Context: 'AccountingNotifier.loadPaymentTerms' is defined here.
+    Future<void> loadPaymentTerms({int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:205:16: Context: 'AccountingNotifier.loadTransactions' is defined here.
+    Future<void> loadTransactions({int? organizationId, int? storeId, int? sYear}) async {
+                 ^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:181:16: Context: 'AccountingNotifier.loadVoucherPrefixes' is defined here.
+    Future<void> loadVoucherPrefixes({int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:859:16: Context: 'AccountingNotifier.postInvoice' is defined here.
+    Future<void> postInvoice(Invoice invoice) async {
+                 ^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:850:16: Context: 'AccountingNotifier.saveDailyBalance' is defined here.
+    Future<void> saveDailyBalance(DailyBalance balance) async {
+                 ^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:830:16: Context: 'AccountingNotifier.saveGLSetup' is defined here.
+    Future<void> saveGLSetup(GLSetup setup) async {
+                 ^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:149:8: Context: 'AccountingNotifier.selectFinancialSession' is defined here.
+    void selectFinancialSession(FinancialSession? session) {
+         ^^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:338:16: Context: 'AccountingNotifier.updateAccount' is defined here.
+    Future<void> updateAccount(ChartOfAccount account, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:494:16: Context: 'AccountingNotifier.updateAccountCategory' is defined here.
+    Future<void> updateAccountCategory(AccountCategory category, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:455:16: Context: 'AccountingNotifier.updateAccountType' is defined here.
+    Future<void> updateAccountType(AccountType type, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:585:16: Context: 'AccountingNotifier.updateBankCashAccount' is defined here.
+    Future<void> updateBankCashAccount(BankCash account, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:554:16: Context: 'AccountingNotifier.updateFinancialSession' is defined here.
+    Future<void> updateFinancialSession(FinancialSession session, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:766:16: Context: 'AccountingNotifier.updateInvoice' is defined here.
+    Future<void> updateInvoice(Invoice invoice, {int? organizationId, int? storeId}) async {
+                 ^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:713:16: Context: 'AccountingNotifier.updateInvoiceWithItems' is defined here.
+    Future<void> updateInvoiceWithItems(Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:417:16: Context: 'AccountingNotifier.updatePaymentTerm' is defined here.
+    Future<void> updatePaymentTerm(PaymentTerm term, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:272:16: Context: 'AccountingNotifier.updateTransaction' is defined here.
+    Future<void> updateTransaction(Transaction transaction) async {
+                 ^^^^^^^^^^^^^^^^^
+  lib/features/accounting/presentation/providers/accounting_provider.dart:378:16: Context: 'AccountingNotifier.updateVoucherPrefix' is defined here.
+    Future<void> updateVoucherPrefix(VoucherPrefix prefix, {int? organizationId}) async {
+                 ^^^^^^^^^^^^^^^^^^^
+  test/features/products/presentation/screens/product_form_test.dart:60:28: Error: 'Store' isn't a type.
+    Future<void> selectStore(Store? store) async {}
+                             ^^^^^
+  .
+00:00 +0 -1: Some tests failed.

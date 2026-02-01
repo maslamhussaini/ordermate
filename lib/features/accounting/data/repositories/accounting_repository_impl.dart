@@ -397,6 +397,8 @@ class AccountingRepositoryImpl implements AccountingRepository {
       organizationId: transaction.organizationId,
       storeId: transaction.storeId,
       sYear: transaction.sYear,
+      moduleAccount: transaction.moduleAccount,
+      offsetModuleAccount: transaction.offsetModuleAccount,
     );
 
     if (SupabaseConfig.isOfflineLoggedIn) {
@@ -428,6 +430,8 @@ class AccountingRepositoryImpl implements AccountingRepository {
       organizationId: transaction.organizationId,
       storeId: transaction.storeId,
       sYear: transaction.sYear,
+      moduleAccount: transaction.moduleAccount,
+      offsetModuleAccount: transaction.offsetModuleAccount,
     );
 
     if (SupabaseConfig.isOfflineLoggedIn) {

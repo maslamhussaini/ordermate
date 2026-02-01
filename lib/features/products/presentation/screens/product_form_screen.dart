@@ -69,34 +69,45 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
+      debugPrint('ProductForm: Loading initial data for Org $orgId...');
       
-      // Load lookup data with individual try-catches and timeouts
-      final loadTasks = [
-        ('Inventory', () => ref.read(inventoryProvider.notifier).loadAll()),
-        ('Vendors', () => ref.read(vendorProvider.notifier).loadVendors()),
-        ('Suppliers', () => ref.read(vendorProvider.notifier).loadSuppliers()),
-        ('Accounting', () => ref.read(accountingProvider.notifier).loadAll(organizationId: orgId)),
-        ('GL Setup', () => ref.read(accountingProvider.notifier).loadGLSetup(organizationId: orgId)),
-      ];
-
-      for (final task in loadTasks) {
-        try {
-          await task.$2().timeout(const Duration(seconds: 10));
-        } catch (e) {
-          debugPrint('ProductForm: Failed to load ${task.$1}: $e');
-          if (mounted) {
-             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to load ${task.$1}. Please check your connection.'),
-                  duration: const Duration(seconds: 5),
-                  action: SnackBarAction(label: 'Retry', onPressed: _loadInitialData),
-                )
-             );
-          }
-        }
-      }
+      // We will perform a fresh load to ensure data is up to date, 
+      // but we catch errors for each section so one failure doesn't block the whole form.
+      
+      await Future.wait([
+        // Inventory
+        ref.read(inventoryProvider.notifier).loadAll().timeout(const Duration(seconds: 15)).catchError((e) {
+           debugPrint('ProductForm: Inventory load error: $e');
+           return;
+        }),
+        // Vendors
+        ref.read(vendorProvider.notifier).loadVendors().timeout(const Duration(seconds: 15)).catchError((e) {
+           debugPrint('ProductForm: Vendors load error: $e');
+           return;
+        }),
+        ref.read(vendorProvider.notifier).loadSuppliers().timeout(const Duration(seconds: 15)).catchError((e) {
+           debugPrint('ProductForm: Suppliers load error: $e');
+           return;
+        }),
+        // Accounting
+        ref.read(accountingProvider.notifier).loadAll(organizationId: orgId).timeout(const Duration(seconds: 20)).catchError((e) {
+           debugPrint('ProductForm: Accounting load error: $e');
+           return;
+        }),
+      ]);
       
       if (!mounted) return;
+      
+      // Log Status
+      final accState = ref.read(accountingProvider);
+      debugPrint('ProductForm: Data Load Complete. Accounts: ${accState.accounts.length}');
+
+      if (accState.accounts.isEmpty) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Warning: No Accounting Data loaded. Check internet or permissions.'),
+            backgroundColor: Colors.orange,
+        ));
+      }
 
       // Handle extra from navigation
       final extra = GoRouterState.of(context).extra as Map<String, dynamic>?;
@@ -201,18 +212,42 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     super.dispose();
   }
 
-  List<ChartOfAccount> _getFilteredAccounts(String categoryKeyword) {
-    final accState = ref.read(accountingProvider);
+  List<ChartOfAccount> _getFilteredAccounts(String categoryKeyword, AccountingState accState) {
     final allAccounts = accState.accounts;
     final categories = accState.categories;
     
-    return allAccounts.where((account) {
+    // 1. Precise Filter: Keyword match in Category Name + Level 3 or 4
+    final strictMatches = allAccounts.where((account) {
        if (account.accountCategoryId == null) return false;
        final cat = categories.firstWhere((c) => c.id == account.accountCategoryId, orElse: () => const AccountCategory(id: 0, categoryName: '', accountTypeId: 0, organizationId: 0, status: false));
+       // Use tighter contains check
        if (!cat.categoryName.toLowerCase().contains(categoryKeyword.toLowerCase())) return false;
        if (account.level != 3 && account.level != 4) return false;
        return true;
-    }).toList()..sort((a, b) => a.accountCode.compareTo(b.accountCode));
+    }).toList();
+
+    if (strictMatches.isNotEmpty) {
+      debugPrint('ProductForm: Found ${strictMatches.length} accounts for "$categoryKeyword" (Strict)');
+      return strictMatches..sort((a, b) => a.accountCode.compareTo(b.accountCode));
+    }
+
+    // 2. Relaxed Filter: Keyword match in Category OR Account Title
+    final relaxedMatches = allAccounts.where((account) {
+       final cat = categories.firstWhere((c) => c.id == account.accountCategoryId, orElse: () => const AccountCategory(id: 0, categoryName: '', accountTypeId: 0, organizationId: 0, status: false));
+       final matchesCategory = cat.categoryName.toLowerCase().contains(categoryKeyword.toLowerCase());
+       // Also check account title for the keyword
+       final matchesTitle = account.accountTitle.toLowerCase().contains(categoryKeyword.toLowerCase());
+       return matchesCategory || matchesTitle;
+    }).toList();
+
+    if (relaxedMatches.isNotEmpty) {
+      debugPrint('ProductForm: Found ${relaxedMatches.length} accounts for "$categoryKeyword" (Relaxed)');
+      return relaxedMatches..sort((a, b) => a.accountCode.compareTo(b.accountCode));
+    }
+
+    // 3. Fallback: Return all accounts (Better than empty)
+    debugPrint('ProductForm: No specific matches for "$categoryKeyword". Returning all accounts.');
+    return allAccounts.toList()..sort((a, b) => a.accountCode.compareTo(b.accountCode));
   }
 
   Future<void> _saveProduct() async {
@@ -271,12 +306,29 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   Widget build(BuildContext context) {
     final inventoryState = ref.watch(inventoryProvider);
     final vendorState = ref.watch(vendorProvider);
+    final accountingState = ref.watch(accountingProvider);
 
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(widget.productId == null ? 'Add Product' : 'Edit Product'),
+        title: Text(widget.productId == null ? 'Add Product' : 'Edit Product', style: const TextStyle(fontWeight: FontWeight.bold)),
+        elevation: 0,
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
         actions: [
-          IconButton(onPressed: _isLoading ? null : _saveProduct, icon: const Icon(Icons.save)),
+          IconButton(
+             icon: const Icon(Icons.refresh),
+             tooltip: 'Refresh Data',
+             onPressed: _loadInitialData,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              onPressed: _isLoading ? null : _saveProduct, 
+              icon: const Icon(Icons.check_circle_outline, size: 28),
+              tooltip: 'Save Product',
+            ),
+          ),
         ],
       ),
       body: _isLoading
@@ -290,230 +342,356 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     controller: _scrollController,
                     child: ListView(
                       controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
                       children: [
-                        _buildSectionHeader('Basic Information'),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(labelText: 'Product Name', border: OutlineInputBorder()),
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _skuController,
-                          decoration: const InputDecoration(labelText: 'SKU', border: OutlineInputBorder()),
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _descriptionController,
-                          decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 24),
-                        _buildSectionHeader('Classification'),
-                         const SizedBox(height: 16),
-                        LookupField<ProductType, int>(
-                          label: 'Product Type',
-                          value: _selectedTypeId,
-                          items: inventoryState.productTypes,
-                          hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.productTypes.isEmpty ? 'No Product Types Found' : 'Select Product Type'),
-                          onChanged: (v) => setState(() => _selectedTypeId = v),
-                          validator: (v) => v == null ? 'Please select a Product Type' : null,
-                          labelBuilder: (item) => item.name,
-                          valueBuilder: (item) => item.id,
-                          onAdd: (name) async {
-                            await ref.read(inventoryProvider.notifier).addProductType(name);
-                            final newItem = ref.read(inventoryProvider).productTypes.firstWhere((i) => i.name == name);
-                            setState(() => _selectedTypeId = newItem.id);
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        LookupField<ProductCategory, int>(
-                          label: 'Category',
-                          value: _selectedCategoryId,
-                          items: inventoryState.categories,
-                          hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.categories.isEmpty ? 'No Categories Found' : 'Select Category'),
-                          onChanged: (v) => setState(() => _selectedCategoryId = v),
-                          validator: (v) => v == null ? 'Please select a Category' : null,
-                          labelBuilder: (item) => item.name,
-                          valueBuilder: (item) => item.id,
-                          onAdd: (name) async {
-                            await ref.read(inventoryProvider.notifier).addCategory(name);
-                            final newItem = ref.read(inventoryProvider).categories.firstWhere((i) => i.name == name);
-                            setState(() => _selectedCategoryId = newItem.id);
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        LookupField<Brand, int>(
-                          label: 'Brand',
-                          value: _selectedBrandId,
-                          items: inventoryState.brands,
-                          hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.brands.isEmpty ? 'No Brands Found' : 'Select Brand'),
-                          onChanged: (v) => setState(() => _selectedBrandId = v),
-                          validator: (v) => v == null ? 'Please select a Brand' : null, // Optional in some cases, but good to enforce if needed. Let's enforce for now.
-                          labelBuilder: (item) => item.name,
-                          valueBuilder: (item) => item.id,
-                          onAdd: (name) async {
-                            await ref.read(inventoryProvider.notifier).addBrand(name);
-                            final newItem = ref.read(inventoryProvider).brands.firstWhere((i) => i.name == name);
-                            setState(() => _selectedBrandId = newItem.id);
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        LookupField<Vendor, String>(
-                          label: 'Supplier',
-                          value: _selectedBusinessPartnerId,
-                          items: vendorState.suppliers,
-                          onChanged: (v) => setState(() => _selectedBusinessPartnerId = v),
-                          labelBuilder: (item) => item.name,
-                          valueBuilder: (item) => item.id,
-                        ),
-                        const SizedBox(height: 24),
-                        _buildSectionHeader('Pricing & Inventory'),
-                        const SizedBox(height: 16),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: LookupField<UnitOfMeasure, int>(
-                                label: 'Base Unit',
-                                value: _selectedUomId,
-                                items: inventoryState.unitsOfMeasure,
-                                onChanged: (v) {
-                                  final uom = inventoryState.unitsOfMeasure.firstWhere((u) => u.id == v);
-                                  setState(() {
-                                    _selectedUomId = v;
-                                    _uomSymbol = uom.symbol;
-                                  });
-                                },
-                                validator: (v) => v == null ? 'Required' : null,
-                                labelBuilder: (item) => '${item.name} (${item.symbol})',
-                                valueBuilder: (item) => item.id,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _baseQuantityController,
-                                decoration: InputDecoration(
-                                  labelText: 'Base Qty (e.g. 1.0)',
-                                  border: const OutlineInputBorder(),
-                                  suffixText: _uomSymbol ?? '',
+                        Card(
+                          elevation: 2,
+                          shadowColor: Colors.black12,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionHeader('Basic Information', Icons.info_outline),
+                                const SizedBox(height: 20),
+                                TextFormField(
+                                  controller: _nameController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Product Name', 
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    prefixIcon: const Icon(Icons.shopping_bag_outlined),
+                                  ),
+                                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                                 ),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _costController,
-                                decoration: const InputDecoration(labelText: 'Cost Price', border: OutlineInputBorder()),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _priceController,
-                                decoration: const InputDecoration(labelText: 'Sales Price', border: OutlineInputBorder()),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _limitPriceController,
-                                decoration: const InputDecoration(labelText: 'Limit Price (Min)', border: OutlineInputBorder(), hintText: 'Minimum Price'),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _stockQtyController,
-                                decoration: const InputDecoration(labelText: 'Opening Stock', border: OutlineInputBorder()),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        _buildSectionHeader('Accounting (GL Accounts)'),
-                        const SizedBox(height: 16),
-                        LookupField<ChartOfAccount, String>(
-                          label: 'Inventory Asset Account',
-                          value: _selectedInventoryGlId,
-                          items: _getFilteredAccounts('Inventory'),
-                          onChanged: (v) => setState(() => _selectedInventoryGlId = v),
-                          labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
-                          valueBuilder: (item) => item.id,
-                        ),
-                        const SizedBox(height: 16),
-                        LookupField<ChartOfAccount, String>(
-                          label: 'COGS Account',
-                          value: _selectedCogsGlId,
-                          items: _getFilteredAccounts('COGS'),
-                          onChanged: (v) => setState(() => _selectedCogsGlId = v),
-                          labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
-                          valueBuilder: (item) => item.id,
-                        ),
-                        const SizedBox(height: 16),
-                        LookupField<ChartOfAccount, String>(
-                          label: 'Revenue/Sales Account',
-                          value: _selectedRevenueGlId,
-                          items: _getFilteredAccounts('BasicRevenue'),
-                          onChanged: (v) => setState(() => _selectedRevenueGlId = v),
-                          labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
-                          valueBuilder: (item) => item.id,
-                        ),
-                        const SizedBox(height: 24),
-                        _buildSectionHeader('Discounts'),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _defaultDiscountController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Default Discount %',
-                                  border: OutlineInputBorder(),
-                                  suffixText: '%',
+                                const SizedBox(height: 20),
+                                TextFormField(
+                                  controller: _skuController,
+                                  decoration: InputDecoration(
+                                    labelText: 'SKU', 
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    prefixIcon: const Icon(Icons.qr_code_scanner),
+                                  ),
+                                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                                 ),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _discountLimitController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Discount Limit %',
-                                  border: OutlineInputBorder(),
-                                  suffixText: '%',
+                                const SizedBox(height: 20),
+                                TextFormField(
+                                  controller: _descriptionController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Description', 
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    prefixIcon: const Icon(Icons.description_outlined),
+                                    alignLabelWithHint: true,
+                                  ),
+                                  maxLines: 3,
                                 ),
-                                keyboardType: TextInputType.number,
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        LookupField<ChartOfAccount, String>(
-                          label: 'Sales Discount Account',
-                          value: _selectedSalesDiscountGlId,
-                          items: _getFilteredAccounts('Discount'),
-                          onChanged: (v) => setState(() => _selectedSalesDiscountGlId = v),
-                          labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
-                          valueBuilder: (item) => item.id,
+                        const SizedBox(height: 20),
+                        Card(
+                          elevation: 2,
+                          shadowColor: Colors.black12,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionHeader('Classification', Icons.category_outlined),
+                                const SizedBox(height: 20),
+                                LookupField<ProductType, int>(
+                                  label: 'Product Type *',
+                                  value: _selectedTypeId,
+                                  prefixIcon: Icons.merge_type,
+                                  items: inventoryState.productTypes,
+                                  hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.productTypes.isEmpty ? 'No Product Types Found' : 'Select Product Type'),
+                                  onChanged: (v) => setState(() => _selectedTypeId = v),
+                                  validator: (v) => v == null ? 'Please select a Product Type' : null,
+                                  labelBuilder: (item) => item.name,
+                                  valueBuilder: (item) => item.id,
+                                  onAdd: (name) async {
+                                    await ref.read(inventoryProvider.notifier).addProductType(name);
+                                    final newItem = ref.read(inventoryProvider).productTypes.firstWhere((i) => i.name == name);
+                                    setState(() => _selectedTypeId = newItem.id);
+                                  },
+                                ),
+                                const SizedBox(height: 20),
+                                LookupField<ProductCategory, int>(
+                                  label: 'Category *',
+                                  value: _selectedCategoryId,
+                                  prefixIcon: Icons.category_outlined,
+                                  items: inventoryState.categories,
+                                  hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.categories.isEmpty ? 'No Categories Found' : 'Select Category'),
+                                  onChanged: (v) => setState(() => _selectedCategoryId = v),
+                                  validator: (v) => v == null ? 'Please select a Category' : null,
+                                  labelBuilder: (item) => item.name,
+                                  valueBuilder: (item) => item.id,
+                                  onAdd: (name) async {
+                                    await ref.read(inventoryProvider.notifier).addCategory(name);
+                                    final newItem = ref.read(inventoryProvider).categories.firstWhere((i) => i.name == name);
+                                    setState(() => _selectedCategoryId = newItem.id);
+                                  },
+                                ),
+                                const SizedBox(height: 20),
+                                LookupField<Brand, int>(
+                                  label: 'Brand *',
+                                  value: _selectedBrandId,
+                                  prefixIcon: Icons.branding_watermark_outlined,
+                                  items: inventoryState.brands,
+                                  hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.brands.isEmpty ? 'No Brands Found' : 'Select Brand'),
+                                  onChanged: (v) => setState(() => _selectedBrandId = v),
+                                  validator: (v) => v == null ? 'Please select a Brand' : null,
+                                  labelBuilder: (item) => item.name,
+                                  valueBuilder: (item) => item.id,
+                                  onAdd: (name) async {
+                                    await ref.read(inventoryProvider.notifier).addBrand(name);
+                                    final newItem = ref.read(inventoryProvider).brands.firstWhere((i) => i.name == name);
+                                    setState(() => _selectedBrandId = newItem.id);
+                                  },
+                                ),
+                                const SizedBox(height: 20),
+                                LookupField<Vendor, String>(
+                                  label: 'Preferred Supplier',
+                                  value: _selectedBusinessPartnerId,
+                                  prefixIcon: Icons.business_outlined,
+                                  items: vendorState.suppliers,
+                                  onChanged: (v) => setState(() => _selectedBusinessPartnerId = v),
+                                  labelBuilder: (item) => item.name,
+                                  valueBuilder: (item) => item.id,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Card(
+                          elevation: 2,
+                          shadowColor: Colors.black12,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionHeader('Pricing & Inventory', Icons.inventory_2_outlined),
+                                const SizedBox(height: 20),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: LookupField<UnitOfMeasure, int>(
+                                        label: 'Base Unit',
+                                        value: _selectedUomId,
+                                        prefixIcon: Icons.straighten_outlined,
+                                        items: inventoryState.unitsOfMeasure,
+                                        onChanged: (v) {
+                                          final uom = inventoryState.unitsOfMeasure.firstWhere((u) => u.id == v);
+                                          setState(() {
+                                            _selectedUomId = v;
+                                            _uomSymbol = uom.symbol;
+                                          });
+                                        },
+                                        validator: (v) => v == null ? 'Required' : null,
+                                        labelBuilder: (item) => '${item.name} (${item.symbol})',
+                                        valueBuilder: (item) => item.id,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _baseQuantityController,
+                                        decoration: InputDecoration(
+                                          labelText: 'Base Qty',
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          hintText: 'e.g. 1.0',
+                                        ),
+                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        validator: (v) {
+                                          if (v == null || v.isEmpty) return 'Required';
+                                          if (double.tryParse(v) == null) return 'Invalid';
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _costController,
+                                        decoration: InputDecoration(
+                                          labelText: 'Cost Price', 
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _priceController,
+                                        decoration: InputDecoration(
+                                          labelText: 'Sales Price', 
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          prefixIcon: const Icon(Icons.sell_outlined),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _limitPriceController,
+                                        decoration: InputDecoration(
+                                          labelText: 'Limit Price (Min)', 
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          hintText: 'Min Sales Price',
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _stockQtyController,
+                                        decoration: InputDecoration(
+                                          labelText: 'Opening Stock', 
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Card(
+                          elevation: 2,
+                          shadowColor: Colors.black12,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionHeader('Accounting (GL Accounts)', Icons.account_balance_outlined),
+                                if (accountingState.accounts.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: const Text('⚠️ No accounts loaded. Please refresh.', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                  )
+                                else 
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4.0),
+                                    child: Text(
+                                      'Debug: ${accountingState.accounts.length} Accounts, ${accountingState.categories.length} Cats loaded.',
+                                      style: const TextStyle(color: Colors.grey, fontSize: 11),
+                                    ),
+                                  ),
+                                const SizedBox(height: 20),
+                                LookupField<ChartOfAccount, String>(
+                                  label: 'Inventory Asset Account',
+                                  value: _selectedInventoryGlId,
+                                  prefixIcon: Icons.account_balance_outlined,
+                                  items: _getFilteredAccounts('Inventory', accountingState),
+                                  onChanged: (v) => setState(() => _selectedInventoryGlId = v),
+                                  validator: (v) => v == null ? 'Required' : null,
+                                  labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
+                                  valueBuilder: (item) => item.id,
+                                ),
+                                const SizedBox(height: 20),
+                                LookupField<ChartOfAccount, String>(
+                                  label: 'COGS Account',
+                                  value: _selectedCogsGlId,
+                                  prefixIcon: Icons.account_tree_outlined,
+                                  items: _getFilteredAccounts('COGS', accountingState),
+                                  onChanged: (v) => setState(() => _selectedCogsGlId = v),
+                                  validator: (v) => v == null ? 'Required' : null,
+                                  labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
+                                  valueBuilder: (item) => item.id,
+                                ),
+                                const SizedBox(height: 20),
+                                LookupField<ChartOfAccount, String>(
+                                  label: 'Revenue/Sales Account',
+                                  value: _selectedRevenueGlId,
+                                  prefixIcon: Icons.monetization_on_outlined,
+                                  items: _getFilteredAccounts('BasicRevenue', accountingState),
+                                  onChanged: (v) => setState(() => _selectedRevenueGlId = v),
+                                  validator: (v) => v == null ? 'Required' : null,
+                                  labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
+                                  valueBuilder: (item) => item.id,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Card(
+                          elevation: 2,
+                          shadowColor: Colors.black12,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionHeader('Discounts', Icons.discount_outlined),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _defaultDiscountController,
+                                        decoration: InputDecoration(
+                                          labelText: 'Default Discount %',
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          suffixText: '%',
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _discountLimitController,
+                                        decoration: InputDecoration(
+                                          labelText: 'Discount Limit %',
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          suffixText: '%',
+                                        ),
+                                        keyboardType: TextInputType.number,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                LookupField<ChartOfAccount, String>(
+                                  label: 'Sales Discount Account',
+                                  value: _selectedSalesDiscountGlId,
+                                  prefixIcon: Icons.money_off_outlined,
+                                  items: _getFilteredAccounts('Discount', accountingState),
+                                  onChanged: (v) => setState(() => _selectedSalesDiscountGlId = v),
+                                  validator: (v) => v == null ? 'Required' : null,
+                                  labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
+                                  valueBuilder: (item) => item.id,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -524,13 +702,30 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.indigo)),
-        const Divider(),
-      ],
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Colors.indigo, size: 22),
+              const SizedBox(width: 10),
+              Text(
+                title, 
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold, 
+                  color: Colors.indigo.shade800,
+                  letterSpacing: 0.5,
+                )
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Divider(color: Colors.indigo.withOpacity(0.2), thickness: 1),
+        ],
+      ),
     );
   }
 }

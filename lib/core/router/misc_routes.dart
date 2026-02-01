@@ -11,6 +11,7 @@ import 'package:ordermate/features/accounting/presentation/screens/invoice_detai
 import 'package:ordermate/features/accounting/presentation/screens/invoice_entry_screen.dart';
 import 'package:ordermate/features/products/presentation/screens/product_form_screen.dart';
 import 'package:ordermate/features/products/presentation/screens/product_list_screen.dart';
+import 'package:ordermate/features/products/presentation/screens/product_debug_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/brand_list_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/category_list_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/inventory_dashboard_screen.dart';
@@ -124,6 +125,7 @@ final List<AppRoute> productRoutes = [
     children: [
        AppRoute(path: 'create', title: 'Create Product', routeName: RouteNames.productCreate, module: 'products', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const ProductFormScreen()),
        AppRoute(path: 'edit/:id', title: 'Edit Product', routeName: RouteNames.productEdit, module: 'products', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => ProductFormScreen(productId: state.pathParameters['id']!)),
+       AppRoute(path: 'debug', title: 'Debug Product', routeName: RouteNames.productDebug, module: 'products', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const ProductDebugScreen()),
     ],
   ),
 ];

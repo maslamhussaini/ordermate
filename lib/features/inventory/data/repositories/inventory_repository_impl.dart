@@ -38,9 +38,10 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .select('*')
           .eq('status', 1);
           
-      // NOTE: omtbl_brands is global and does not have organization_id
+      if (organizationId != null && organizationId != 0) {
+        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+      }
 
-      
       final response = await query
           .order('brandtype', ascending: true)
           .limit(1000)
@@ -203,8 +204,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .select('*')
           .eq('status', 1);
 
-      // NOTE: omtbl_categories is global and does not have organization_id
-
+      if (organizationId != null && organizationId != 0) {
+        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+      }
 
       final response = await query
           .order('category', ascending: true)
@@ -360,8 +362,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .select('*')
           .eq('status', 1);
 
-      // NOTE: omtbl_producttypes is global and does not have organization_id
-
+      if (organizationId != null && organizationId != 0) {
+        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+      }
 
       final response = await query
           .order('producttype', ascending: true)

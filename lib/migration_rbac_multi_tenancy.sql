@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS omtbl_stores (
 -- 3. Create Roles Table
 CREATE TABLE IF NOT EXISTS omtbl_roles (
     id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL, -- Super User, Admin, Manager, Booker
+    role_name TEXT UNIQUE NOT NULL, -- Super User, Admin, Manager, Booker
     description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -141,12 +141,12 @@ BEGIN
 END $$;
 
 -- 7. Seed Initial Roles
-INSERT INTO omtbl_roles (name, description) VALUES
+INSERT INTO omtbl_roles (role_name, description) VALUES
 ('Super User', 'Full access to organization'),
 ('Admin', 'Administrative access'),
 ('Manager', 'Can view their sales persons'),
 ('Booker', 'Can only book orders and create customers')
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT (role_name) DO NOTHING;
 
 -- 8. Seed Default Organization/Store (to handle legacy data)
 -- Insert a default org and store if empty, so we can update existing nulls

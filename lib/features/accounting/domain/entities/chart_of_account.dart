@@ -117,6 +117,8 @@ class Transaction {
   final int organizationId;
   final int storeId;
   final int? sYear;
+  final String? moduleAccount;
+  final String? offsetModuleAccount;
 
   const Transaction({
     required this.id,
@@ -131,6 +133,8 @@ class Transaction {
     required this.organizationId,
     required this.storeId,
     this.sYear,
+    this.moduleAccount,
+    this.offsetModuleAccount,
   });
 }
 

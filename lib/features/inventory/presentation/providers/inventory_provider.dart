@@ -58,15 +58,19 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
   final Ref ref;
 
   Future<void> loadAll() async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: null);
     final orgId = ref.read(organizationProvider).selectedOrganizationId;
+    debugPrint('InventoryNotifier: Loading all data for Org ID: $orgId');
 
     // Helper to safely load data
     Future<List<T>> safeLoad<T>(String name, Future<List<T>> Function() fetcher) async {
       try {
-        return await fetcher();
+        debugPrint('InventoryNotifier: Fetching $name...');
+        final result = await fetcher();
+        debugPrint('InventoryNotifier: Fetched ${result.length} $name');
+        return result;
       } catch (e) {
-        debugPrint('InventoryNotifier: Failed to load $name: $e');
+        debugPrint('InventoryNotifier: Error loading $name: $e');
         return [];
       }
     }
@@ -77,6 +81,42 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
     final productTypes = await safeLoad('ProductTypes', () => repository.getProductTypes(organizationId: orgId));
     final unitsOfMeasure = await safeLoad('UnitsOfMeasure', () => repository.getUnitsOfMeasure(organizationId: orgId));
     final unitConversions = await safeLoad('UnitConversions', () => repository.getUnitConversions(organizationId: orgId));
+
+    if (brands.isEmpty && categories.isEmpty && productTypes.isEmpty) {
+      debugPrint('InventoryNotifier: All primary inventory lists are empty.');
+    }
+
+    state = state.copyWith(
+      isLoading: false,
+      brands: brands,
+      categories: categories,
+      productTypes: productTypes,
+      unitsOfMeasure: unitsOfMeasure,
+      unitConversions: unitConversions,
+    );
+  }
+
+  Future<void> loadAllIgnoreOrg() async {
+    state = state.copyWith(isLoading: true, error: null);
+    debugPrint('InventoryNotifier: Loading ALL data (ignoring Org ID)');
+
+    Future<List<T>> safeLoad<T>(String name, Future<List<T>> Function() fetcher) async {
+      try {
+        debugPrint('InventoryNotifier: Fetching $name (no org filter)...');
+        final result = await fetcher();
+        debugPrint('InventoryNotifier: Fetched ${result.length} $name');
+        return result;
+      } catch (e) {
+        debugPrint('InventoryNotifier: Error loading $name: $e');
+        return [];
+      }
+    }
+
+    final brands = await safeLoad('Brands', () => repository.getBrands(organizationId: 0));
+    final categories = await safeLoad('Categories', () => repository.getCategories(organizationId: 0));
+    final productTypes = await safeLoad('ProductTypes', () => repository.getProductTypes(organizationId: 0));
+    final unitsOfMeasure = await safeLoad('UnitsOfMeasure', () => repository.getUnitsOfMeasure(organizationId: 0));
+    final unitConversions = await safeLoad('UnitConversions', () => repository.getUnitConversions(organizationId: 0));
 
     state = state.copyWith(
       isLoading: false,

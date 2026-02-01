@@ -7,7 +7,7 @@ class DatabaseHelper {
 
   DatabaseHelper._init();
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static const int _databaseVersion = 71;
+  static const int _databaseVersion = 72;
   static Database? _database;
   static Future<Database>? _dbOpenFuture;
 
@@ -1683,6 +1683,25 @@ class DatabaseHelper {
         }
       }
       debugPrint('Database: v71 migration complete.');
+    }
+
+    if (oldVersion < 72) {
+      debugPrint('Database: Starting v72 migration (Fix Inventory Schemas)...');
+      final tables = ['local_brands', 'local_categories', 'local_product_types'];
+      
+      for (var table in tables) {
+         try {
+           await db.execute('ALTER TABLE $table ADD COLUMN organization_id INTEGER DEFAULT 0');
+           debugPrint('Database: Added organization_id to $table');
+         } catch (_) {
+           // Column likely exists
+         }
+         try {
+           await db.execute('ALTER TABLE $table ADD COLUMN updated_at INTEGER');
+           debugPrint('Database: Added updated_at to $table');
+         } catch (_) {}
+      }
+      debugPrint('Database: v72 migration checking complete.');
     }
   }
 

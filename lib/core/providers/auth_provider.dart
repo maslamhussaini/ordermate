@@ -16,13 +16,16 @@ class AuthState {
   final UserRole role;
   final List<PermissionObject> permissions;
  
-  const AuthState({
+  final int? organizationId;
+ 
+   const AuthState({
     this.userFullName = '',
     this.isLoggedIn = false,
     this.isPasswordRecovery = false,
     this.isPermissionLoading = false,
     this.role = UserRole.staff,
     this.permissions = const [],
+    this.organizationId,
   });
 
   bool can(String module, Permission action) {
@@ -44,6 +47,7 @@ class AuthState {
     bool? isPermissionLoading,
     UserRole? role,
     List<PermissionObject>? permissions,
+    int? organizationId,
   }) {
     return AuthState(
       userFullName: userFullName ?? this.userFullName,
@@ -52,6 +56,7 @@ class AuthState {
       isPermissionLoading: isPermissionLoading ?? this.isPermissionLoading,
       role: role ?? this.role,
       permissions: permissions ?? this.permissions,
+      organizationId: organizationId ?? this.organizationId,
     );
   }
 }
@@ -148,7 +153,7 @@ class AuthNotifier extends Notifier<AuthState> {
       // 1. Get User Profile
       final userResponse = await SupabaseConfig.client
           .from('omtbl_users')
-          .select('id, role_id, role, full_name')
+          .select('id, role_id, role, full_name, organization_id') // Added organization_id
           .eq('auth_id', sessionUser.id)
           .maybeSingle();
 
@@ -159,6 +164,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       final roleId = userResponse['role_id'] as int?;
       final employeeId = userResponse['id'] as String?;
+      final organizationId = userResponse['organization_id'] as int?; // Capture Org ID
       final roleStr = (userResponse['role'] as String?)?.toUpperCase();
       final fullName = userResponse['full_name'] as String?;
 
@@ -171,6 +177,7 @@ class AuthNotifier extends Notifier<AuthState> {
       state = state.copyWith(
         userFullName: fullName ?? state.userFullName,
         role: determinedRole,
+        organizationId: organizationId, // Update State
       );
 
       // Corporate Admins bypass all checks
@@ -180,6 +187,8 @@ class AuthNotifier extends Notifier<AuthState> {
       }
 
       // 2. Fetch Privileges
+      // Note: Privileges are currently Role-Based (Global), not Org-Specific.
+      // However, Multi-Tenancy is enforced via RLS on Data Tables.
       final privsResponse = await SupabaseConfig.client
           .from('omtbl_role_form_privileges')
           .select('*, omtbl_app_forms(form_code, module_name)')

@@ -126,6 +126,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         _repository.getVoucherPrefixes(organizationId: orgId),
         _repository.getFinancialSessions(organizationId: orgId),
         _repository.getInvoiceTypes(organizationId: orgId),
+        _repository.getGLSetup(orgId ?? 0),
       ]);
 
       if (!mounted) return;
@@ -138,6 +139,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         voucherPrefixes: List<VoucherPrefix>.from(results[5] as Iterable),
         financialSessions: List<FinancialSession>.from(results[6] as Iterable),
         invoiceTypes: List<InvoiceType>.from(results[7] as Iterable),
+        glSetup: results[8] as GLSetup?,
         isLoading: false,
       );
     } catch (e) {

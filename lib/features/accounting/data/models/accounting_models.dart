@@ -75,6 +75,8 @@ class TransactionModel extends Transaction {
     required super.organizationId,
     required super.storeId,
     super.sYear,
+    super.moduleAccount,
+    super.offsetModuleAccount,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -91,6 +93,8 @@ class TransactionModel extends Transaction {
       organizationId: (json['organization_id'] as int?) ?? 0,
       storeId: (json['store_id'] as int?) ?? 0,
       sYear: json['syear'] as int?,
+      moduleAccount: json['module_account'] as String?,
+      offsetModuleAccount: json['offset_module_account'] as String?,
     );
   }
 
@@ -108,6 +112,8 @@ class TransactionModel extends Transaction {
       'organization_id': organizationId,
       'store_id': storeId,
       'syear': sYear,
+      'module_account': moduleAccount,
+      'offset_module_account': offsetModuleAccount,
     };
   }
 }

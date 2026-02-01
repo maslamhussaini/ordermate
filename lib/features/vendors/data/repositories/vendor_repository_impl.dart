@@ -12,30 +12,40 @@ class VendorRepositoryImpl implements VendorRepository {
   final _localRepository = BusinessPartnerLocalRepository();
 
   @override
-  Future<List<Vendor>> getVendors() async {
-    // 1. Check Connectivity & Offline Mode
+  Future<List<Vendor>> getVendors({int? organizationId}) async {
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none) || SupabaseConfig.isOfflineLoggedIn) {
-       final localPartners = await _localRepository.getLocalPartners(isVendor: true);
+       final localPartners = await _localRepository.getLocalPartners(isVendor: true, organizationId: organizationId);
        return localPartners.where((p) => !p.isSupplier).map((p) => _mapToVendor(p)).toList();
     }
 
     try {
-      final response = await SupabaseConfig.client
+      debugPrint('VendorRepository: Fetching vendors for Org: $organizationId');
+      var query = SupabaseConfig.client
           .from('omtbl_businesspartners')
           .select('*, product_count:omtbl_products(count)')
-          .or('is_active.eq.1,is_active.is.null')
-          .eq('is_vendor', 1)
-          .or('is_supplier.eq.0,is_supplier.is.null')
+          .or('is_active.eq.true,is_active.is.null')
+          .eq('is_vendor', 1);
+
+      if (organizationId != null && organizationId != 0) {
+        query = query.eq('organization_id', organizationId);
+      }
+
+      final response = await query
           .order('name', ascending: true)
+          .limit(1000)
           .timeout(const Duration(seconds: 15));
 
       final vendors = (response as List)
           .map((json) => VendorModel.fromJson(json as Map<String, dynamic>))
           .toList();
       
-      // Cache logic
-      final partners = vendors.map((v) => BusinessPartner(
+      // Filter out suppliers manually if needed, or refine query
+      final filteredVendors = vendors.where((v) => !v.isSupplier).toList();
+      debugPrint('VendorRepository: Found ${filteredVendors.length} vendors');
+
+      // Cache
+      final partners = filteredVendors.map((v) => BusinessPartner(
         id: v.id,
         name: v.name,
         phone: v.phone ?? '',
@@ -53,33 +63,69 @@ class VendorRepositoryImpl implements VendorRepository {
       )).toList();
       await _localRepository.cachePartners(partners);
 
-      // Final return: merged with unsynced local changes (standard practice here)
-      final unsynced = await _localRepository.getUnsyncedPartners();
-      final unsyncedVendors = unsynced.where((p) => p.isVendor && !p.isSupplier).map((p) => _mapToVendor(p)).toList();
-
-      if (unsyncedVendors.isNotEmpty) {
-        final Map<String, Vendor> mergedMap = {
-          for (var v in vendors) v.id: v,
-          for (var v in unsyncedVendors) v.id: v,
-        };
-        return mergedMap.values.toList()..sort((a, b) => a.name.compareTo(b.name));
-      }
-
-      // If online returned nothing but local has data, we might be hitting RLS or sync issues.
-      // To be safe and match dashboard, let's return local if online is empty.
-      if (vendors.isEmpty) {
-        final localPartners = await _localRepository.getLocalPartners(isVendor: true);
-        final filteredLocal = localPartners.where((p) => !p.isSupplier).toList();
-        if (filteredLocal.isNotEmpty) {
-           return filteredLocal.map((p) => _mapToVendor(p)).toList();
-        }
-      }
-
-      return vendors;
+      return filteredVendors;
     } catch (e) {
       debugPrint('Online fetch vendors failed: $e. Falling back to local.');
-      final localPartners = await _localRepository.getLocalPartners(isVendor: true);
+      final localPartners = await _localRepository.getLocalPartners(isVendor: true, organizationId: organizationId);
       return localPartners.where((p) => !p.isSupplier).map((p) => _mapToVendor(p)).toList();
+    }
+  }
+
+  @override
+  Future<List<Vendor>> getSuppliers({int? organizationId}) async {
+    final connectivityResult = await ConnectivityHelper.check();
+    if (connectivityResult.contains(ConnectivityResult.none) || SupabaseConfig.isOfflineLoggedIn) {
+       final localPartners = await _localRepository.getLocalPartners(isSupplier: true, organizationId: organizationId);
+       return localPartners.map((p) => _mapToVendor(p)).toList();
+    }
+
+    try {
+      debugPrint('VendorRepository: Fetching suppliers for Org: $organizationId');
+      var query = SupabaseConfig.client
+          .from('omtbl_businesspartners')
+          .select()
+          .or('is_active.eq.true,is_active.is.null')
+          .eq('is_supplier', 1);
+
+      if (organizationId != null && organizationId != 0) {
+        query = query.eq('organization_id', organizationId);
+      }
+
+      final response = await query
+          .order('name', ascending: true)
+          .limit(1000)
+          .timeout(const Duration(seconds: 15));
+
+      final suppliers = (response as List)
+          .map((json) => VendorModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+      
+      debugPrint('VendorRepository: Found ${suppliers.length} suppliers');
+
+      // Cache
+      final partners = suppliers.map((v) => BusinessPartner(
+        id: v.id,
+        name: v.name,
+        phone: v.phone ?? '',
+        email: v.email,
+        address: v.address ?? '',
+        contactPerson: v.contactPerson,
+        isVendor: v.isVendor,
+        isSupplier: true,
+        isActive: v.isActive,
+        createdAt: v.createdAt,
+        updatedAt: v.updatedAt,
+        chartOfAccountId: v.chartOfAccountId,
+        organizationId: v.organizationId,
+        storeId: v.storeId,
+      )).toList();
+      await _localRepository.cachePartners(partners);
+
+      return suppliers;
+    } catch (e) {
+      debugPrint('Online fetch suppliers failed: $e. Falling back to local.');
+      final localPartners = await _localRepository.getLocalPartners(isSupplier: true, organizationId: organizationId);
+      return localPartners.map((p) => _mapToVendor(p)).toList();
     }
   }
 
@@ -99,75 +145,6 @@ class VendorRepositoryImpl implements VendorRepository {
       organizationId: p.organizationId,
       storeId: p.storeId,
     );
-  }
-
-  @override
-  Future<List<Vendor>> getSuppliers() async {
-    // 1. Check Connectivity & Offline Mode
-    final connectivityResult = await ConnectivityHelper.check();
-    if (connectivityResult.contains(ConnectivityResult.none) || SupabaseConfig.isOfflineLoggedIn) {
-       final localPartners = await _localRepository.getLocalPartners(isSupplier: true);
-       return localPartners.map((p) => _mapToVendor(p)).toList();
-    }
-
-    try {
-      final response = await SupabaseConfig.client
-          .from('omtbl_businesspartners')
-          .select()
-          .eq('is_supplier', 1)
-          .or('is_active.eq.1,is_active.is.null')
-          .order('name', ascending: true)
-          .timeout(const Duration(seconds: 15));
-
-      final vendors = (response as List)
-          .map((json) => VendorModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-          
-      // Cache logic
-      final partners = vendors.map((v) => BusinessPartner(
-        id: v.id,
-        name: v.name,
-        phone: v.phone ?? '',
-        email: v.email,
-        address: v.address ?? '',
-        contactPerson: v.contactPerson,
-        isVendor: true,
-        isSupplier: true,
-        isActive: v.isActive,
-        createdAt: v.createdAt,
-        updatedAt: v.updatedAt,
-        chartOfAccountId: v.chartOfAccountId,
-        organizationId: v.organizationId,
-        storeId: v.storeId,
-      )).toList();
-      await _localRepository.cachePartners(partners);
-
-      // Merge with offline/unsynced suppliers
-      final unsynced = await _localRepository.getUnsyncedPartners();
-      final unsyncedSuppliers = unsynced.where((p) => p.isSupplier).map((p) => _mapToVendor(p)).toList();
-
-      if (unsyncedSuppliers.isNotEmpty) {
-        final Map<String, Vendor> mergedMap = {
-          for (var v in vendors) v.id: v,
-          for (var v in unsyncedSuppliers) v.id: v,
-        };
-        return mergedMap.values.toList()..sort((a, b) => a.name.compareTo(b.name));
-      }
-
-      // Fallback for empty online results
-      if (vendors.isEmpty) {
-        final localSuppliers = await _localRepository.getLocalPartners(isSupplier: true);
-        if (localSuppliers.isNotEmpty) {
-          return localSuppliers.map((p) => _mapToVendor(p)).toList();
-        }
-      }
-
-      return vendors;
-    } catch (e) {
-      debugPrint('Online fetch suppliers failed: $e. Falling back to local.');
-      final localPartners = await _localRepository.getLocalPartners(isSupplier: true);
-      return localPartners.map((p) => _mapToVendor(p)).toList();
-    }
   }
 
   @override

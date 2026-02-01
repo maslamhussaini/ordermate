@@ -13,6 +13,7 @@ class Vendor extends Equatable {
     this.email,
     this.address,
     this.isSupplier = false,
+    this.isVendor = false,
     this.isActive = true,
     this.productCount,
     required this.organizationId,
@@ -26,6 +27,7 @@ class Vendor extends Equatable {
   final String? email;
   final String? address;
   final bool isSupplier;
+  final bool isVendor;
   final bool isActive;
   final int? productCount;
   final int organizationId;
@@ -42,6 +44,7 @@ class Vendor extends Equatable {
     String? email,
     String? address,
     bool? isSupplier,
+    bool? isVendor,
     bool? isActive,
     int? productCount,
     int? organizationId,
@@ -58,6 +61,7 @@ class Vendor extends Equatable {
       email: email ?? this.email,
       address: address ?? this.address,
       isSupplier: isSupplier ?? this.isSupplier,
+      isVendor: isVendor ?? this.isVendor,
       isActive: isActive ?? this.isActive,
       productCount: productCount ?? this.productCount,
       organizationId: organizationId ?? this.organizationId,
@@ -77,6 +81,7 @@ class Vendor extends Equatable {
         email,
         address,
         isSupplier,
+        isVendor,
         isActive,
         productCount,
         organizationId,
