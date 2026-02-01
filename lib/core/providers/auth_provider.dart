@@ -164,7 +164,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       // Determine the role
       UserRole determinedRole = UserRole.staff;
-      if (roleStr == 'CORPORATE_ADMIN' || roleStr == 'ADMIN') {
+      if (roleStr == 'CORPORATE_ADMIN' || roleStr == 'ADMIN' || roleStr == 'ORG_ADMIN' || roleStr == 'MANAGER') {
         determinedRole = UserRole.admin;
       }
       
@@ -192,20 +192,55 @@ class AuthNotifier extends Notifier<AuthState> {
 
       // 3. Map Privileges
       final List<PermissionObject> dynamicPermissions = [];
+      
+      // Basic static permissions for staff to ensure they can at least see the dashboard
+      if (determinedRole == UserRole.staff) {
+        dynamicPermissions.add(const PermissionObject('dashboard', Permission.read));
+      }
+
       for (var p in privsResponse) {
         final form = p['omtbl_app_forms'] as Map<String, dynamic>?;
         if (form == null) continue;
 
-        final module = form['form_code'].toString().toLowerCase().replaceFirst('frm_', '');
+        final formCode = form['form_code'].toString().toLowerCase();
+        final module = formCode.replaceFirst('frm_', '');
         
-        if (p['can_view'] == true || p['can_read'] == true) {
+        final canRead = p['can_view'] == true || p['can_read'] == true;
+        final canWrite = p['can_add'] == true || p['can_edit'] == true;
+        final canDelete = p['can_delete'] == true;
+
+        if (canRead) {
           dynamicPermissions.add(PermissionObject(module, Permission.read));
+          
+          // MAP TO PARENT MODULES IF NECESSARY
+          // If any accounting form is allowed, allow the 'accounting' module
+          final accountingForms = [
+            'chart_of_accounts', 'coa', 'payment_terms', 'bank_cash', 
+            'voucher_prefixes', 'financial_sessions', 'gl_setup', 
+            'transactions', 'cash_flow', 'account_types', 'account_categories'
+          ];
+          if (accountingForms.contains(module)) {
+            dynamicPermissions.add(const PermissionObject('accounting', Permission.read));
+          }
         }
-        if (p['can_add'] == true || p['can_edit'] == true) {
+        
+        if (canWrite) {
           dynamicPermissions.add(PermissionObject(module, Permission.write));
+          final accountingForms = [
+            'chart_of_accounts', 'coa', 'payment_terms', 'bank_cash', 
+            'voucher_prefixes', 'financial_sessions', 'gl_setup', 
+            'transactions', 'cash_flow'
+          ];
+          if (accountingForms.contains(module)) {
+            dynamicPermissions.add(const PermissionObject('accounting', Permission.write));
+          }
         }
-        if (p['can_delete'] == true) {
+        
+        if (canDelete) {
           dynamicPermissions.add(PermissionObject(module, Permission.delete));
+          if (module == 'chart_of_accounts' || module == 'coa' || module == 'transactions') {
+             dynamicPermissions.add(const PermissionObject('accounting', Permission.delete));
+          }
         }
       }
 

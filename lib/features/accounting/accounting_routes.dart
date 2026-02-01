@@ -29,39 +29,39 @@ final List<AppRoute> accountingRoutes = [
     routeName: RouteNames.accounting,
     module: 'accounting',
     icon: Icons.account_balance,
-    roles: [UserRole.admin],
+    roles: [UserRole.admin, UserRole.staff],
     builder: (_, __) => const AccountingMenuScreen(),
     children: [
-      AppRoute(path: 'transactions', title: 'Transactions', routeName: RouteNames.transactions, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const TransactionsScreen()),
-      AppRoute(path: 'coa', title: 'Chart of Accounts', routeName: RouteNames.coa, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const ChartOfAccountsScreen(), children: [
-           AppRoute(path: 'create', title: 'Create Account', routeName: RouteNames.coaCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const ChartOfAccountFormScreen()),
-           AppRoute(path: 'edit/:id', title: 'Edit Account', routeName: RouteNames.coaEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => ChartOfAccountFormScreen(accountId: state.pathParameters['id'])),
+      AppRoute(path: 'transactions', title: 'Transactions', routeName: RouteNames.transactions, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const TransactionsScreen()),
+      AppRoute(path: 'coa', title: 'Chart of Accounts', routeName: RouteNames.coa, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const ChartOfAccountsScreen(), children: [
+           AppRoute(path: 'create', title: 'Create Account', routeName: RouteNames.coaCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const ChartOfAccountFormScreen()),
+           AppRoute(path: 'edit/:id', title: 'Edit Account', routeName: RouteNames.coaEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => ChartOfAccountFormScreen(accountId: state.pathParameters['id'])),
       ]),
-      AppRoute(path: 'gl-setup', title: 'GL Setup', routeName: RouteNames.glSetup, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const GLSetupScreen()),
-      AppRoute(path: 'cash-flow', title: 'Cash Flow', routeName: RouteNames.cashFlow, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const CashFlowScreen()),
-      AppRoute(path: 'bank-cash', title: 'Bank & Cash', routeName: RouteNames.bankCash, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const BankCashScreen(), children: [
-         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.bankCashCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const BankCashFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.bankCashEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => BankCashFormScreen(bankCashId: state.pathParameters['id'])),
+      AppRoute(path: 'gl-setup', title: 'GL Setup', routeName: RouteNames.glSetup, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const GLSetupScreen()),
+      AppRoute(path: 'cash-flow', title: 'Cash Flow', routeName: RouteNames.cashFlow, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const CashFlowScreen()),
+      AppRoute(path: 'bank-cash', title: 'Bank & Cash', routeName: RouteNames.bankCash, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const BankCashScreen(), children: [
+         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.bankCashCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const BankCashFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.bankCashEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => BankCashFormScreen(bankCashId: state.pathParameters['id'])),
       ]),
-      AppRoute(path: 'account-types', title: 'Account Types', routeName: RouteNames.accountTypes, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const AccountTypesScreen(), children: [
-         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.accountTypeCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const AccountTypeFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.accountTypeEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => AccountTypeFormScreen(accountTypeId: int.tryParse(state.pathParameters['id'] ?? ''))),
+      AppRoute(path: 'account-types', title: 'Account Types', routeName: RouteNames.accountTypes, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const AccountTypesScreen(), children: [
+         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.accountTypeCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const AccountTypeFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.accountTypeEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => AccountTypeFormScreen(accountTypeId: int.tryParse(state.pathParameters['id'] ?? ''))),
       ]),
-       AppRoute(path: 'account-categories', title: 'Account Categories', routeName: RouteNames.accountCategories, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const AccountCategoriesScreen(), children: [
-         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.accountCategoryCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const AccountCategoryFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.accountCategoryEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => AccountCategoryFormScreen(accountCategoryId: int.tryParse(state.pathParameters['id'] ?? ''))),
+       AppRoute(path: 'account-categories', title: 'Account Categories', routeName: RouteNames.accountCategories, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const AccountCategoriesScreen(), children: [
+         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.accountCategoryCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const AccountCategoryFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.accountCategoryEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => AccountCategoryFormScreen(accountCategoryId: int.tryParse(state.pathParameters['id'] ?? ''))),
       ]),
-      AppRoute(path: 'payment-terms', title: 'Payment Terms', routeName: RouteNames.paymentTerms, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const PaymentTermsScreen(), children: [
-         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.paymentTermCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const PaymentTermFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.paymentTermEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => PaymentTermFormScreen(paymentTermId: int.tryParse(state.pathParameters['id'] ?? ''))),
+      AppRoute(path: 'payment-terms', title: 'Payment Terms', routeName: RouteNames.paymentTerms, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const PaymentTermsScreen(), children: [
+         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.paymentTermCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const PaymentTermFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.paymentTermEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => PaymentTermFormScreen(paymentTermId: int.tryParse(state.pathParameters['id'] ?? ''))),
       ]),
-      AppRoute(path: 'voucher-prefixes', title: 'Voucher Prefixes', routeName: RouteNames.voucherPrefixes, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const VoucherPrefixesScreen(), children: [
-         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.voucherPrefixCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const VoucherPrefixFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.voucherPrefixEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => VoucherPrefixFormScreen(prefixId: int.tryParse(state.pathParameters['id'] ?? ''))),
+      AppRoute(path: 'voucher-prefixes', title: 'Voucher Prefixes', routeName: RouteNames.voucherPrefixes, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const VoucherPrefixesScreen(), children: [
+         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.voucherPrefixCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const VoucherPrefixFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.voucherPrefixEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => VoucherPrefixFormScreen(prefixId: int.tryParse(state.pathParameters['id'] ?? ''))),
       ]),
-       AppRoute(path: 'financial-sessions', title: 'Financial Sessions', routeName: RouteNames.financialSessions, module: 'accounting', roles: [UserRole.admin], builder: (_, __) => const FinancialSessionsScreen(), children: [
-         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.financialSessionCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const FinancialSessionFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.financialSessionEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => FinancialSessionFormScreen(sYear: int.tryParse(state.pathParameters['id'] ?? ''))),
+       AppRoute(path: 'financial-sessions', title: 'Financial Sessions', routeName: RouteNames.financialSessions, module: 'accounting', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const FinancialSessionsScreen(), children: [
+         AppRoute(path: 'create', title: 'Create', routeName: RouteNames.financialSessionCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const FinancialSessionFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.financialSessionEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => FinancialSessionFormScreen(sYear: int.tryParse(state.pathParameters['id'] ?? ''))),
       ]),
     ]
   ),

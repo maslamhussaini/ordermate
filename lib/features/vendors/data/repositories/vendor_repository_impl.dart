@@ -27,7 +27,8 @@ class VendorRepositoryImpl implements VendorRepository {
           .or('is_active.eq.1,is_active.is.null')
           .eq('is_vendor', 1)
           .or('is_supplier.eq.0,is_supplier.is.null')
-          .order('name', ascending: true);
+          .order('name', ascending: true)
+          .timeout(const Duration(seconds: 15));
 
       final vendors = (response as List)
           .map((json) => VendorModel.fromJson(json as Map<String, dynamic>))
@@ -115,7 +116,8 @@ class VendorRepositoryImpl implements VendorRepository {
           .select()
           .eq('is_supplier', 1)
           .or('is_active.eq.1,is_active.is.null')
-          .order('name', ascending: true);
+          .order('name', ascending: true)
+          .timeout(const Duration(seconds: 15));
 
       final vendors = (response as List)
           .map((json) => VendorModel.fromJson(json as Map<String, dynamic>))

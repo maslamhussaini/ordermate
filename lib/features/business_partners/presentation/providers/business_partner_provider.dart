@@ -624,6 +624,18 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       rethrow;
     }
   }
+
+  Future<void> sendCredentials(BusinessPartner employee, String password) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await repository.sendEmployeeCredentials(employee, password);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      if (!mounted) return;
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
 }
 
 // Providers

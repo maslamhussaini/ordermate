@@ -61,6 +61,7 @@ class RouteNames {
   // Organization
   static const organization = 'organization'; // Profile
   static const organizations = 'organizations'; // List
+  static const workspaceSelection = 'workspace-selection';
   static const organizationCreate = 'organization-create';
   static const organizationEdit = 'organization-edit';
 

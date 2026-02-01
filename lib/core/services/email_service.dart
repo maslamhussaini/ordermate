@@ -82,4 +82,45 @@ class EmailService {
       return false;
     }
   }
+
+  Future<bool> sendCredentialsEmail(String recipientEmail, String employeeName, String password, String loginUrl) async {
+    final smtpServer = gmail(_smtpUsername, _smtpPassword);
+    
+    final message = Message()
+      ..from = Address(_smtpUsername, 'OrderMate App')
+      ..recipients.add(recipientEmail)
+      ..subject = 'OrderMate App - Your Login Credentials'
+      ..html = """
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px; margin: auto;">
+          <h2 style="color: #2196F3;">Welcome to OrderMate, $employeeName!</h2>
+          <p>Your account has been set up. Please use the following credentials to log in and then set your permanent password.</p>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6;">
+            <p style="margin: 0 0 10px 0;"><strong>Login Email:</strong> $recipientEmail</p>
+            <p style="margin: 0;"><strong>Default Password:</strong> <code style="background: #eee; padding: 2px 5px; border-radius: 4px;">$password</code></p>
+          </div>
+          
+          <p style="margin-bottom: 25px;">Click the button below to set your permanent credentials and log in:</p>
+          
+          <div style="text-align: center;">
+            <a href="$loginUrl" style="background-color: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Set Credentials & Login</a>
+          </div>
+          
+          <p style="margin-top: 25px; color: #666; font-size: 14px;">If you cannot click the button, copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; color: #007bff; font-size: 12px;">$loginUrl</p>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="font-size: 12px; color: #999; text-align: center;">Sent safely via OrderMate App</p>
+        </div>
+      """;
+
+    try {
+      final sendReport = await send(message, smtpServer);
+      debugPrint('Credentials email sent: $sendReport');
+      return true;
+    } catch (e) {
+      debugPrint('Error sending credentials email: $e');
+      return false;
+    }
+  }
 }

@@ -1052,4 +1052,79 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       await _localRepository.saveUserStoreAccess(employeeId, storeIds, organizationId);
     }
   }
+
+  @override
+  Future<void> sendEmployeeCredentials(BusinessPartner employee, String password) async {
+    // 1. Connectivity Check
+    final connectivityResult = await ConnectivityHelper.check();
+    if (connectivityResult.contains(ConnectivityResult.none)) {
+       throw Exception('Internet connection required to send credentials.');
+    }
+
+    if (employee.email == null || employee.email!.isEmpty) {
+       throw Exception('Employee has no email address.');
+    }
+
+    try {
+      // 1. Call Edge Function to create Auth User with specified password
+      final response = await SupabaseConfig.client.functions.invoke(
+        'invite-employee',
+        body: {
+          'email': employee.email,
+          'full_name': employee.name,
+          'role_id': employee.roleId ?? 0,
+          'organization_id': employee.organizationId,
+          'store_id': employee.storeId,
+          'password': password,
+          'generate_link': true,
+          'redirect_to': SupabaseConfig.frontendUrl, 
+          'smtp_settings': {
+             'username': EmailService().smtpUsername,
+             'password': EmailService().smtpPassword,
+          },
+          'email_subject': 'OrderMate App - Your Login Credentials',
+          'email_html': """
+            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px;">
+              <h2 style="color: #2196F3;">Hello, ${employee.name}!</h2>
+              <p>Your OrderMate account is ready. Use the credentials below to log in.</p>
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6;">
+                <p style="margin: 0 0 10px 0;"><strong>Username:</strong> ${employee.email}</p>
+                <p style="margin: 0;"><strong>Password:</strong> <code style="background: #eee; padding: 2px 5px; border-radius: 4px;">$password</code></p>
+              </div>
+              <p>After clicking the link below, you will be redirected to the app to set your permanent password.</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ACTION_URL}}" style="background-color: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Set Credentials & Login</a>
+              </div>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+              <p style="font-size: 12px; color: #999;">Sent safely via OrderMate App</p>
+            </div>
+          """
+        },
+      );
+
+      if (response.status != 200) {
+        throw Exception(response.data['error'] ?? 'Edge function failed');
+      }
+
+      final authUserId = response.data['user_id'];
+      
+      // 2. Update/Upsert omtbl_users
+      await SupabaseConfig.client.from('omtbl_users').upsert({
+        'id': authUserId,
+        'email': employee.email,
+        'full_name': employee.name,
+        'role_id': employee.roleId ?? 0,
+        'business_partner_id': employee.id,
+        'organization_id': employee.organizationId,
+        'store_id': employee.storeId,
+        'is_active': 1,
+        'password': password, // Sync password as requested
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'email');
+
+    } catch (e) {
+      debugPrint('Error sending credentials: $e');
+      throw Exception('Failed to send credentials: $e');
+    }
+  }
 }

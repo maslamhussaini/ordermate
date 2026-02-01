@@ -55,9 +55,12 @@ AppRoute? findAppRoute(List<AppRoute> routes, String location, {String parentPat
       return route;
     }
 
-    // Even if parent doesn't match cleanLocation exactly (e.g. parent is /employees, loc is /employees/deps/create)
-    // we should still recurse if the parent is a prefix
-    if (fullPath.startsWith('/') && cleanLocation.startsWith(fullPath)) {
+    // Recurse if the current route is a parent prefix of the target location
+    // Ensure we only match true parents (e.g. /accounting matches /accounting/coa but not /accounting-reports)
+    final isParent = fullPath.startsWith('/') && 
+                    (cleanLocation.startsWith('$fullPath/') || cleanLocation == fullPath);
+
+    if (isParent && route.children.isNotEmpty) {
        final childMatch = findAppRoute(route.children, cleanLocation, parentPath: fullPath);
        if (childMatch != null) return childMatch;
     }

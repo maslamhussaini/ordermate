@@ -14,6 +14,7 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _emailController = TextEditingController();
+  final _oldPasswordController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
@@ -24,6 +25,29 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     super.initState();
     final user = SupabaseConfig.client.auth.currentUser;
     _emailController.text = user?.email ?? '';
+  }
+
+  Future<bool> _verifyOldPassword() async {
+    try {
+      // Supabase doesn't have a "verify password" without logging in or updating.
+      // But since we are likely already logged in (via recovery or session), 
+      // we can try to re-authenticate or just rely on the user knowing it.
+      // However, if the user requested it, they might want us to check it.
+      
+      // OPTION A: Try to sign in with email and old password to verify.
+      final email = _emailController.text.trim();
+      final oldPassword = _oldPasswordController.text.trim();
+      
+      final response = await SupabaseConfig.client.auth.signInWithPassword(
+        email: email,
+        password: oldPassword,
+      );
+      
+      return response.user != null;
+    } catch (e) {
+      debugPrint('Old password verification failed: $e');
+      return false;
+    }
   }
 
   Future<void> _updatePassword() async {
@@ -41,27 +65,40 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Update Password in Supabase
+      // 1. Verify Old Password if provided (Manual check)
+      if (_oldPasswordController.text.isNotEmpty) {
+        final isValid = await _verifyOldPassword();
+        if (!isValid) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Current password is incorrect'), backgroundColor: Colors.red),
+            );
+            setState(() => _isLoading = false);
+            return;
+          }
+        }
+      }
+
+      // 2. Update Password in Supabase
       await SupabaseConfig.client.auth.updateUser(
         UserAttributes(password: _passwordController.text.trim()),
       );
 
       if (mounted) {
-        // 2. Load dynamic permissions to check privileges (as requested)
-        await ref.read(authProvider.notifier).loadDynamicPermissions();
-        
-        // 3. Clear recovery status
+        // 3. Clear recovery status and logout to force fresh login with new password
         ref.read(authProvider.notifier).clearRecoveryStatus();
+        await SupabaseConfig.client.auth.signOut();
+        ref.read(authProvider.notifier).logout();
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Password updated successfully! Welcome back.'),
+            content: Text('Password updated successfully! Please log in with your new password.'),
             backgroundColor: Colors.green,
           ),
         );
 
-        // 4. Redirect to Dashboard (Auto-login effect)
-        context.go('/dashboard');
+        // 4. Redirect to Login Screen
+        context.go('/login');
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -83,6 +120,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   @override
   void dispose() {
     _emailController.dispose();
+    _oldPasswordController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -91,7 +129,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset Password')),
+      appBar: AppBar(title: const Text('Security Setup')),
       body: Scrollbar(
         child: Center(
           child: SingleChildScrollView(
@@ -105,12 +143,13 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'Update Your Password',
+                  'Credential Setup',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Please enter your new password below.',
+                  'Please update the default password to secure your account.',
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey),
                 ),
                 const SizedBox(height: 32),
@@ -129,6 +168,19 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 const SizedBox(height: 16),
 
                 TextFormField(
+                  controller: _oldPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Old Password (Default)',
+                    prefixIcon: Icon(Icons.lock_clock),
+                    border: OutlineInputBorder(),
+                    hintText: 'Welcome@123',
+                  ),
+                  validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
                   controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(
@@ -136,16 +188,19 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     prefixIcon: Icon(Icons.lock),
                     border: OutlineInputBorder(),
                   ),
-                  validator: (val) => val != null && val.length < 6
-                      ? 'Password must be at least 6 characters'
-                      : null,
+                  validator: (val) {
+                     if (val == null || val.isEmpty) return 'Required';
+                     if (val.length < 6) return 'Password must be at least 6 characters';
+                     if (val == _oldPasswordController.text) return 'New password must be different';
+                     return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: true,
                   decoration: const InputDecoration(
-                    labelText: 'Confirm Password',
+                    labelText: 'Confirm New Password',
                     prefixIcon: Icon(Icons.lock_outline),
                     border: OutlineInputBorder(),
                   ),
@@ -160,8 +215,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     onPressed: _updatePassword,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
                     ),
-                    child: const Text('Update Password'),
+                    child: const Text('Update & Continue'),
                   ),
               ],
             ),

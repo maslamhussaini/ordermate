@@ -518,8 +518,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 );
                 
                 // Load Dependencies
-                await ref.read(inventoryProvider.notifier).loadAll();
-                await ref.read(vendorProvider.notifier).loadSuppliers();
+                try {
+                  await ref.read(inventoryProvider.notifier).loadAll().timeout(const Duration(seconds: 15));
+                  await ref.read(vendorProvider.notifier).loadSuppliers().timeout(const Duration(seconds: 15));
+                } catch (e) {
+                  debugPrint('ProductList: Dependency load error: $e');
+                }
                 
                 if (!context.mounted) return;
                 Navigator.pop(context); // Close loading

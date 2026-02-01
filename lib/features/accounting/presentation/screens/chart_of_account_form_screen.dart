@@ -97,8 +97,7 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
       if (widget.accountId == null) {
         await notifier.addAccount(account, organizationId: finalOrgId);
       } else {
-        await ref.read(accountingRepositoryProvider).updateChartOfAccount(account);
-        await notifier.loadAll(organizationId: finalOrgId);
+        await notifier.updateAccount(account, organizationId: finalOrgId);
       }
       
       if (mounted) {

@@ -129,12 +129,19 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
           query = query.eq('store_id', storeId!);
         }
 
-        if (isCustomer) query = query.eq('is_customer', 1);
-        if (isVendor) query = query.eq('is_vendor', 1).eq('is_supplier', 0); // Strict per user request
-        if (isSupplier) query = query.eq('is_supplier', 1);
-        
         if (statusCol != null && statusVal != null) {
           query = query.eq(statusCol, statusVal);
+        }
+
+        if (isCustomer) query = query.eq('is_customer', 1);
+        if (isVendor) query = query.eq('is_vendor', 1).eq('is_supplier', 0);
+        if (isSupplier) query = query.eq('is_supplier', 1);
+        
+        if (table == 'omtbl_businesspartners' && statusCol == 'is_employee') {
+           query = query.eq('is_employee', 1);
+        } else if (statusCol != null && statusVal != null) {
+           // For orders status, it's a string
+           query = query.eq(statusCol, statusVal);
         }
 
         if (invoiceType != null) {
@@ -149,8 +156,9 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
       final customers = await fetchCount('omtbl_businesspartners', null, null, isCustomer: true);
       final vendors = await fetchCount('omtbl_businesspartners', null, null, isVendor: true);
       final suppliers = await fetchCount('omtbl_businesspartners', null, null, isSupplier: true);
+      final employees = await fetchCount('omtbl_businesspartners', 'is_employee', '1');
       
-      debugPrint('Dashboard Online Counts: Customers=$customers, Vendors=$vendors, Suppliers=$suppliers');
+      debugPrint('Dashboard Online Counts: Customers=$customers, Vendors=$vendors, Suppliers=$suppliers, Employees=$employees');
       
       // Products
       var productsQuery = client.from('omtbl_products').select();
@@ -186,6 +194,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
         ordersRejected: rejected,
         totalVendors: vendors,
         totalSuppliers: suppliers,
+        totalEmployees: employees,
         salesInvoicesCount: si,
         salesReturnsCount: sr,
         purchaseInvoicesCount: pi,
@@ -275,7 +284,14 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
       );
       final suppliersCount = Sqflite.firstIntValue(suppliersMap) ?? 0;
 
-      debugPrint('Dashboard Local Counts: Customers=$customersCount, Vendors=$vendorsCount, Suppliers=$suppliersCount');
+      // 5. Employees
+      final employeesMap = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM local_businesspartners p WHERE p.is_employee = 1$txFilter',
+        txArgs
+      );
+      final employeesCount = Sqflite.firstIntValue(employeesMap) ?? 0;
+
+      debugPrint('Dashboard Local Counts: Customers=$customersCount, Vendors=$vendorsCount, Suppliers=$suppliersCount, Employees=$employeesCount');
 
       // 5. Orders
       int getCount(List<Map<String, Object?>> res) => Sqflite.firstIntValue(res) ?? 0;
@@ -316,6 +332,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
         ordersRejected: getCount(rejected),
         totalVendors: vendorsCount, // Using aligned Vendor Logic
         totalSuppliers: suppliersCount,
+        totalEmployees: employeesCount,
         salesInvoicesCount: getCount(si),
         salesReturnsCount: getCount(sr),
         purchaseInvoicesCount: getCount(pi),

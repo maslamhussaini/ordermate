@@ -32,7 +32,7 @@ class AccountingRepositoryImpl implements AccountingRepository {
       if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
       }
-      final response = await query.order('account_code');
+      final response = await query.order('account_code').timeout(const Duration(seconds: 15));
       
       final accounts = (response as List).map((e) => ChartOfAccountModel.fromJson(e)).toList().cast<ChartOfAccount>();
       await _localRepo.cacheChartOfAccounts(accounts.map((e) => e as ChartOfAccountModel).toList(), organizationId: organizationId);
@@ -111,7 +111,7 @@ class AccountingRepositoryImpl implements AccountingRepository {
       if (organizationId != null) {
         query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
       }
-      final response = await query.order('id');
+      final response = await query.order('id').timeout(const Duration(seconds: 15));
       final types = (response as List).map((e) => AccountTypeModel.fromJson(e)).toList().cast<AccountType>();
       await _localRepo.cacheAccountTypes(types.map((e) => e as AccountTypeModel).toList(), organizationId: organizationId);
       return types;
@@ -173,7 +173,7 @@ class AccountingRepositoryImpl implements AccountingRepository {
       if (organizationId != null) {
         query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
       }
-      final response = await query.order('category_name');
+      final response = await query.order('category_name').timeout(const Duration(seconds: 15));
       final categories = (response as List).map((e) => AccountCategoryModel.fromJson(e)).toList().cast<AccountCategory>();
       await _localRepo.cacheAccountCategories(categories.map((e) => e as AccountCategoryModel).toList(), organizationId: organizationId);
       return categories;
@@ -1042,7 +1042,8 @@ class AccountingRepositoryImpl implements AccountingRepository {
           .from('omtbl_gl_setup')
           .select()
           .eq('organization_id', organizationId)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
       
       if (response == null) {
         return _localRepo.getGLSetup(organizationId);

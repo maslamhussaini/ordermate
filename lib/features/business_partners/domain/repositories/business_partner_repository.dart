@@ -79,4 +79,6 @@ abstract class BusinessPartnerRepository {
   Future<void> saveRoleStoreAccess(int roleId, List<int> storeIds, int organizationId);
   Future<List<int>> getUserStoreAccess(String employeeId);
   Future<void> saveUserStoreAccess(String employeeId, List<int> storeIds, int organizationId);
+  
+  Future<void> sendEmployeeCredentials(BusinessPartner employee, String password);
 }

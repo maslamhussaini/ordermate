@@ -37,7 +37,8 @@ class ProductRepositoryImpl implements ProductRepository {
       final response = await query
           .eq('is_active', 1)
           .order('created_at', ascending: false)
-          .limit(10000);
+          .limit(1000)
+          .timeout(const Duration(seconds: 20));
 
       final products = (response as List)
           .map((json) => ProductModel.fromJson(json as Map<String, dynamic>))
@@ -139,7 +140,8 @@ class ProductRepositoryImpl implements ProductRepository {
           .insert(json)
           .select(
               '*, omtbl_businesspartners(name), omtbl_producttypes(producttype), omtbl_categories(category), omtbl_brands(brandtype), omtbl_units_of_measure(unit_symbol)',)
-          .single();
+          .single()
+          .timeout(const Duration(seconds: 15));
 
       final newItem = ProductModel.fromJson(response);
       
@@ -212,7 +214,8 @@ class ProductRepositoryImpl implements ProductRepository {
           .eq('id', product.id)
           .select(
               '*, omtbl_businesspartners(name), omtbl_producttypes(producttype), omtbl_categories(category), omtbl_brands(brandtype), omtbl_units_of_measure(unit_symbol)',)
-          .single();
+          .single()
+          .timeout(const Duration(seconds: 15));
 
       final updatedItem = ProductModel.fromJson(response);
       await _localRepository.cacheProducts([updatedItem]);

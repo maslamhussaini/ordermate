@@ -2,7 +2,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ordermate/core/utils/connectivity_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ordermate/features/auth/presentation/providers/user_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/features/inventory/data/repositories/inventory_repository_impl.dart';
 import 'package:ordermate/features/inventory/domain/entities/brand.dart';
@@ -92,7 +91,7 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
 
     // Online: Try server first, fallback to local on error
     try {
-      final orgId = ref.read(userProfileProvider).value?.organizationId;
+      final orgId = ref.read(organizationProvider).selectedOrganizationId;
       // Load in parallel
       final results = await Future.wait([
         repository.getBrands(organizationId: orgId),
@@ -140,7 +139,7 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
   // Brands
   Future<void> loadBrands() async {
     try {
-      final orgId = ref.read(userProfileProvider).value?.organizationId;
+      final orgId = ref.read(organizationProvider).selectedOrganizationId;
       final brands = await repository.getBrands(organizationId: orgId);
       state = state.copyWith(brands: brands);
     } catch (e) {

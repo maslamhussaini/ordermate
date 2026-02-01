@@ -43,7 +43,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 
@@ -84,7 +84,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 
@@ -137,7 +137,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 
@@ -178,7 +178,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 
@@ -231,7 +231,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 
@@ -272,7 +272,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 
@@ -328,7 +328,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 
@@ -374,7 +374,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 
@@ -432,7 +432,7 @@ class InventoryLocalRepository {
     List<dynamic> args = [];
     
     if (organizationId != null) {
-      where += ' AND (organization_id = ? OR organization_id IS NULL)';
+      where += ' AND (organization_id = ? OR organization_id = 0 OR organization_id IS NULL)';
       args.add(organizationId);
     }
 

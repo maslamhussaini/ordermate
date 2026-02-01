@@ -23,6 +23,7 @@ import 'package:ordermate/features/auth/domain/entities/user.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/core/enums/permission.dart';
+import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? initialSelection;
@@ -35,6 +36,14 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerProviderStateMixin {
   TabController? _tabController;
   final ScrollController _scrollController = ScrollController();
+  final Map<String, bool> _expandedSections = {
+    'Accounts': true,
+    'Customers': true,
+    'Employee': true,
+    'Inventory': true,
+    'Suppliers': true,
+    'Vendors': true,
+  };
 
   @override
   void initState() {
@@ -162,6 +171,60 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerPr
     );
   }
 
+  Widget _buildCollapsibleSection({
+    required String title,
+    required IconData icon,
+    required List<Widget> cards,
+    required bool isExpanded,
+    required VoidCallback onToggle,
+  }) {
+    if (cards.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onToggle,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                ),
+                const Spacer(),
+                Icon(
+                  isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (isExpanded) ...[
+          const SizedBox(height: 12),
+          _buildResponsiveRow(context, cards),
+          const SizedBox(height: 8),
+        ],
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Listen for connectivity changes to trigger sync
@@ -208,6 +271,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerPr
     });
 
     final dashboardState = ref.watch(dashboardProvider);
+    final accountingState = ref.watch(accountingProvider);
     final stats = dashboardState.stats;
     
     final orgState = ref.watch(organizationProvider);
@@ -302,128 +366,205 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerPr
                         // Session Location logic is handled in initState
                         const SizedBox(height: 16),
 
-                        _buildResponsiveRow(context, [
-                          if (auth.can('products', Permission.read))
-                          StatCard(
-                            title: AppLocalizations.of(context)?.get('products') ?? 'Products',
-                            value: '${stats?.totalProducts ?? 0}',
-                            icon: Icons.inventory_2_rounded,
-                            color: const Color(0xFF6200EA), // Deep Purple
-                            onTap: () => context.push('/products'),
-                          ),
-                          if (auth.can('customers', Permission.read))
-                          StatCard(
-                            title: AppLocalizations.of(context)?.get('customers') ?? 'Customers',
-                            value: '${stats?.totalCustomers ?? 0}',
-                            icon: Icons.people_alt_rounded,
-                            color: const Color(0xFF7C4DFF), // Deep Purple/Indigo
-                            onTap: () => context.push('/customers'),
-                          ),
-                          if (auth.can('vendors', Permission.read))
-                          StatCard(
-                            title: AppLocalizations.of(context)?.get('vendors') ?? 'Vendors',
-                            value: '${stats?.totalVendors ?? 0}',
-                            icon: Icons.storefront_rounded,
-                            color: const Color(0xFFFFAB00), // Amber/Gold
-                            onTap: () => context.push('/vendors'),
-                          ),
-                          if (auth.can('vendors', Permission.read))
-                          StatCard(
-                            title: AppLocalizations.of(context)?.get('suppliers') ?? 'Suppliers',
-                            value: '${stats?.totalSuppliers ?? 0}',
-                            icon: Icons.local_shipping_rounded,
-                            color: const Color(0xFFFF4081), // Pink/Magenta
-                            onTap: () => context.push('/vendors', extra: {'showSuppliersOnly': true}),
-                          ),
-                        ]),
-                        const SizedBox(height: 16),
-                        if (auth.can('orders', Permission.read))
-                        _buildResponsiveRow(context, [
-                          StatCard(
-                            title: AppLocalizations.of(context)?.get('sales_orders_booked') ?? 'Sales Orders Booked',
-                            value: '${stats?.ordersBooked ?? 0}',
-                            icon: Icons.bookmark_rounded,
-                            color: const Color(0xFF2962FF), // Royal Blue
-                            onTap: () => context.push(
-                              '/orders',
-                              extra: {
-                                'initialFilterType': 'SO',
-                                'initialFilterStatus': 'Booked',
-                              },
+                        // 1. ACCOUNTS SECTION
+                        _buildCollapsibleSection(
+                          title: 'Accounts',
+                          icon: Icons.account_balance_rounded,
+                          isExpanded: _expandedSections['Accounts'] ?? true,
+                          onToggle: () => setState(() => _expandedSections['Accounts'] = !(_expandedSections['Accounts'] ?? true)),
+                          cards: [
+                            if (auth.can('accounting', Permission.read)) ...[
+                              StatCard(
+                                title: 'Accounting Overview',
+                                value: 'Finance',
+                                icon: Icons.account_balance_rounded,
+                                color: Colors.indigo,
+                                onTap: () => context.push('/accounting'),
+                              ),
+                              StatCard(
+                                title: 'Chart of Accounts',
+                                value: '${accountingState.accounts.length}',
+                                icon: Icons.account_tree_rounded,
+                                color: Colors.blueAccent,
+                                onTap: () => context.push('/accounting/coa'),
+                              ),
+                              StatCard(
+                                 title: 'Transactions',
+                                 value: '${accountingState.transactions.length}',
+                                 icon: Icons.receipt_long_rounded,
+                                 color: Colors.cyan,
+                                 onTap: () => context.push('/accounting/transactions'),
+                              ),
+                              StatCard(
+                                 title: 'Bank & Cash',
+                                 value: '${accountingState.bankCashAccounts.length}',
+                                 icon: Icons.savings_rounded,
+                                 color: Colors.teal,
+                                 onTap: () => context.push('/accounting/bank-cash'),
+                              ),
+                            ]
+                          ],
+                        ),
+
+                        // 2. CUSTOMERS SECTION
+                        _buildCollapsibleSection(
+                          title: 'Customers',
+                          icon: Icons.people_alt_rounded,
+                          isExpanded: _expandedSections['Customers'] ?? true,
+                          onToggle: () => setState(() => _expandedSections['Customers'] = !(_expandedSections['Customers'] ?? true)),
+                          cards: [
+                            if (auth.can('customers', Permission.read))
+                            StatCard(
+                              title: AppLocalizations.of(context)?.get('customers') ?? 'Customers',
+                              value: '${stats?.totalCustomers ?? 0}',
+                              icon: Icons.people_alt_rounded,
+                              color: const Color(0xFF7C4DFF), // Deep Purple/Indigo
+                              onTap: () => context.push('/customers'),
                             ),
-                          ),
-                          StatCard(
-                            title: AppLocalizations.of(context)?.get('sales_orders_approved') ?? 'Sales Orders Approved',
-                            value: '${stats?.ordersApproved ?? 0}',
-                            icon: Icons.check_circle_rounded,
-                            color: const Color(0xFF00C853), // Emerald Green
-                            onTap: () => context.push(
-                              '/orders',
-                              extra: {
-                                'initialFilterType': 'SO',
-                                'initialFilterStatus': 'Approved',
-                              },
+                            if (auth.can('orders', Permission.read)) ...[
+                              StatCard(
+                                title: 'Orders Booked',
+                                value: '${stats?.ordersBooked ?? 0}',
+                                icon: Icons.bookmark_rounded,
+                                color: const Color(0xFF2962FF), // Royal Blue
+                                onTap: () => context.push('/orders', extra: {'initialFilterType': 'SO', 'initialFilterStatus': 'Booked'}),
+                              ),
+                              StatCard(
+                                title: 'Orders Approved',
+                                value: '${stats?.ordersApproved ?? 0}',
+                                icon: Icons.check_circle_rounded,
+                                color: const Color(0xFF00C853), // Emerald Green
+                                onTap: () => context.push('/orders', extra: {'initialFilterType': 'SO', 'initialFilterStatus': 'Approved'}),
+                              ),
+                              StatCard(
+                                title: 'Orders Pending',
+                                value: '${stats?.ordersPending ?? 0}',
+                                icon: Icons.pending_actions_rounded,
+                                color: const Color(0xFFFF9100), // Deep Orange
+                                onTap: () => context.push('/orders', extra: {'initialFilterType': 'SO', 'initialFilterStatus': 'Pending'}),
+                              ),
+                              StatCard(
+                                title: 'Orders Rejected',
+                                value: '${stats?.ordersRejected ?? 0}',
+                                icon: Icons.cancel_rounded,
+                                color: const Color(0xFFFF1744), // Critical Rose/Red
+                                onTap: () => context.push('/orders', extra: {'initialFilterType': 'SO', 'initialFilterStatus': 'Rejected'}),
+                              ),
+                            ],
+                            if (auth.can('invoices', Permission.read)) ...[
+                              StatCard(
+                                title: 'Sales Invoice',
+                                value: '${stats?.salesInvoicesCount ?? 0}',
+                                icon: Icons.receipt_long_rounded,
+                                color: const Color(0xFF4CAF50),
+                                onTap: () => context.push('/invoices', extra: {'initialFilterType': 'SI'}),
+                              ),
+                              StatCard(
+                                title: 'Sales Return',
+                                value: '${stats?.salesReturnsCount ?? 0}',
+                                icon: Icons.assignment_return_rounded,
+                                color: const Color(0xFFF44336),
+                                onTap: () => context.push('/invoices', extra: {'initialFilterType': 'SR'}),
+                              ),
+                            ],
+                          ],
+                        ),
+
+                        // 3. EMPLOYEE SECTION
+                        _buildCollapsibleSection(
+                          title: 'Employee',
+                          icon: Icons.badge_rounded,
+                          isExpanded: _expandedSections['Employee'] ?? true,
+                          onToggle: () => setState(() => _expandedSections['Employee'] = !(_expandedSections['Employee'] ?? true)),
+                          cards: [
+                            if (auth.can('employees', Permission.read))
+                            StatCard(
+                              title: 'Total Employees',
+                              value: '${stats?.totalEmployees ?? 0}',
+                              icon: Icons.badge_rounded,
+                              color: Colors.teal,
+                              onTap: () => context.push('/employees'),
                             ),
-                          ),
-                          StatCard(
-                            title: AppLocalizations.of(context)?.get('sales_orders_pending') ?? 'Sales Orders Pending',
-                            value: '${stats?.ordersPending ?? 0}',
-                            icon: Icons.pending_actions_rounded,
-                            color: const Color(0xFFFF9100), // Deep Orange
-                            onTap: () => context.push(
-                              '/orders',
-                              extra: {
-                                'initialFilterType': 'SO',
-                                'initialFilterStatus': 'Pending',
-                              },
+                          ],
+                        ),
+
+                        // 4. INVENTORY SECTION
+                        _buildCollapsibleSection(
+                          title: 'Inventory',
+                          icon: Icons.inventory_2_rounded,
+                          isExpanded: _expandedSections['Inventory'] ?? true,
+                          onToggle: () => setState(() => _expandedSections['Inventory'] = !(_expandedSections['Inventory'] ?? true)),
+                          cards: [
+                            if (auth.can('products', Permission.read))
+                            StatCard(
+                              title: AppLocalizations.of(context)?.get('products') ?? 'Products',
+                              value: '${stats?.totalProducts ?? 0}',
+                              icon: Icons.inventory_2_rounded,
+                              color: const Color(0xFF6200EA), // Deep Purple
+                              onTap: () => context.push('/products'),
                             ),
-                          ),
-                          StatCard(
-                            title: AppLocalizations.of(context)?.get('sales_orders_rejected') ?? 'Sales Orders Rejected',
-                            value: '${stats?.ordersRejected ?? 0}',
-                            icon: Icons.cancel_rounded,
-                            color: const Color(0xFFFF1744), // Critical Rose/Red
-                            onTap: () => context.push(
-                              '/orders',
-                              extra: {
-                                'initialFilterType': 'SO',
-                                'initialFilterStatus': 'Rejected',
-                              },
+                            if (auth.can('inventory', Permission.read))
+                            StatCard(
+                              title: 'Inventory Overview',
+                              value: 'Stock',
+                              icon: Icons.warehouse_rounded,
+                              color: Colors.blueGrey,
+                              onTap: () => context.push('/inventory'),
                             ),
-                          ),
-                        ]),
-                        const SizedBox(height: 16),
-                        if (auth.can('invoices', Permission.read))
-                        _buildResponsiveRow(context, [
-                          StatCard(
-                            title: 'Sales Invoice',
-                            value: '${stats?.salesInvoicesCount ?? 0}',
-                            icon: Icons.receipt_long_rounded,
-                            color: const Color(0xFF4CAF50),
-                            onTap: () => context.push('/invoices', extra: {'initialFilterType': 'SI'}),
-                          ),
-                          StatCard(
-                            title: 'Sales Return',
-                            value: '${stats?.salesReturnsCount ?? 0}',
-                            icon: Icons.assignment_return_rounded,
-                            color: const Color(0xFFF44336),
-                            onTap: () => context.push('/invoices', extra: {'initialFilterType': 'SR'}),
-                          ),
-                          StatCard(
-                            title: 'Purchase Invoice',
-                            value: '${stats?.purchaseInvoicesCount ?? 0}',
-                            icon: Icons.inventory_rounded,
-                            color: const Color(0xFF2196F3),
-                            onTap: () => context.push('/invoices', extra: {'initialFilterType': 'PI'}),
-                          ),
-                          StatCard(
-                            title: 'Purchase Return',
-                            value: '${stats?.purchaseReturnsCount ?? 0}',
-                            icon: Icons.keyboard_return_rounded,
-                            color: const Color(0xFFFF5722),
-                            onTap: () => context.push('/invoices', extra: {'initialFilterType': 'PR'}),
-                          ),
-                        ]),
+                          ],
+                        ),
+
+                        // 5. SUPPLIERS SECTION
+                        _buildCollapsibleSection(
+                          title: 'Suppliers',
+                          icon: Icons.local_shipping_rounded,
+                          isExpanded: _expandedSections['Suppliers'] ?? true,
+                          onToggle: () => setState(() => _expandedSections['Suppliers'] = !(_expandedSections['Suppliers'] ?? true)),
+                          cards: [
+                            if (auth.can('vendors', Permission.read))
+                            StatCard(
+                              title: 'Total Suppliers',
+                              value: '${stats?.totalSuppliers ?? 0}',
+                              icon: Icons.local_shipping_rounded,
+                              color: const Color(0xFFFF4081), // Pink/Magenta
+                              onTap: () => context.push('/vendors', extra: {'showSuppliersOnly': true}),
+                            ),
+                            if (auth.can('invoices', Permission.read)) ...[
+                              StatCard(
+                                title: 'Purchase Invoice',
+                                value: '${stats?.purchaseInvoicesCount ?? 0}',
+                                icon: Icons.inventory_rounded,
+                                color: const Color(0xFF2196F3),
+                                onTap: () => context.push('/invoices', extra: {'initialFilterType': 'PI'}),
+                              ),
+                              StatCard(
+                                title: 'Purchase Return',
+                                value: '${stats?.purchaseReturnsCount ?? 0}',
+                                icon: Icons.keyboard_return_rounded,
+                                color: const Color(0xFFFF5722),
+                                onTap: () => context.push('/invoices', extra: {'initialFilterType': 'PR'}),
+                              ),
+                            ],
+                          ],
+                        ),
+
+                        // 6. VENDORS SECTION
+                        _buildCollapsibleSection(
+                          title: 'Vendors',
+                          icon: Icons.storefront_rounded,
+                          isExpanded: _expandedSections['Vendors'] ?? true,
+                          onToggle: () => setState(() => _expandedSections['Vendors'] = !(_expandedSections['Vendors'] ?? true)),
+                          cards: [
+                            if (auth.can('vendors', Permission.read))
+                            StatCard(
+                              title: 'Total Vendors',
+                              value: '${stats?.totalVendors ?? 0}',
+                              icon: Icons.storefront_rounded,
+                              color: const Color(0xFFFFAB00), // Amber/Gold
+                              onTap: () => context.push('/vendors'),
+                            ),
+                          ],
+                        ),
                         
                       ],
                     ),

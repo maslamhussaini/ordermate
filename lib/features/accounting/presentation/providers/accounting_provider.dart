@@ -331,6 +331,18 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       await loadAll(organizationId: orgId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateAccount(ChartOfAccount account, {int? organizationId}) async {
+    try {
+      await _repository.updateChartOfAccount(account);
+      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      await loadAll(organizationId: orgId);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow;
     }
   }
 

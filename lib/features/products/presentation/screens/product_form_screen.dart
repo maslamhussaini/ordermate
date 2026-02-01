@@ -70,14 +70,23 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
       
-      // Load lookup data
-      await Future.wait([
-        ref.read(inventoryProvider.notifier).loadAll(),
-        ref.read(vendorProvider.notifier).loadVendors(),
-        ref.read(vendorProvider.notifier).loadSuppliers(),
-        ref.read(accountingProvider.notifier).loadAll(organizationId: orgId),
-        ref.read(accountingProvider.notifier).loadGLSetup(organizationId: orgId),
-      ]);
+      // Load lookup data with individual try-catches and timeouts
+      final loadTasks = [
+        ('Inventory', () => ref.read(inventoryProvider.notifier).loadAll()),
+        ('Vendors', () => ref.read(vendorProvider.notifier).loadVendors()),
+        ('Suppliers', () => ref.read(vendorProvider.notifier).loadSuppliers()),
+        ('Accounting', () => ref.read(accountingProvider.notifier).loadAll(organizationId: orgId)),
+        ('GL Setup', () => ref.read(accountingProvider.notifier).loadGLSetup(organizationId: orgId)),
+      ];
+
+      for (final task in loadTasks) {
+        try {
+          await task.$2().timeout(const Duration(seconds: 10));
+        } catch (e) {
+          debugPrint('ProductForm: Failed to load ${task.$1}: $e');
+          // We continue to allow the screen to open even if one fails
+        }
+      }
       
       if (!mounted) return;
 

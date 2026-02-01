@@ -208,7 +208,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
 
       final response = await query
           .order('category', ascending: true)
-          .limit(100000);
+          .limit(1000)
+          .timeout(const Duration(seconds: 15));
 
       final List<ProductCategory> items = (response as List)
           .map<ProductCategory>((json) => ProductCategoryModel.fromJson(json as Map<String, dynamic>))
@@ -364,7 +365,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
 
       final response = await query
           .order('producttype', ascending: true)
-          .limit(100000);
+          .limit(1000)
+          .timeout(const Duration(seconds: 15));
 
       final List<ProductType> items = (response as List)
           .map<ProductType>((json) => ProductTypeModel.fromJson(json as Map<String, dynamic>))
@@ -514,7 +516,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
         query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
       }
 
-      final response = await query.order('unit_name', ascending: true);
+      final response = await query
+          .order('unit_name', ascending: true)
+          .timeout(const Duration(seconds: 15));
 
       final List<UnitOfMeasure> items = (response as List)
           .map<UnitOfMeasure>((json) => UnitOfMeasureModel.fromJson(json as Map<String, dynamic>))
@@ -670,7 +674,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
         query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
       }
 
-      final response = await query;
+      final response = await query.timeout(const Duration(seconds: 15));
 
       final List<UnitConversion> items = (response as List)
           .map<UnitConversion>((json) => UnitConversionModel.fromJson(json as Map<String, dynamic>))

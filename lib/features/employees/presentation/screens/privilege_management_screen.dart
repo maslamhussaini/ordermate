@@ -252,150 +252,163 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(businessPartnerProvider);
+    final isMobile = MediaQuery.of(context).size.width < 900;
+    
     final formsByModule = <String, List<Map<String, dynamic>>>{};
     for (var form in state.appForms) {
       final module = form['module_name'] ?? 'Other';
       formsByModule.putIfAbsent(module, () => []).add(form);
     }
 
+    final hasSelection = _selectedRoleId != null || _selectedEmployeeId != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Privilege Management'),
+        leading: (isMobile && hasSelection)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => setState(() {
+                  _selectedRoleId = null;
+                  _selectedEmployeeId = null;
+                  _pendingChanges.clear();
+                }),
+              )
+            : null,
         actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: IconButton(
-                  icon: const Icon(Icons.refresh),
-                  tooltip: 'Refresh Data',
-                  onPressed: () {
-                     ref.read(businessPartnerProvider.notifier).loadRoles();
-                     ref.read(businessPartnerProvider.notifier).loadAppUsers();
-                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Refreshing data...')));
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: FilledButton.icon(
-                  onPressed: (state.isLoading || (_pendingChanges.isEmpty && !_storeChangesDirty)) ? null : _saveChanges,
-                  icon: state.isLoading 
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh Data',
+            onPressed: () {
+              ref.read(businessPartnerProvider.notifier).loadRoles();
+              ref.read(businessPartnerProvider.notifier).loadAppUsers();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Refreshing data...')));
+            },
+          ),
+          if (!isMobile || hasSelection)
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: FilledButton.icon(
+                onPressed: (state.isLoading || (_pendingChanges.isEmpty && !_storeChangesDirty)) ? null : _saveChanges,
+                icon: state.isLoading
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.save),
-                  label: const Text('Save Changes'),
-                ),
+                label: isMobile ? const Text('Save') : const Text('Save Changes'),
               ),
+            ),
         ],
       ),
       body: Row(
         children: [
           // Left Pane: Search/Selection
-          Container(
-            width: 300,
-            decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: Colors.grey.shade300)),
-              color: Colors.grey.shade50,
-            ),
-            child: Column(
-              children: [
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'role', label: Text('Roles'), icon: Icon(Icons.security)),
-                    ButtonSegment(value: 'employee', label: Text('Employees'), icon: Icon(Icons.person)), // Keep label 'Employees' but it shows Users now
-                  ],
-                  selected: {_viewMode},
-                  onSelectionChanged: (set) {
-                    setState(() {
-                      _viewMode = set.first;
-                      _selectedRoleId = null;
-                      _selectedEmployeeId = null;
-                      _pendingChanges.clear();
-                    });
-                  },
-                ),
-                const Divider(),
-                Expanded(
-                  child: _viewMode == 'role'
-                      ? (state.roles.isEmpty 
-                          ? _buildLeftPaneEmpty('Roles')
-                          : ListView.builder(
-                              controller: _leftScrollController,
-                              itemCount: state.roles.length,
-                              itemBuilder: (context, index) {
-                                final role = state.roles[index];
-                                final isSelected = _selectedRoleId == role['id'];
-                                return ListTile(
-                                  selected: isSelected,
-                                  selectedTileColor: Colors.blue.shade50,
-                                  leading: Icon(Icons.verified_user, color: isSelected ? Colors.blue : null),
-                                  title: Text(role['role_name'] ?? ''),
-                                  onTap: () => _onRoleSelected(role['id']),
-                                );
-                              },
-                            ))
-                      : (state.appUsers.isEmpty 
-                          ? _buildLeftPaneEmpty('Users')
-                          : ListView.builder(
-                              controller: _leftScrollController,
-                              itemCount: state.appUsers.length,
-                              itemBuilder: (context, index) {
-                                final user = state.appUsers[index];
-                                final isSelected = _selectedEmployeeId == user.id;
-                                return ListTile(
-                                  selected: isSelected,
-                                  selectedTileColor: Colors.blue.shade50,
-                                  leading: Icon(Icons.person, color: isSelected ? Colors.blue : null),
-                                  title: Text(user.fullName ?? user.email),
-                                  subtitle: Text(user.roleName ?? user.email),
-                                  trailing: isSelected 
-                                    ? IconButton(
-                                        icon: const Icon(Icons.email_outlined, color: Colors.blue),
-                                        onPressed: () => _sendWelcomeEmail(user),
-                                        tooltip: 'Send Welcome Email',
-                                      )
-                                    : null,
-                                  onTap: () => _onEmployeeSelected(user.id),
-                                );
-                              },
-                            )),
-                ),
-              ],
-            ),
-          ),
-
-          // Center: Forms Privileges
-          Expanded(
-            child: (_selectedRoleId == null && _selectedEmployeeId == null)
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.shield_outlined, size: 64, color: Colors.grey.shade300),
-                        const SizedBox(height: 16),
-                        const Text('Select a Role or Employee to manage privileges',
-                            style: TextStyle(color: Colors.grey)),
+          if (!isMobile || !hasSelection)
+            Container(
+              width: isMobile ? MediaQuery.of(context).size.width : 300,
+              decoration: BoxDecoration(
+                border: Border(right: BorderSide(color: Colors.grey.shade300)),
+                color: Colors.grey.shade50,
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(value: 'role', label: Text('Roles'), icon: Icon(Icons.security)),
+                        ButtonSegment(value: 'employee', label: Text('Employees'), icon: Icon(Icons.person)),
                       ],
+                      selected: {_viewMode},
+                      onSelectionChanged: (set) {
+                        setState(() {
+                          _viewMode = set.first;
+                          _selectedRoleId = null;
+                          _selectedEmployeeId = null;
+                          _pendingChanges.clear();
+                        });
+                      },
                     ),
-                  )
-                : ListView(
-                    controller: _rightScrollController,
-                    padding: const EdgeInsets.all(24),
-                    children: [
-                      Text(
-                        'Access Control for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ' +
-                        (_viewMode == 'role' 
-                          ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId, orElse: () => {'role_name': 'Unknown'})['role_name'])
-                          : (state.appUsers.cast<AppUser>().firstWhere((u) => u.id == _selectedEmployeeId, orElse: () => AppUser(id: '', businessPartnerId: '', email: 'Unknown', roleId: 0, organizationId: 0, storeId: 0, updatedAt: DateTime.now())).fullName ?? 'Unknown')),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const Divider(),
+                  Expanded(
+                    child: _viewMode == 'role'
+                        ? (state.roles.isEmpty
+                            ? _buildLeftPaneEmpty('Roles')
+                            : ListView.builder(
+                                controller: _leftScrollController,
+                                itemCount: state.roles.length,
+                                itemBuilder: (context, index) {
+                                  final role = state.roles[index];
+                                  final isSelected = _selectedRoleId == role['id'];
+                                  return ListTile(
+                                    selected: isSelected,
+                                    selectedTileColor: Colors.blue.shade50,
+                                    leading: Icon(Icons.verified_user, color: isSelected ? Colors.blue : null),
+                                    title: Text(role['role_name'] ?? ''),
+                                    onTap: () => _onRoleSelected(role['id']),
+                                  );
+                                },
+                              ))
+                        : (state.appUsers.isEmpty
+                            ? _buildLeftPaneEmpty('Users')
+                            : ListView.builder(
+                                controller: _leftScrollController,
+                                itemCount: state.appUsers.length,
+                                itemBuilder: (context, index) {
+                                  final user = state.appUsers[index];
+                                  final isSelected = _selectedEmployeeId == user.id;
+                                  return ListTile(
+                                    selected: isSelected,
+                                    selectedTileColor: Colors.blue.shade50,
+                                    leading: Icon(Icons.person, color: isSelected ? Colors.blue : null),
+                                    title: Text(user.fullName ?? user.email),
+                                    subtitle: Text(user.roleName ?? user.email),
+                                    trailing: isSelected
+                                        ? IconButton(
+                                            icon: const Icon(Icons.email_outlined, color: Colors.blue),
+                                            onPressed: () => _sendWelcomeEmail(user),
+                                            tooltip: 'Send Welcome Email',
+                                          )
+                                        : null,
+                                    onTap: () => _onEmployeeSelected(user.id),
+                                  );
+                                },
+                              )),
+                  ),
+                ],
+              ),
+            ),
+
+          // Right Pane: Detail
+          if (!isMobile || hasSelection)
+            Expanded(
+              child: (!hasSelection)
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.shield_outlined, size: 64, color: Colors.grey.shade300),
+                          const SizedBox(height: 16),
+                          const Text('Select a Role or Employee to manage privileges', style: TextStyle(color: Colors.grey)),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      const Text('Total privilege management for all system components.',
-                          style: TextStyle(color: Colors.grey)),
-                      const SizedBox(height: 24),
-                      ..._selectedRoleId != null || _selectedEmployeeId != null 
-                    ? [
+                    )
+                  : ListView(
+                      controller: _rightScrollController,
+                      padding: EdgeInsets.all(isMobile ? 12 : 24),
+                      children: [
+                        Text(
+                          'Access Control for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ' +
+                              (_viewMode == 'role'
+                                  ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId, orElse: () => {'role_name': 'Unknown'})['role_name'])
+                                  : (state.appUsers.cast<AppUser>().firstWhere((u) => u.id == _selectedEmployeeId, orElse: () => AppUser(id: '', businessPartnerId: '', email: 'Unknown', roleId: 0, organizationId: 0, storeId: 0, updatedAt: DateTime.now())).fullName ?? 'Unknown')),
+                          style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text('Total privilege management for all system components.', style: TextStyle(color: Colors.grey)),
+                        const SizedBox(height: 24),
                         const Divider(),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
                           child: SegmentedButton<String>(
                             segments: const [
                               ButtonSegment(value: 'privileges', label: Text('Forms'), icon: Icon(Icons.list_alt)),
@@ -405,34 +418,28 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                             onSelectionChanged: (set) => setState(() => _tabMode = set.first),
                           ),
                         ),
-                      ]
-                    : [],
-                  const SizedBox(height: 24),
-                  if (_tabMode == 'privileges')
-                    ..._buildPrivilegesTab(formsByModule, state)
-                  else
-                    _buildStoresTab(ref.watch(organizationProvider).stores),
-                ],
-              ),
+                        const SizedBox(height: 24),
+                        if (_tabMode == 'privileges') ..._buildPrivilegesTab(formsByModule, state, isMobile) else _buildStoresTab(ref.watch(organizationProvider).stores, isMobile),
+                      ],
+                    ),
             ),
-          ],
-        ),
-      );
+        ],
+      ),
+    );
   }
 
-List<Widget> _buildPrivilegesTab(Map<String, List<Map<String, dynamic>>> formsByModule, BusinessPartnerState state) {
-  return [
-    Text(
-      'Form Privileges for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ' +
-      (_viewMode == 'role' 
-        ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId, orElse: () => {'role_name': 'Unknown'})['role_name'])
-        : (state.appUsers.cast<AppUser>().firstWhere((u) => u.id == _selectedEmployeeId, orElse: () => AppUser(id: '', businessPartnerId: '', email: 'Unknown', roleId: 0, organizationId: 0, storeId: 0, updatedAt: DateTime.now())).fullName ?? 'Unknown')),
-      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-    ),
-    const SizedBox(height: 8),
-    const Text('Manage component-level access permissions.',
-        style: TextStyle(color: Colors.grey)),
-    const SizedBox(height: 24),
+  List<Widget> _buildPrivilegesTab(Map<String, List<Map<String, dynamic>>> formsByModule, BusinessPartnerState state, bool isMobile) {
+    return [
+      Text(
+        'Form Privileges for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ' +
+            (_viewMode == 'role'
+                ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId, orElse: () => {'role_name': 'Unknown'})['role_name'])
+                : (state.appUsers.cast<AppUser>().firstWhere((u) => u.id == _selectedEmployeeId, orElse: () => AppUser(id: '', businessPartnerId: '', email: 'Unknown', roleId: 0, organizationId: 0, storeId: 0, updatedAt: DateTime.now())).fullName ?? 'Unknown')),
+        style: (isMobile ? Theme.of(context).textTheme.titleMedium : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 8),
+      const Text('Manage component-level access permissions.', style: TextStyle(color: Colors.grey)),
+      const SizedBox(height: 24),
     ...formsByModule.entries.map((entry) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 32.0),
@@ -535,46 +542,46 @@ List<Widget> _buildPrivilegesTab(Map<String, List<Map<String, dynamic>>> formsBy
   ];
 }
 
-  Widget _buildStoresTab(List<dynamic> stores) {
+  Widget _buildStoresTab(List<dynamic> stores, bool isMobile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Store Access Management',
-           style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         const Text('Toggle access for specific store locations.', style: TextStyle(color: Colors.grey)),
         const SizedBox(height: 24),
         GridView.builder(
-           shrinkWrap: true,
-           physics: const NeverScrollableScrollPhysics(),
-           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-             crossAxisCount: 3,
-             childAspectRatio: 3,
-             crossAxisSpacing: 16,
-             mainAxisSpacing: 16,
-           ),
-           itemCount: stores.length,
-           itemBuilder: (context, index) {
-             final store = stores[index];
-             final isSelected = _pendingStoreChanges.contains(store.id);
-             return Card(
-               elevation: 0,
-               shape: RoundedRectangleBorder(
-                 borderRadius: BorderRadius.circular(12),
-                 side: BorderSide(color: isSelected ? Colors.blue.shade200 : Colors.grey.shade200),
-               ),
-               color: isSelected ? Colors.blue.shade50 : null,
-               child: SwitchListTile(
-                 title: Text(store.name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                 subtitle: Text('ST-${store.id}'),
-                 value: isSelected,
-                 onChanged: (val) => _toggleStoreAccess(store.id, val),
-                 secondary: Icon(Icons.storefront, color: isSelected ? Colors.blue : Colors.grey),
-               ),
-             );
-           },
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: isMobile ? 1 : 3,
+            childAspectRatio: isMobile ? 4 : 3,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: stores.length,
+          itemBuilder: (context, index) {
+            final store = stores[index];
+            final isSelected = _pendingStoreChanges.contains(store.id);
+            return Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: isSelected ? Colors.blue.shade200 : Colors.grey.shade200),
+              ),
+              color: isSelected ? Colors.blue.shade50 : null,
+              child: SwitchListTile(
+                title: Text(store.name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                subtitle: Text('ST-${store.id}'),
+                value: isSelected,
+                onChanged: (val) => _toggleStoreAccess(store.id, val),
+                secondary: Icon(Icons.storefront, color: isSelected ? Colors.blue : Colors.grey),
+              ),
+            );
+          },
         ),
       ],
     );

@@ -667,6 +667,49 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton.icon(
+                  onPressed: () async {
+                    if (employee.email == null || employee.email!.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Employee has no email address.')));
+                      return;
+                    }
+                    
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Send Credentials?'),
+                        content: Text('This will set the employee password to "Welcome@123" and send them an email at ${employee.email}.\n\nContinue?'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Send Email')),
+                        ],
+                      ),
+                    );
+                    
+                    if (confirm == true) {
+                      try {
+                        showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
+                        await ref.read(businessPartnerProvider.notifier).sendCredentials(employee, 'Welcome@123');
+                        if (context.mounted) {
+                           Navigator.pop(context); // Close loading
+                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credentials sent successfully'), backgroundColor: Colors.green));
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          Navigator.pop(context); // Close loading
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red));
+                        }
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.email_outlined, size: 18),
+                  label: const Text('Send Email'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.teal,
+                    side: BorderSide(color: Colors.teal.shade200),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
                   onPressed: () => context.goNamed('employee-edit',
                       pathParameters: {'id': employee.id},),
                   icon: const Icon(Icons.edit, size: 18),

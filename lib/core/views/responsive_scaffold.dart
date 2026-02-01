@@ -114,13 +114,15 @@ class ResponsiveScaffold extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      selectedYear != null ? Icons.event_available : Icons.event_note, 
+                      selectedYear != null ? Icons.calendar_month : Icons.calendar_today, 
                       size: 16, 
                       color: selectedYear != null ? Theme.of(context).colorScheme.primary : Colors.grey
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      selectedYear?.toString() ?? 'All Years',
+                      accountingState.selectedFinancialSession != null
+                          ? '${accountingState.selectedFinancialSession!.sYear} (${DateFormat('MMM yy').format(accountingState.selectedFinancialSession!.startDate)} - ${DateFormat('MMM yy').format(accountingState.selectedFinancialSession!.endDate)})'
+                          : 'All Years',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -133,6 +135,13 @@ class ResponsiveScaffold extends ConsumerWidget {
                 ),
               ),
             ),
+          ),
+
+          // Workspace Selector
+          IconButton(
+            icon: const Icon(Icons.business_center_rounded, color: Colors.blueAccent),
+            tooltip: 'Switch Workspace',
+            onPressed: () => context.go('/workspace-selection'),
           ),
 
           // User Profile / Logout

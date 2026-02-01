@@ -36,6 +36,7 @@ import 'package:ordermate/features/reports/presentation/screens/sales_report_scr
 import 'package:ordermate/features/organization/presentation/screens/organization_profile_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_list_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_form_screen.dart';
+import 'package:ordermate/features/organization/presentation/screens/workspace_selection_screen.dart';
 import 'package:ordermate/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ordermate/features/settings/presentation/screens/printer_setup_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/brand_form_screen.dart';
@@ -95,7 +96,7 @@ final List<AppRoute> invoiceRoutes = [
       return InvoicesScreen(initialFilterType: extra?['initialFilterType'] as String?);
     },
     children: [
-      AppRoute(path: 'create', title: 'Create Invoice', routeName: RouteNames.invoiceCreate, module: 'invoices', showInMenu: false, roles: [UserRole.admin], builder: (_, state) {
+      AppRoute(path: 'create', title: 'Create Invoice', routeName: RouteNames.invoiceCreate, module: 'invoices', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) {
            final extra = state.extra as Map<String, dynamic>?;
            return InvoiceEntryScreen(
              customerId: extra?['customerId'] as String?,
@@ -104,8 +105,8 @@ final List<AppRoute> invoiceRoutes = [
              idInvoiceType: extra?['idInvoiceType'] as String?,
            );
       }),
-      AppRoute(path: 'edit/:id', title: 'Edit Invoice', routeName: RouteNames.invoiceEdit, module: 'invoices', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => InvoiceEntryScreen(invoiceId: state.pathParameters['id']!)),
-      AppRoute(path: ':id', title: 'View Invoice', routeName: RouteNames.invoiceDetail, module: 'invoices', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => InvoiceDetailScreen(invoiceId: state.pathParameters['id']!)),
+      AppRoute(path: 'edit/:id', title: 'Edit Invoice', routeName: RouteNames.invoiceEdit, module: 'invoices', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => InvoiceEntryScreen(invoiceId: state.pathParameters['id'])),
+      AppRoute(path: 'detail/:id', title: 'Invoice Details', routeName: RouteNames.invoiceDetail, module: 'invoices', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => InvoiceDetailScreen(invoiceId: state.pathParameters['id']!)),
     ],
   ),
 ];
@@ -121,8 +122,8 @@ final List<AppRoute> productRoutes = [
     roles: [UserRole.admin, UserRole.staff],
     builder: (_, __) => const ProductListScreen(),
     children: [
-       AppRoute(path: 'create', title: 'Create Product', routeName: RouteNames.productCreate, module: 'products', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const ProductFormScreen()),
-       AppRoute(path: 'edit/:id', title: 'Edit Product', routeName: RouteNames.productEdit, module: 'products', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => ProductFormScreen(productId: state.pathParameters['id']!)),
+       AppRoute(path: 'create', title: 'Create Product', routeName: RouteNames.productCreate, module: 'products', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const ProductFormScreen()),
+       AppRoute(path: 'edit/:id', title: 'Edit Product', routeName: RouteNames.productEdit, module: 'products', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => ProductFormScreen(productId: state.pathParameters['id']!)),
     ],
   ),
 ];
@@ -138,24 +139,24 @@ final List<AppRoute> inventoryRoutes = [
     builder: (_, __) => const InventoryDashboardScreen(),
     children: [
       AppRoute(path: 'brands', title: 'Brands', routeName: RouteNames.brands, module: 'inventory', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const BrandListScreen(), children: [
-         AppRoute(path: 'create', title: 'New Brand', routeName: 'brand-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const BrandFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit Brand', routeName: 'brand-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => BrandFormScreen(brandId: state.pathParameters['id'])),
+         AppRoute(path: 'create', title: 'New Brand', routeName: 'brand-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const BrandFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit Brand', routeName: 'brand-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => BrandFormScreen(brandId: state.pathParameters['id'])),
       ]),
       AppRoute(path: 'categories', title: 'Categories', routeName: RouteNames.categories, module: 'inventory', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const CategoryListScreen(), children: [
-         AppRoute(path: 'create', title: 'New Category', routeName: 'category-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const CategoryFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit Category', routeName: 'category-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => CategoryFormScreen(categoryId: state.pathParameters['id'])),
+         AppRoute(path: 'create', title: 'New Category', routeName: 'category-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const CategoryFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit Category', routeName: 'category-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => CategoryFormScreen(categoryId: state.pathParameters['id'])),
       ]),
       AppRoute(path: 'product-types', title: 'Product Types', routeName: RouteNames.productTypes, module: 'inventory', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const ProductTypeListScreen(), children: [
-         AppRoute(path: 'create', title: 'New Type', routeName: 'product-type-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const ProductTypeFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit Type', routeName: 'product-type-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => ProductTypeFormScreen(typeId: state.pathParameters['id'])),
+         AppRoute(path: 'create', title: 'New Type', routeName: 'product-type-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const ProductTypeFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit Type', routeName: 'product-type-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => ProductTypeFormScreen(typeId: state.pathParameters['id'])),
       ]),
       AppRoute(path: 'units-of-measure', title: 'Units of Measure', routeName: RouteNames.unitsOfMeasure, module: 'inventory', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const UnitsOfMeasureScreen(), children: [
-         AppRoute(path: 'create', title: 'New Unit', routeName: 'uom-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const UnitOfMeasureFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit Unit', routeName: 'uom-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => UnitOfMeasureFormScreen(uomId: state.pathParameters['id'])),
+         AppRoute(path: 'create', title: 'New Unit', routeName: 'uom-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const UnitOfMeasureFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit Unit', routeName: 'uom-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => UnitOfMeasureFormScreen(uomId: state.pathParameters['id'])),
       ]),
       AppRoute(path: 'unit-conversions', title: 'Unit Conversions', routeName: RouteNames.unitConversions, module: 'inventory', roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const UnitConversionsScreen(), children: [
-         AppRoute(path: 'create', title: 'New Conversion', routeName: 'unit-conversion-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const UnitConversionFormScreen()),
-         AppRoute(path: 'edit/:id', title: 'Edit Conversion', routeName: 'unit-conversion-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => UnitConversionFormScreen(conversionId: state.pathParameters['id'])),
+         AppRoute(path: 'create', title: 'New Conversion', routeName: 'unit-conversion-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const UnitConversionFormScreen()),
+         AppRoute(path: 'edit/:id', title: 'Edit Conversion', routeName: 'unit-conversion-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => UnitConversionFormScreen(conversionId: state.pathParameters['id'])),
       ]),
     ],
   ),
@@ -168,14 +169,14 @@ final List<AppRoute> vendorRoutes = [
     routeName: RouteNames.vendors,
     module: 'vendors',
     icon: Icons.local_shipping,
-    roles: [UserRole.admin],
+    roles: [UserRole.admin, UserRole.staff],
     builder: (_, state) {
       final extra = state.extra as Map<String, dynamic>?;
       return VendorListScreen(showSuppliersOnly: extra?['showSuppliersOnly'] == true);
     },
     children: [
-      AppRoute(path: 'create', title: 'Create Vendor', routeName: RouteNames.vendorCreate, module: 'vendors', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const VendorFormScreen()),
-      AppRoute(path: 'edit/:id', title: 'Edit Vendor', routeName: RouteNames.vendorEdit, module: 'vendors', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => VendorFormScreen(vendorId: state.pathParameters['id'])),
+      AppRoute(path: 'create', title: 'Create Vendor', routeName: RouteNames.vendorCreate, module: 'vendors', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const VendorFormScreen()),
+      AppRoute(path: 'edit/:id', title: 'Edit Vendor', routeName: RouteNames.vendorEdit, module: 'vendors', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => VendorFormScreen(vendorId: state.pathParameters['id'])),
     ],
   ),
 ];
@@ -262,6 +263,16 @@ final List<AppRoute> organizationRoutes = [
         builder: (_, state) => OrganizationFormScreen(organizationId: state.pathParameters['id']),
       ),
     ],
+  ),
+  AppRoute(
+    path: '/workspace-selection',
+    title: 'Select Workspace',
+    routeName: RouteNames.workspaceSelection,
+    module: 'organization',
+    icon: Icons.business_center,
+    roles: [UserRole.admin, UserRole.staff],
+    showInMenu: false,
+    builder: (_, __) => const WorkspaceSelectionScreen(),
   ),
 ];
 

@@ -7,7 +7,7 @@ class DatabaseHelper {
 
   DatabaseHelper._init();
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static const int _databaseVersion = 70;
+  static const int _databaseVersion = 71;
   static Database? _database;
   static Future<Database>? _dbOpenFuture;
 
@@ -1607,6 +1607,82 @@ class DatabaseHelper {
         }
       }
       debugPrint('Database: v70 migration complete.');
+    }
+
+    if (oldVersion < 71) {
+      debugPrint('Database: Starting v71 migration (Fix GL Setup Constraints)...');
+      try {
+        // SQLite doesn't support ALTER TABLE to drop constraints.
+        // We need to recreate the table.
+        await db.transaction((txn) async {
+          // 1. Rename existing table
+          await txn.execute('ALTER TABLE local_gl_setup RENAME TO local_gl_setup_old');
+
+          // 2. Create new table with nullable columns
+          await txn.execute('''
+            CREATE TABLE local_gl_setup (
+              organization_id INTEGER PRIMARY KEY,
+              inventory_account_id TEXT,
+              cogs_account_id TEXT,
+              sales_account_id TEXT,
+              receivable_account_id TEXT,
+              payable_account_id TEXT,
+              bank_account_id TEXT,
+              cash_account_id TEXT,
+              tax_output_account_id TEXT,
+              tax_input_account_id TEXT,
+              is_synced INTEGER DEFAULT 1,
+              sales_discount_account_id TEXT,
+              purchase_discount_account_id TEXT
+            )
+          ''');
+
+          // 3. Copy data
+          await txn.execute('''
+            INSERT INTO local_gl_setup (
+              organization_id, inventory_account_id, cogs_account_id, sales_account_id,
+              receivable_account_id, payable_account_id, bank_account_id, cash_account_id,
+              tax_output_account_id, tax_input_account_id, is_synced,
+              sales_discount_account_id, purchase_discount_account_id
+            )
+            SELECT 
+              organization_id, inventory_account_id, cogs_account_id, sales_account_id,
+              receivable_account_id, payable_account_id, bank_account_id, cash_account_id,
+              tax_output_account_id, tax_input_account_id, is_synced,
+              sales_discount_account_id, purchase_discount_account_id
+            FROM local_gl_setup_old
+          ''');
+
+          // 4. Drop old table
+          await txn.execute('DROP TABLE local_gl_setup_old');
+        });
+      } catch (e) {
+        debugPrint('Database: v71 migration error: $e');
+        // Fallback: If migration fails (e.g. table doesn't exist or column mismatch), just recreate it
+        try {
+          await db.execute('DROP TABLE IF EXISTS local_gl_setup');
+          await db.execute('''
+            CREATE TABLE local_gl_setup (
+              organization_id INTEGER PRIMARY KEY,
+              inventory_account_id TEXT,
+              cogs_account_id TEXT,
+              sales_account_id TEXT,
+              receivable_account_id TEXT,
+              payable_account_id TEXT,
+              bank_account_id TEXT,
+              cash_account_id TEXT,
+              tax_output_account_id TEXT,
+              tax_input_account_id TEXT,
+              is_synced INTEGER DEFAULT 1,
+              sales_discount_account_id TEXT,
+              purchase_discount_account_id TEXT
+            )
+          ''');
+        } catch (e2) {
+          debugPrint('Database: v71 migration fallback failed: $e2');
+        }
+      }
+      debugPrint('Database: v71 migration complete.');
     }
   }
 

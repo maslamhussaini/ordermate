@@ -21,7 +21,7 @@ serve(async (req) => {
     };
 
     try {
-        const { email, full_name, role_id, organization_id, store_id, smtp_settings, email_subject, email_html, generate_link, redirect_to } = await req.json();
+        const { email, full_name, role_id, organization_id, store_id, smtp_settings, email_subject, email_html, generate_link, redirect_to, password: userPassword } = await req.json();
 
         // Validate Inputs
         if (!email || !smtp_settings?.username || !smtp_settings?.password) {
@@ -46,6 +46,7 @@ serve(async (req) => {
                 log(`Upserting Auth User for ${email}...`);
                 const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
                     email: email,
+                    password: userPassword,
                     email_confirm: true,
                     user_metadata: { full_name: full_name }
                 });
