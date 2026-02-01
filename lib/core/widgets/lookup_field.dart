@@ -14,6 +14,7 @@ class LookupField<TItem, TValue> extends StatelessWidget {
     this.validationError,
     this.enabled = true,
     this.hint,
+    this.validator,
   });
 
   final String label;
@@ -24,6 +25,9 @@ class LookupField<TItem, TValue> extends StatelessWidget {
   final ValueChanged<TValue?> onChanged;
   final Future<void> Function(String)? onAdd;
   final FormFieldValidator<TValue>? validator;
+  final String? validationError;
+  final bool enabled;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
