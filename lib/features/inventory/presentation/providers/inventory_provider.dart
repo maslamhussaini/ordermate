@@ -75,22 +75,20 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
       }
     }
 
-    // Load all concurrently
-    final results = await Future.wait([
-      safeLoad('Brands', () => repository.getBrands(organizationId: orgId)),
-      safeLoad('Categories', () => repository.getCategories(organizationId: orgId)),
-      safeLoad('ProductTypes', () => repository.getProductTypes(organizationId: orgId)),
-      safeLoad('UnitsOfMeasure', () => repository.getUnitsOfMeasure(organizationId: orgId)),
-      safeLoad('UnitConversions', () => repository.getUnitConversions(organizationId: orgId)),
-    ]);
+    // Load sequentially to avoid SQLite locking issues during caching
+    final brands = await safeLoad('Brands', () => repository.getBrands(organizationId: orgId));
+    final categories = await safeLoad('Categories', () => repository.getCategories(organizationId: orgId));
+    final productTypes = await safeLoad('ProductTypes', () => repository.getProductTypes(organizationId: orgId));
+    final unitsOfMeasure = await safeLoad('UnitsOfMeasure', () => repository.getUnitsOfMeasure(organizationId: orgId));
+    final unitConversions = await safeLoad('UnitConversions', () => repository.getUnitConversions(organizationId: orgId));
 
     state = state.copyWith(
       isLoading: false,
-      brands: results[0] as List<Brand>,
-      categories: results[1] as List<ProductCategory>,
-      productTypes: results[2] as List<ProductType>,
-      unitsOfMeasure: results[3] as List<UnitOfMeasure>,
-      unitConversions: results[4] as List<UnitConversion>,
+      brands: brands,
+      categories: categories,
+      productTypes: productTypes,
+      unitsOfMeasure: unitsOfMeasure,
+      unitConversions: unitConversions,
     );
   }
 
