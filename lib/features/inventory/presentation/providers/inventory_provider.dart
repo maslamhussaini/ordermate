@@ -59,81 +59,39 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
 
   Future<void> loadAll() async {
     state = state.copyWith(isLoading: true);
+    final orgId = ref.read(organizationProvider).selectedOrganizationId;
+    print('InventoryNotifier: Loading all inventory data for Org ID: $orgId');
 
-    // Check connectivity first
-    final connectivityResult = await ConnectivityHelper.check();
-    if (connectivityResult.contains(ConnectivityResult.none)) {
-      // Offline: Load from local cache
+    // Helper to safely load data
+    Future<List<T>> safeLoad<T>(String name, Future<List<T>> Function() fetcher) async {
       try {
-        final orgId = ref.read(organizationProvider).selectedOrganizationId;
-        final results = await Future.wait([
-          repository.getBrands(organizationId: orgId),
-          repository.getCategories(organizationId: orgId),
-          repository.getProductTypes(organizationId: orgId),
-          repository.getUnitsOfMeasure(organizationId: orgId),
-          repository.getUnitConversions(organizationId: orgId),
-        ]);
-
-        state = state.copyWith(
-          isLoading: false,
-          brands: (results[0] as List).cast<Brand>(),
-          categories: (results[1] as List).cast<ProductCategory>(),
-          productTypes: (results[2] as List).cast<ProductType>(),
-          unitsOfMeasure: (results[3] as List).cast<UnitOfMeasure>(),
-          unitConversions: (results[4] as List).cast<UnitConversion>(),
-        );
-      } catch (localE) {
-        state = state.copyWith(
-            isLoading: false, error: 'Offline load failed: $localE');
-      }
-      return;
-    }
-
-    // Online: Try server first, fallback to local on error
-    try {
-      final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      // Load in parallel
-      final results = await Future.wait([
-        repository.getBrands(organizationId: orgId),
-        repository.getCategories(organizationId: orgId),
-        repository.getProductTypes(organizationId: orgId),
-        repository.getUnitsOfMeasure(organizationId: orgId),
-        repository.getUnitConversions(organizationId: orgId),
-      ]);
-
-      state = state.copyWith(
-        isLoading: false,
-        brands: (results[0] as List).cast<Brand>(),
-        categories: (results[1] as List).cast<ProductCategory>(),
-        productTypes: (results[2] as List).cast<ProductType>(),
-        unitsOfMeasure: (results[3] as List).cast<UnitOfMeasure>(),
-        unitConversions: (results[4] as List).cast<UnitConversion>(),
-      );
-    } catch (e) {
-      debugPrint('Server load failed, trying offline cache: $e');
-      try {
-        final orgId = ref.read(organizationProvider).selectedOrganizationId;
-        final results = await Future.wait([
-          repository.getBrands(organizationId: orgId),
-          repository.getCategories(organizationId: orgId),
-          repository.getProductTypes(organizationId: orgId),
-          repository.getUnitsOfMeasure(organizationId: orgId),
-          repository.getUnitConversions(organizationId: orgId),
-        ]);
-
-        state = state.copyWith(
-          isLoading: false,
-          brands: (results[0] as List).cast<Brand>(),
-          categories: (results[1] as List).cast<ProductCategory>(),
-          productTypes: (results[2] as List).cast<ProductType>(),
-          unitsOfMeasure: (results[3] as List).cast<UnitOfMeasure>(),
-          unitConversions: (results[4] as List).cast<UnitConversion>(),
-        );
-      } catch (localE) {
-        debugPrint('Local cache load failed: $localE');
-        state = state.copyWith(isLoading: false, error: e.toString());
+        print('InventoryNotifier: Fetching $name...');
+        final result = await fetcher();
+        print('InventoryNotifier: Loaded ${result.length} $name.');
+        return result;
+      } catch (e) {
+        print('InventoryNotifier: Failed to load $name: $e');
+        return [];
       }
     }
+
+    // Load all concurrently
+    final results = await Future.wait([
+      safeLoad('Brands', () => repository.getBrands(organizationId: orgId)),
+      safeLoad('Categories', () => repository.getCategories(organizationId: orgId)),
+      safeLoad('ProductTypes', () => repository.getProductTypes(organizationId: orgId)),
+      safeLoad('UnitsOfMeasure', () => repository.getUnitsOfMeasure(organizationId: orgId)),
+      safeLoad('UnitConversions', () => repository.getUnitConversions(organizationId: orgId)),
+    ]);
+
+    state = state.copyWith(
+      isLoading: false,
+      brands: results[0] as List<Brand>,
+      categories: results[1] as List<ProductCategory>,
+      productTypes: results[2] as List<ProductType>,
+      unitsOfMeasure: results[3] as List<UnitOfMeasure>,
+      unitConversions: results[4] as List<UnitConversion>,
+    );
   }
 
   // Brands
