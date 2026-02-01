@@ -13,6 +13,7 @@ class LookupField<TItem, TValue> extends StatelessWidget {
     this.onAdd,
     this.validationError,
     this.enabled = true,
+    this.hint,
   });
 
   final String label;
@@ -24,6 +25,7 @@ class LookupField<TItem, TValue> extends StatelessWidget {
   final Future<void> Function(String)? onAdd;
   final String? validationError;
   final bool enabled;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,7 @@ class LookupField<TItem, TValue> extends StatelessWidget {
     }
 
     final displayLabel =
-        selectedItem != null ? labelBuilder(selectedItem) : 'Select $label';
+        selectedItem != null ? labelBuilder(selectedItem) : (hint ?? 'Select $label');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
