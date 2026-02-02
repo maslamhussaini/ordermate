@@ -54,6 +54,12 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
       if (previous?.isSyncing == true && next.isSyncing == false) {
         debugPrint('DashboardNotifier: Sync finished, refreshing stats...');
         
+        // Check if still mounted before refreshing
+        if (!mounted) {
+          debugPrint('DashboardNotifier: Already disposed, skipping refresh');
+          return;
+        }
+        
         // CONSISTENT BEHAVIOR for all platforms:
         // Always try Online first unless explicitly in Offline Mode.
         // We catch errors in _loadOnlineStats and fallback to local.
@@ -340,6 +346,13 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
       );
 
       // debugPrint('Dashboard: Stats loaded for store $storeId. Vendors: $vendorsCount');
+      
+      if (!mounted) return;
+      state = DashboardState(
+        stats: newStats,
+        lastRefreshed: DateTime.now(),
+        error: null,
+      );
       
     } catch (e) {
       if (!mounted) return;
