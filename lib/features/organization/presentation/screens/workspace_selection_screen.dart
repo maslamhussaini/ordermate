@@ -265,7 +265,7 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
                       const SizedBox(height: 48),
                       
                       ElevatedButton(
-                        onPressed: (_selectedOrganization != null \u0026\u0026 _selectedSession != null) ? _continueToDashboard : null,
+                        onPressed: (_selectedOrganization != null && _selectedSession != null) ? _continueToDashboard : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.loginGradientStart,
                           foregroundColor: Colors.white,
