@@ -241,7 +241,7 @@ final List<AppRoute> organizationRoutes = [
     path: '/organizations-list',
     title: 'Organizations',
     routeName: RouteNames.organizations,
-    module: 'organization',
+    module: 'dashboard', // Changed from organization to allow access
     icon: Icons.business,
     roles: [UserRole.admin, UserRole.staff],
     builder: (_, __) => const OrganizationListScreen(),
@@ -250,7 +250,7 @@ final List<AppRoute> organizationRoutes = [
         path: 'create',
         title: 'New Organization',
         routeName: RouteNames.organizationCreate,
-        module: 'organization',
+        module: 'organization', // Creation still requires proper permission
         showInMenu: false,
         roles: [UserRole.admin],
         builder: (_, __) => const OrganizationFormScreen(),
@@ -259,7 +259,7 @@ final List<AppRoute> organizationRoutes = [
         path: 'edit/:id',
         title: 'Edit Organization',
         routeName: RouteNames.organizationEdit,
-        module: 'organization',
+        module: 'organization', // Editing still requires proper permission
         showInMenu: false,
         roles: [UserRole.admin],
         builder: (_, state) => OrganizationFormScreen(organizationId: state.pathParameters['id']),
@@ -270,7 +270,7 @@ final List<AppRoute> organizationRoutes = [
     path: '/workspace-selection',
     title: 'Select Workspace',
     routeName: RouteNames.workspaceSelection,
-    module: 'organization',
+    module: 'dashboard', // Changed from organization to allow access
     icon: Icons.business_center,
     roles: [UserRole.admin, UserRole.staff],
     showInMenu: false,

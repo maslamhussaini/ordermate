@@ -31,6 +31,14 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     }
   }
 
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProfile = ref.watch(userProfileProvider).value;
@@ -41,6 +49,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     }
 
     return Drawer(
+      width: 300,
       child: Column(
         children: [
           // Header
@@ -109,9 +118,18 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
           
           // Menu Items
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
+            child: Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              thickness: 8.0,
+              radius: const Radius.circular(4.0),
+              child: ListView(
+                controller: _scrollController,
+                padding: EdgeInsets.zero,
+                physics: const AlwaysScrollableScrollPhysics(),
+                shrinkWrap: false,
+                primary: false,
+                children: [
                 _buildMenuItem(
                   icon: Icons.dashboard,
                   title: AppLocalizations.of(context)?.get('dashboard') ?? 'Dashboard',
@@ -145,8 +163,8 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                       title: 'Chart of Accounts',
                       icon: Icons.account_tree_outlined,
                       onTap: () {
-                        _closeDrawerIfOpen(context);
-                        context.push('/accounting/coa');
+                         _closeDrawerIfOpen(context);
+                         context.push('/accounting/coa');
                       },
                     ),
                     _buildSubMenuItem(
@@ -216,7 +234,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ],
                 ),
 
-                // Admin Menu (Expandable) - Replaced with organization/stores check
+                // Admin Menu (Expandable)
                 if (auth.can('organization', Permission.read) || auth.can('stores', Permission.read))
                 _buildExpandableMenuItem(
                   icon: Icons.admin_panel_settings_outlined,
@@ -247,7 +265,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ],
                 ),
 
-                // Customers Management (Expandable)
+                // Customers Management
                 if (auth.can('customers', Permission.read) || auth.can('orders', Permission.read) || auth.can('invoices', Permission.read))
                 _buildExpandableMenuItem(
                   icon: Icons.people,
@@ -287,7 +305,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ],
                 ),
 
-                // Employee Management (Expandable)
+                // Employee Management
                 if (auth.can('employees', Permission.read))
                 _buildExpandableMenuItem(
                   icon: Icons.badge,
@@ -340,7 +358,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   ],
                 ),
                 
-                // Inventory Management (Expandable)
+                // Inventory Management
                 if (auth.can('inventory', Permission.read) || auth.can('products', Permission.read))
                 _buildExpandableMenuItem(
                   icon: Icons.inventory_2,
@@ -457,7 +475,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                     ],
                   ),
                 
-                // Suppliers Management (Expandable)
+                // Suppliers Management
                 if (auth.can('vendors', Permission.read) || auth.can('orders', Permission.read))
                 _buildExpandableMenuItem(
                   icon: Icons.local_shipping,
@@ -509,12 +527,12 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   },
                 ),
 
-
               ],
             ),
           ),
-          
-          // Footer
+          ),
+
+          // Footer (Pinned at bottom)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -533,8 +551,8 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 4),
-                 Text(
-                   // ignore: prefer_interpolation_to_compose_strings
+                Text(
+                  // ignore: prefer_interpolation_to_compose_strings
                   (AppLocalizations.of(context)?.get('version') ?? 'Version') + ' $appVersion • Build $buildTime',
                   style: TextStyle(
                     fontSize: 10,
@@ -577,6 +595,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
               ],
             ),
           ),
+          
         ],
       ),
     );

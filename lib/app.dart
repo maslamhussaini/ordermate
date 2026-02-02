@@ -1,5 +1,6 @@
 // lib/app.dart
 
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,6 +51,17 @@ class OrderMateApp extends ConsumerWidget {
       ],
       
       routerConfig: router,
+      
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        scrollbars: true,
+        physics: const BouncingScrollPhysics(),
+        dragDevices: {
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.touch,
+          PointerDeviceKind.stylus,
+          PointerDeviceKind.trackpad,
+        },
+      ),
       
       // Global Builder for Offline Overlay & Bug Reporting Screenshot
       builder: (context, child) {
