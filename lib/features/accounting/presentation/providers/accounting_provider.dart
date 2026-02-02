@@ -16,6 +16,7 @@ import 'package:ordermate/features/business_partners/presentation/providers/busi
 import 'package:uuid/uuid.dart';
 import 'package:ordermate/features/orders/presentation/providers/order_provider.dart';
 import 'package:ordermate/features/products/presentation/providers/product_provider.dart';
+import 'package:ordermate/core/services/sync_service.dart';
 
 final localAccountingRepositoryProvider = Provider<LocalAccountingRepository>((ref) {
   return LocalAccountingRepository();
@@ -107,11 +108,31 @@ class AccountingState {
   }
 }
 
+
 class AccountingNotifier extends StateNotifier<AccountingState> {
   final AccountingRepository _repository;
   final Ref _ref;
 
-  AccountingNotifier(this._repository, this._ref) : super(AccountingState());
+  AccountingNotifier(this._repository, this._ref) : super(AccountingState()) {
+    _listenToSync();
+  }
+
+  void _listenToSync() {
+    _ref.listen<SyncStatus>(syncProgressProvider, (previous, next) async {
+      if (previous?.isSyncing == true && next.isSyncing == false) {
+        if (!mounted) return;
+          
+        final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+        final storeId = _ref.read(organizationProvider).selectedStore?.id;
+        final sYear = state.selectedFinancialSession?.sYear;
+          
+        if (orgId != null) {
+           await loadTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
+           await loadInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
+        }
+      }
+    });
+  }
 
   Future<void> loadAll({int? organizationId}) async {
     final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
