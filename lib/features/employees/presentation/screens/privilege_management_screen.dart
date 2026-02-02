@@ -161,6 +161,82 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
     }
   }
 
+  void _showCopyRoleDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final roles = ref.read(businessPartnerProvider).roles;
+        return AlertDialog(
+          title: const Text('Copy Permissions from Role'),
+          content: SizedBox(
+             width: double.maxFinite,
+             child: ListView.builder(
+               shrinkWrap: true,
+               itemCount: roles.length,
+               itemBuilder: (context, index) {
+                 final role = roles[index];
+                 return ListTile(
+                   title: Text(role['role_name'] ?? 'Unknown Role'),
+                   onTap: () {
+                     Navigator.of(context).pop();
+                     _copyPermissionsFromRole(role['id']);
+                   },
+                 );
+               },
+             ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), 
+              child: const Text('Cancel')
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  Future<void> _copyPermissionsFromRole(int roleId) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fetching role permissions...')));
+      
+      final repo = ref.read(businessPartnerRepositoryProvider);
+      final permissions = await repo.getFormPrivileges(roleId: roleId);
+      final storeAccess = await repo.getRoleStoreAccess(roleId);
+      
+      setState(() {
+        // 1. Apply Form Permissions
+        // We iterate through fetched permissions and update _pendingChanges
+        for (final p in permissions) {
+          final int formId = p['form_id'];
+          // Convert 1/0/true/false to bool
+          _pendingChanges[formId] = {
+            'can_view': _parseBool(p['can_view']),
+            'can_add': _parseBool(p['can_add']),
+            'can_edit': _parseBool(p['can_edit']),
+            'can_delete': _parseBool(p['can_delete']),
+            'can_read': _parseBool(p['can_read']),
+            'can_print': _parseBool(p['can_print']),
+          };
+        }
+        
+        // 2. Apply Store Access
+        _pendingStoreChanges.clear();
+        _pendingStoreChanges.addAll(storeAccess);
+        _storeChangesDirty = true;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permissions applied. Click "Save" to persist.')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error copying permissions: $e')));
+      }
+    }
+  }
+
   void _toggleStoreAccess(int storeId, bool value) {
     setState(() {
       if (value) {
@@ -283,16 +359,22 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
               )
             : null,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh Data',
-            onPressed: () {
-              ref.read(businessPartnerProvider.notifier).loadRoles();
-              ref.read(businessPartnerProvider.notifier).loadAppUsers();
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Refreshing data...')));
-            },
-          ),
-          if (!isMobile || hasSelection)
+          if (!isMobile || hasSelection) ...[
+            if (_viewMode == 'employee' && _selectedEmployeeId != null)
+              IconButton(
+                icon: const Icon(Icons.copy),
+                tooltip: 'Copy from Role',
+                onPressed: _showCopyRoleDialog,
+              ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh Data',
+              onPressed: () {
+                ref.read(businessPartnerProvider.notifier).loadRoles();
+                ref.read(businessPartnerProvider.notifier).loadAppUsers();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Refreshing data...')));
+              },
+            ),
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: FilledButton.icon(
@@ -303,6 +385,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                 label: isMobile ? const Text('Save') : const Text('Save Changes'),
               ),
             ),
+          ],
         ],
       ),
       body: Row(
