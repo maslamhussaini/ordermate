@@ -113,16 +113,19 @@ class ResponsiveScaffold extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                     ],
-                    Text(
-                      accountingState.selectedFinancialSession != null
-                          ? '${accountingState.selectedFinancialSession!.sYear} (${DateFormat('MMM yy').format(accountingState.selectedFinancialSession!.startDate)} - ${DateFormat('MMM yy').format(accountingState.selectedFinancialSession!.endDate)})'
-                          : 'Select Year',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: selectedYear != null 
-                            ? Theme.of(context).colorScheme.onPrimaryContainer
-                            : Theme.of(context).colorScheme.onSurface.withAlpha(178),
+                    Flexible(
+                      child: Text(
+                        accountingState.selectedFinancialSession != null
+                            ? '${accountingState.selectedFinancialSession!.sYear}'
+                            : 'Select Year',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: selectedYear != null 
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                              : Theme.of(context).colorScheme.onSurface.withAlpha(178),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
