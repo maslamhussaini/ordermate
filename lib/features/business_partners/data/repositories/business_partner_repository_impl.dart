@@ -903,14 +903,19 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     }
 
     try {
-      var query = SupabaseConfig.client.from('omtbl_role_form_privileges').select();
-      if (roleId != null) {
-        query = query.eq('role_id', roleId);
-      } else if (employeeId != null) {
-        query = query.eq('employee_id', employeeId);
-      } else {
+      // omtbl_role_form_privileges only supports role_id, not employee_id
+      // If employeeId is provided, we need to get their role first or use local data
+      if (employeeId != null && roleId == null) {
+        debugPrint('Employee-level privileges requested, using local data only');
+        return await _localRepository.getFormPrivileges(roleId: roleId, employeeId: employeeId);
+      }
+      
+      if (roleId == null) {
         return [];
       }
+      
+      var query = SupabaseConfig.client.from('omtbl_role_form_privileges').select();
+      query = query.eq('role_id', roleId);
 
       final response = await query;
       final list = List<Map<String, dynamic>>.from(response);
