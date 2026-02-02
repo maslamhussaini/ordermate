@@ -227,11 +227,11 @@ final List<AppRoute> branchRoutes = [
     routeName: RouteNames.branches,
     module: 'stores',
     icon: Icons.store,
-    roles: [UserRole.admin],
+    roles: [UserRole.admin, UserRole.staff],
     builder: (_, __) => const StoreListScreen(),
     children: [
-       AppRoute(path: 'create', title: 'Add Store', routeName: RouteNames.storeCreate, module: 'stores', showInMenu: false, roles: [UserRole.admin], builder: (_, __) => const StoreFormScreen()),
-       AppRoute(path: 'edit/:id', title: 'Edit Store', routeName: RouteNames.storeEdit, module: 'stores', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => StoreFormScreen(storeId: state.pathParameters['id'])),
+       AppRoute(path: 'create', title: 'Add Store', routeName: RouteNames.storeCreate, module: 'stores', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const StoreFormScreen()),
+       AppRoute(path: 'edit/:id', title: 'Edit Store', routeName: RouteNames.storeEdit, module: 'stores', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => StoreFormScreen(storeId: state.pathParameters['id'])),
     ]
   ),
 ];

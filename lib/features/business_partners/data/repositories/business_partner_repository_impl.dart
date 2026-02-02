@@ -38,7 +38,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     try {
       var query = SupabaseConfig.client
           .from('omtbl_businesspartners')
-          .select()
+          .select('*, omtbl_roles(role_name), omtbl_business_types(business_type), omtbl_depts(name)')
           .eq('is_active', 1);
       
       // Store Filter
@@ -98,7 +98,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       final response = await SupabaseConfig.client
           .from('omtbl_businesspartners')
           .upsert(json)
-          .select()
+          .select('*, omtbl_roles(role_name), omtbl_business_types(business_type), omtbl_depts(name)')
           .single();
 
       return BusinessPartnerModel.fromJson(response);
@@ -255,7 +255,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     try {
       final response = await SupabaseConfig.client
           .from('omtbl_businesspartners')
-          .select()
+          .select('*, omtbl_roles(role_name), omtbl_business_types(business_type), omtbl_depts(name)')
           .eq('id', id)
           .maybeSingle();
       
@@ -582,7 +582,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     try {
       final res = await SupabaseConfig.client
           .from('omtbl_users')
-          .select()
+          .select('*, omtbl_roles(role_name)')
           .eq('business_partner_id', partnerId)
           .maybeSingle(); // maybeSingle returns null if not found
           
