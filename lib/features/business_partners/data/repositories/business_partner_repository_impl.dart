@@ -958,6 +958,9 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
         'can_print': (p['can_print'] == 1 || p['can_print'] == true),
       }).toList();
 
+      debugPrint('Saving ${supabaseData.length} privileges to Supabase');
+      debugPrint('First privilege data: ${supabaseData.isNotEmpty ? supabaseData.first : "empty"}');
+      
       await SupabaseConfig.client.from('omtbl_role_form_privileges').upsert(supabaseData);
       
       // Also update local - Ensure integer values
