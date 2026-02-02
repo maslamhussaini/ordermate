@@ -115,6 +115,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> loadAll({int? organizationId}) async {
     final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+    // Preserve the currently selected session
+    final currentSession = state.selectedFinancialSession;
     state = state.copyWith(isLoading: true);
     try {
       final results = await Future.wait([
@@ -130,6 +132,14 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       ]);
 
       if (!mounted) return;
+      
+      final loadedSessions = List<FinancialSession>.from(results[6] as Iterable);
+      // Restore the selected session if it still exists in the loaded sessions
+      FinancialSession? restoredSession;
+      if (currentSession != null) {
+        restoredSession = loadedSessions.where((s) => s.sYear == currentSession.sYear).firstOrNull;
+      }
+      
       state = state.copyWith(
         accounts: List<ChartOfAccount>.from(results[0] as Iterable),
         types: List<AccountType>.from(results[1] as Iterable),
@@ -137,9 +147,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         paymentTerms: List<PaymentTerm>.from(results[3] as Iterable),
         bankCashAccounts: List<BankCash>.from(results[4] as Iterable),
         voucherPrefixes: List<VoucherPrefix>.from(results[5] as Iterable),
-        financialSessions: List<FinancialSession>.from(results[6] as Iterable),
+        financialSessions: loadedSessions,
         invoiceTypes: List<InvoiceType>.from(results[7] as Iterable),
         glSetup: results[8] as GLSetup?,
+        selectedFinancialSession: restoredSession,
         isLoading: false,
       );
     } catch (e) {
