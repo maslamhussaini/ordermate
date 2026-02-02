@@ -163,9 +163,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         debugPrint('Splash: Triggering Sync...');
         ref.read(syncServiceProvider).syncAll();
         
-        final landing = ref.read(settingsProvider).landingPage;
-        debugPrint('Splash: Navigating to $landing');
-        context.go(landing);
+        debugPrint('Splash: Navigating to /workspace-selection');
+        context.go('/workspace-selection');
       } else {
         debugPrint('Splash: No session, navigating to /login');
         context.go('/login');

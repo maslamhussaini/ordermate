@@ -116,7 +116,7 @@ class ResponsiveScaffold extends ConsumerWidget {
                     Text(
                       accountingState.selectedFinancialSession != null
                           ? '${accountingState.selectedFinancialSession!.sYear} (${DateFormat('MMM yy').format(accountingState.selectedFinancialSession!.startDate)} - ${DateFormat('MMM yy').format(accountingState.selectedFinancialSession!.endDate)})'
-                          : 'All Years',
+                          : 'Select Year',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
