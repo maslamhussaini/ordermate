@@ -81,8 +81,17 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         final tx = state.transactions[index];
 
                         // Helper to find account name
-                        String getAccountName(String id) {
+                        String getAccountName(String id, {String? moduleAccount}) {
                            final gl = state.accounts.where((a) => a.id == id).firstOrNull;
+                           
+                           // If moduleAccount is provided and differs from accountCode, use moduleAccount
+                           if (moduleAccount != null && moduleAccount.isNotEmpty) {
+                             if (gl != null && gl.accountCode != moduleAccount) {
+                               return '$moduleAccount - ${gl.accountTitle}';
+                             }
+                           }
+                           
+                           // Otherwise use standard account code
                            if (gl != null) return '${gl.accountCode} - ${gl.accountTitle}';
                            
                            final cust = partnerState.customers.where((c) => c.id == id).firstOrNull;
@@ -97,8 +106,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                            return id; // Fallback
                         }
 
-                        final accountName = getAccountName(tx.accountId);
-                        final offsetAccountName = tx.offsetAccountId != null ? getAccountName(tx.offsetAccountId!) : null;
+                        final accountName = getAccountName(tx.accountId, moduleAccount: tx.moduleAccount);
+                        final offsetAccountName = tx.offsetAccountId != null 
+                            ? getAccountName(tx.offsetAccountId!, moduleAccount: tx.offsetModuleAccount) 
+                            : null;
                         
                         // We also need Objects for Printer pass-through (if it expects ChartOfAccount)
                         // The printer expects ChartOfAccount. If it's a BP, we might need to mock or update Printer.

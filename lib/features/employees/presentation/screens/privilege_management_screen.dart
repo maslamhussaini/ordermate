@@ -140,6 +140,13 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
         );
       }
 
+      // Reload privileges to reflect saved changes
+      if (_selectedRoleId != null) {
+        await ref.read(businessPartnerProvider.notifier).loadFormPrivileges(roleId: _selectedRoleId);
+      } else if (_selectedEmployeeId != null) {
+        await ref.read(businessPartnerProvider.notifier).loadFormPrivileges(employeeId: _selectedEmployeeId);
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permissions saved successfully')));
         setState(() {
@@ -452,9 +459,48 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                                   color: Colors.blue.shade800,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: Text(
-                                  entry.key.toUpperCase(),
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      entry.key.toUpperCase(),
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    InkWell(
+                                      onTap: () {
+                                        // Check if all forms in this section are enabled
+                                        final allEnabled = entry.value.every((form) {
+                                          final formId = form['id'] as int;
+                                          final existing = state.formPrivileges.where((p) => p['form_id'] == formId).firstOrNull;
+                                          final canView = _pendingChanges[formId]?['can_view'] ?? _parseBool(existing?['can_view']);
+                                          final canAdd = _pendingChanges[formId]?['can_add'] ?? _parseBool(existing?['can_add']);
+                                          final canEdit = _pendingChanges[formId]?['can_edit'] ?? _parseBool(existing?['can_edit']);
+                                          final canDelete = _pendingChanges[formId]?['can_delete'] ?? _parseBool(existing?['can_delete']);
+                                          final canRead = _pendingChanges[formId]?['can_read'] ?? _parseBool(existing?['can_read']);
+                                          final canPrint = _pendingChanges[formId]?['can_print'] ?? _parseBool(existing?['can_print']);
+                                          return canView && canAdd && canEdit && canDelete && canRead && canPrint;
+                                        });
+                                        
+                                        // Toggle all forms in this section
+                                        for (var form in entry.value) {
+                                          final formId = form['id'] as int;
+                                          _togglePrivilege(formId, 'all', !allEnabled);
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: const Text(
+                                          'All',
+                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 12),
