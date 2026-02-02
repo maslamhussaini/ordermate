@@ -20,7 +20,7 @@ TO authenticated
 USING (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 );
@@ -33,7 +33,7 @@ TO authenticated
 WITH CHECK (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 );
@@ -46,14 +46,14 @@ TO authenticated
 USING (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 )
 WITH CHECK (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 );
@@ -66,7 +66,7 @@ TO authenticated
 USING (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 );

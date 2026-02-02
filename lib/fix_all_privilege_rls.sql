@@ -25,7 +25,7 @@ TO authenticated
 USING (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 );
@@ -38,7 +38,7 @@ TO authenticated
 WITH CHECK (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 );
@@ -51,14 +51,14 @@ TO authenticated
 USING (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 )
 WITH CHECK (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 );
@@ -71,7 +71,7 @@ TO authenticated
 USING (
   organization_id IN (
     SELECT organization_id 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
   )
 );
@@ -96,7 +96,7 @@ TO authenticated
 USING (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_role_store_access.organization_id
   )
@@ -110,7 +110,7 @@ TO authenticated
 WITH CHECK (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_role_store_access.organization_id
   )
@@ -124,7 +124,7 @@ TO authenticated
 USING (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_role_store_access.organization_id
   )
@@ -132,7 +132,7 @@ USING (
 WITH CHECK (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_role_store_access.organization_id
   )
@@ -146,7 +146,7 @@ TO authenticated
 USING (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_role_store_access.organization_id
   )
@@ -172,7 +172,7 @@ TO authenticated
 USING (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_user_store_access.organization_id
   )
@@ -186,7 +186,7 @@ TO authenticated
 WITH CHECK (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_user_store_access.organization_id
   )
@@ -200,7 +200,7 @@ TO authenticated
 USING (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_user_store_access.organization_id
   )
@@ -208,7 +208,7 @@ USING (
 WITH CHECK (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_user_store_access.organization_id
   )
@@ -222,7 +222,7 @@ TO authenticated
 USING (
   EXISTS (
     SELECT 1 
-    FROM omtbl_app_users 
+    FROM omtbl_users 
     WHERE id = auth.uid()
     AND organization_id = omtbl_user_store_access.organization_id
   )
