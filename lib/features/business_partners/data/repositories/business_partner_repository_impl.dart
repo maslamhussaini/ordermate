@@ -167,7 +167,6 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       updatedAt: partner.updatedAt,
       roleId: partner.roleId,
       roleName: partner.roleName,
-      managerId: partner.managerId,
       departmentId: partner.departmentId,
       departmentName: partner.departmentName,
       chartOfAccountId: partner.chartOfAccountId,
@@ -189,6 +188,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     json['is_supplier'] = partner.isSupplier ? 1 : 0;
     
     // Remove fields not yet in DB schema or managed elsewhere
+    json.remove('role_name');
     json.remove('payment_term_id');
     json.remove('password'); // Password belongs in AppUser/Auth, not BusinessPartner CRM table
     // json.remove('chart_of_account_id'); // Re-enabled per user request
@@ -207,6 +207,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       json.remove('id');
       json.remove('created_at');
       json.remove('updated_at');
+      json.remove('role_name');
       json.remove('payment_term_id');
       // json.remove('chart_of_account_id'); // Re-enabled
       
@@ -513,7 +514,6 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
           'full_name': fullName,
           'role_id': roleId,
           'is_active': true,
-          'role_name': '', 
           'password': password,
           'organization_id': organizationId,
           'store_id': storeId,

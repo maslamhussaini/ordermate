@@ -185,6 +185,8 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
           .select()
           .eq('organization_id', organizationId)
           .order('name', ascending: true);
+      
+      print('DEBUG_LOG: Fetched ${response.length} stores from Supabase: ${response.map((e) => "${e['id']}:${e['name']}").toList()}');
 
       final remoteStores = (response as List)
           .map((json) => StoreModel.fromJson(json as Map<String, dynamic>))

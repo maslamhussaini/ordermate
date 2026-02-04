@@ -60,7 +60,6 @@ class ChartOfAccountModel extends ChartOfAccount {
     return map;
   }
 }
-
 class TransactionModel extends Transaction {
   const TransactionModel({
     required super.id,
@@ -77,6 +76,11 @@ class TransactionModel extends Transaction {
     super.sYear,
     super.moduleAccount,
     super.offsetModuleAccount,
+    super.paymentMode,
+    super.referenceNumber,
+    super.referenceDate,
+    super.referenceBank,
+    super.invoiceId,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -95,6 +99,11 @@ class TransactionModel extends Transaction {
       sYear: json['syear'] as int?,
       moduleAccount: json['module_account'] as String?,
       offsetModuleAccount: json['offset_module_account'] as String?,
+      paymentMode: json['payment_mode'] as String?,
+      referenceNumber: json['reference_number'] as String?,
+      referenceDate: json['reference_date'] == null ? null : DateTime.parse(json['reference_date'] as String),
+      referenceBank: json['reference_bank'] as String?,
+      invoiceId: json['invoice_id'] as String?,
     );
   }
 
@@ -114,6 +123,11 @@ class TransactionModel extends Transaction {
       'syear': sYear,
       'module_account': moduleAccount,
       'offset_module_account': offsetModuleAccount,
+      'payment_mode': paymentMode,
+      'reference_number': referenceNumber,
+      'reference_date': referenceDate?.toIso8601String(),
+      'reference_bank': referenceBank,
+      'invoice_id': invoiceId,
     };
   }
 }

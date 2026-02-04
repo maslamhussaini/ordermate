@@ -46,7 +46,7 @@ class ReportsHubScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _buildSectionHeader('OTHER REPORTS'),
              _buildReportGrid(context, [
-              _ReportItem(title: 'Location Report', icon: Icons.location_on, route: '/sales-location-report', color: Colors.blueGrey),
+              _ReportItem(title: 'Location Report', icon: Icons.location_on, route: '/reports/location', color: Colors.blueGrey),
             ]),
           ],
         ),

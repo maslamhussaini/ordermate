@@ -13,8 +13,9 @@ class TransactionPrinter {
     Transaction tx,
     ChartOfAccount? account,
     ChartOfAccount? offsetAccount,
-    Organization? org,
-  ) async {
+    Organization? org, {
+    String? voucherTypeName,
+  }) async {
     final doc = pw.Document();
     final dateFormat = DateFormat('dd MMM yyyy');
     final currencyFormat = NumberFormat.currency(symbol: '');
@@ -33,7 +34,7 @@ class TransactionPrinter {
                 ),
               pw.SizedBox(height: 20),
               pw.Center(
-                child: pw.Text('TRANSACTION VOUCHER', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                child: pw.Text((voucherTypeName ?? 'TRANSACTION VOUCHER').toUpperCase(), style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
               ),
               pw.SizedBox(height: 10),
               pw.Divider(),
@@ -131,8 +132,9 @@ class TransactionPrinter {
     required ChartOfAccount? account,
     required ChartOfAccount? offsetAccount,
     required Organization? org,
+    String? voucherTypeName,
   }) async {
-    final pdfBytes = await _generatePdf(tx, account, offsetAccount, org);
+    final pdfBytes = await _generatePdf(tx, account, offsetAccount, org, voucherTypeName: voucherTypeName);
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdfBytes,
       name: '${tx.voucherNumber}.pdf',
@@ -144,8 +146,9 @@ class TransactionPrinter {
     required ChartOfAccount? account,
     required ChartOfAccount? offsetAccount,
     required Organization? org,
+    String? voucherTypeName,
   }) async {
-    final pdfBytes = await _generatePdf(tx, account, offsetAccount, org);
+    final pdfBytes = await _generatePdf(tx, account, offsetAccount, org, voucherTypeName: voucherTypeName);
     await Printing.sharePdf(bytes: pdfBytes, filename: '${tx.voucherNumber}.pdf');
   }
 }

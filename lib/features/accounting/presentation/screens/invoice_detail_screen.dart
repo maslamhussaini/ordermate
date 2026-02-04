@@ -37,8 +37,17 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
       );
     }
 
-    final partnerName = partnerState.customers.where((c) => c.id == invoice.businessPartnerId).firstOrNull?.name 
-                        ?? 'Customer ID: ${invoice.businessPartnerId}';
+    final partner = partnerState.customers.where((c) => c.id == invoice.businessPartnerId).firstOrNull;
+    final partnerName = partner?.name ?? 'Customer ID: ${invoice.businessPartnerId}';
+    
+    // Payment Terms from Partner
+    final paymentTerm = state.paymentTerms.where((p) => p.id == partner?.paymentTermId).firstOrNull;
+
+    // Related Transactions
+    final relatedTxs = state.transactions.where((t) => t.invoiceId == widget.invoiceId).toList();
+    final latestReceipt = relatedTxs.isNotEmpty ? relatedTxs.first : null;
+
+    final balance = invoice.totalAmount - invoice.paidAmount;
 
     return Scaffold(
       appBar: AppBar(
@@ -58,13 +67,18 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
                   children: [
                     Text('Customer: $partnerName', style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 8),
-                    _buildRow('Invoice Number', invoice.invoiceNumber),
-                    _buildRow('Date', DateFormat('dd MMM yyyy').format(invoice.invoiceDate)),
-                    if (invoice.dueDate != null)
-                      _buildRow('Due Date', DateFormat('dd MMM yyyy').format(invoice.dueDate!)),
-                    _buildRow('Status', invoice.status),
-                    Divider(),
-                    _buildRow('Total Amount', NumberFormat.currency(symbol: '').format(invoice.totalAmount), isBold: true),
+                    _buildRow('Payment Term Name', paymentTerm?.name ?? 'N/A'),
+                    _buildRow('Invoice Status', invoice.status),
+                    _buildRow('Invoice Balance', NumberFormat.currency(symbol: '').format(balance), isBold: true, color: balance > 0 ? Colors.red : Colors.green),
+                    
+                    const Divider(),
+                    if (latestReceipt != null) ...[
+                       _buildRow('Amount Received By', NumberFormat.currency(symbol: '').format(invoice.paidAmount), color: Colors.green),
+                       _buildRow('Amount Receipt Date', DateFormat('dd MMM yyyy').format(latestReceipt.voucherDate)),
+                       _buildRow('By Payment Mode', latestReceipt.paymentMode ?? 'Cash'),
+                    ] else ...[
+                       _buildRow('Amount Received', 'None', color: Colors.grey),
+                    ],
                   ],
                 ),
               ),
@@ -103,14 +117,18 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
     );
   }
 
-  Widget _buildRow(String label, String value, {bool isBold = false}) {
+  Widget _buildRow(String label, String value, {bool isBold = false, Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal, fontSize: isBold ? 16 : 14)),
+          Text(value, style: TextStyle(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal, 
+            fontSize: isBold ? 16 : 14,
+            color: color,
+          )),
         ],
       ),
     );

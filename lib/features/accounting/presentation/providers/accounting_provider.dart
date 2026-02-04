@@ -291,6 +291,13 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         organizationId: transaction.organizationId,
         storeId: transaction.storeId,
         sYear: sYear, // Enforce correct sYear
+        moduleAccount: transaction.moduleAccount,
+        offsetModuleAccount: transaction.offsetModuleAccount,
+        paymentMode: transaction.paymentMode,
+        referenceNumber: transaction.referenceNumber,
+        referenceDate: transaction.referenceDate,
+        referenceBank: transaction.referenceBank,
+        invoiceId: transaction.invoiceId,
       );
 
       await _repository.createTransaction(txWithYear);
@@ -966,7 +973,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
               // 1. DELETE EXISTING TRANSACTIONS for this Invoice Logic
               // We replace all entries to handle updates cleanly, and to support multiple entries (Sales + COGS)
               final allTxs = state.transactions.isEmpty ? await _repository.getTransactions(organizationId: orgId) : state.transactions;
-              final existingTxs = allTxs.where((t) => t.voucherNumber == invoice.invoiceNumber).toList();
+               final existingTxs = allTxs.where((t) => t.invoiceId == invoice.id || t.voucherNumber == invoice.invoiceNumber).toList();
               
               for (var tx in existingTxs) {
                  await _repository.deleteTransaction(tx.id);
@@ -979,52 +986,62 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
                  voucherNumber: invoice.invoiceNumber!,
                  voucherDate: invoice.invoiceDate,
                  accountId: debitAccount,
+                 moduleAccount: invoice.businessPartnerId, // Customer/Vendor ID
                  offsetAccountId: creditAccount,
+                 offsetModuleAccount: creditAccount, // Sales/Purchase GL Account
                  amount: invoice.totalAmount,
                  description: 'Invoice ${invoice.invoiceNumber} - ${partner.name}',
                  status: 'posted',
                  organizationId: orgId ?? 0,
                  storeId: storeId ?? 0,
                  sYear: sYear,
+                 invoiceId: invoice.id,
                );
                await _repository.createTransaction(mainTx);
                
                // 3. CREATE COGS TRANSACTION (For Sales Invoices)
-                if (isSales && items != null) {
-                 double totalCost = 0;
-                 
-                 // Access Product Provider to lookup costs
-                 var productList = _ref.read(productProvider).products;
-                 if (productList.isEmpty) {
-                     // Ensure products are loaded to calculate cost
-                     await _ref.read(productProvider.notifier).loadProducts(storeId: storeId);
-                     productList = _ref.read(productProvider).products;
-                 }
-                 
-                 for (var item in items) {
-                    final product = productList.where((p) => p.id == item.productId).firstOrNull;
-                    if (product != null) {
-                        totalCost += (product.cost * item.quantity);
-                    }
-                 }
-                 
-                 if (totalCost > 0) {
-                     final cogsTx = Transaction(
-                       id: const Uuid().v4(),
-                       voucherPrefixId: prefixModel.id, // Reuse prefix
-                       voucherNumber: invoice.invoiceNumber!,
-                       voucherDate: invoice.invoiceDate,
-                       accountId: glSetup.cogsAccountId, // Debit COGS
-                       offsetAccountId: glSetup.inventoryAccountId, // Credit Inventory
-                       amount: totalCost,
-                       description: 'Cost of Sales - Invoice ${invoice.invoiceNumber}',
-                       status: 'posted',
-                       organizationId: orgId ?? 0,
-                       storeId: storeId ?? 0,
-                       sYear: sYear,
-                     );
-                     await _repository.createTransaction(cogsTx);
-                 }
+                if (isSales && items != null && items.isNotEmpty) {
+                  double totalCost = 0;
+                  
+                  // Get products to calculate cost accurately
+                  var productList = _ref.read(productProvider).products;
+                  if (productList.isEmpty) {
+                      await _ref.read(productProvider.notifier).loadProducts(storeId: storeId);
+                      productList = _ref.read(productProvider).products;
+                  }
+                  
+                  for (var item in items) {
+                     final product = productList.where((p) => p.id == item.productId).firstOrNull;
+                     if (product != null) {
+                         totalCost += (product.cost * item.quantity);
+                     } else {
+                        // Fallback: try to fetch individual product if list is incomplete
+                        try {
+                          final p = await _ref.read(productRepositoryProvider).getProductById(item.productId);
+                          totalCost += (p.cost * item.quantity);
+                        } catch (_) {}
+                     }
+                  }
+                  
+                  if (totalCost > 0 && glSetup.cogsAccountId != null && glSetup.inventoryAccountId != null) {
+                      final jvPrefix = state.voucherPrefixes.where((p) => p.prefixCode == 'JV').firstOrNull;
+                      final cogsTx = Transaction(
+                        id: const Uuid().v4(),
+                        voucherPrefixId: jvPrefix?.id ?? prefixModel.id, 
+                        voucherNumber: jvPrefix != null ? 'SIJV-${invoice.invoiceNumber}' : invoice.invoiceNumber!,
+                        voucherDate: invoice.invoiceDate,
+                        accountId: glSetup.cogsAccountId!, // Debit COGS
+                        offsetAccountId: glSetup.inventoryAccountId!, // Credit Inventory
+                        amount: totalCost,
+                        description: 'Cost of Sales - Invoice ${invoice.invoiceNumber}',
+                        status: 'posted',
+                        organizationId: orgId ?? 0,
+                        storeId: storeId ?? 0,
+                        sYear: sYear,
+                        invoiceId: invoice.id,
+                      );
+                      await _repository.createTransaction(cogsTx);
+                  }
                }
            } else {
               throw Exception('GL Accounts not configured for this transaction type.');

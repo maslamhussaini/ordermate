@@ -34,6 +34,7 @@ import 'package:ordermate/features/organization/presentation/screens/store_list_
 import 'package:ordermate/features/reports/presentation/screens/reports_hub_screen.dart';
 import 'package:ordermate/features/reports/presentation/screens/ledger_report_screen.dart';
 import 'package:ordermate/features/reports/presentation/screens/sales_report_screen.dart';
+import 'package:ordermate/features/reports/presentation/screens/sales_location_report_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_profile_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_list_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_form_screen.dart';
@@ -285,12 +286,21 @@ final List<AppRoute> reportRoutes = [
     routeName: RouteNames.reports,
     module: 'reports',
     icon: Icons.analytics,
-    roles: [UserRole.admin],
+    roles: [UserRole.admin, UserRole.staff],
     builder: (_, __) => const ReportsHubScreen(),
     children: [
-       AppRoute(path: 'ledger/:type', title: 'Ledger', routeName: RouteNames.ledgerReport, module: 'reports', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => LedgerReportScreen(type: state.pathParameters['type']!)),
-       AppRoute(path: 'sales/:groupBy', title: 'Sales Report', routeName: RouteNames.salesReport, module: 'reports', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => SalesReportScreen(groupBy: state.pathParameters['groupBy']!, invoiceType: 'SI')),
-       AppRoute(path: 'returns/:groupBy', title: 'Returns Report', routeName: RouteNames.returnsReport, module: 'reports', showInMenu: false, roles: [UserRole.admin], builder: (_, state) => SalesReportScreen(groupBy: state.pathParameters['groupBy']!, invoiceType: 'SIR')),
+       AppRoute(path: 'ledger/:type', title: 'Ledger', routeName: RouteNames.ledgerReport, module: 'reports', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => LedgerReportScreen(type: state.pathParameters['type']!)),
+       AppRoute(path: 'sales/:groupBy', title: 'Sales Report', routeName: RouteNames.salesReport, module: 'reports', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => SalesReportScreen(groupBy: state.pathParameters['groupBy']!, invoiceType: 'SI')),
+       AppRoute(path: 'returns/:groupBy', title: 'Returns Report', routeName: RouteNames.returnsReport, module: 'reports', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => SalesReportScreen(groupBy: state.pathParameters['groupBy']!, invoiceType: 'SIR')),
+       AppRoute(
+         path: 'location',
+         title: 'Sales Location Report',
+         routeName: RouteNames.salesLocationReport,
+         module: 'reports',
+         showInMenu: false,
+         roles: [UserRole.admin, UserRole.staff],
+         builder: (_, __) => const SalesLocationReportScreen(),
+       ),
     ]
   ),
 ];

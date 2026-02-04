@@ -14,11 +14,6 @@ import 'package:ordermate/core/widgets/batch_import_dialog.dart';
 import 'package:ordermate/features/business_partners/domain/entities/business_partner.dart';
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
-import 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart';
-import 'package:ordermate/features/accounting/domain/entities/invoice.dart';
-import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
-import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 
 enum CustomerFilterMode { all, myCustomers, nearby }
 
@@ -1075,69 +1070,72 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              alignment: WrapAlignment.end,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                onPressed: () {
-                  context.pushNamed(
-                    RouteNames.invoiceCreate,
-                    extra: {
-                        'customerId': customer.id,
-                        'customerName': customer.name,
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.receipt, size: 18),
-                  label: const Text('New Invoice'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    context.pushNamed(
-                      RouteNames.orderCreate,
-                      extra: {
-                        'customerId': customer.id,
-                        'customerName': customer.name,
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.add_shopping_cart, size: 18),
-                  label: const Text('New Order'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    context.pushNamed(
-                      RouteNames.customerInvoices,
-                      extra: {
-                        'customer': customer,
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.history, size: 18),
-                  label: const Text('History'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => context.goNamed('customer-edit',
-                      pathParameters: {'id': customer.id}),
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('Edit'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.indigo,
-                    side: BorderSide(color: Colors.indigo.shade200),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(
+                spacing: 8,
+                alignment: WrapAlignment.end,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      context.pushNamed(
+                        RouteNames.invoiceCreate,
+                        extra: {
+                          'customerId': customer.id,
+                          'customerName': customer.name,
+                        },
+                      );
+                    },
+                    icon: const Icon(Icons.receipt, size: 18),
+                    label: const Text('New Invoice'),
                   ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => _deleteCustomerWithProgress(customer),
-                  icon: const Icon(Icons.delete, size: 18),
-                  label: const Text('Delete'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: BorderSide(color: Colors.red.shade200),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      context.pushNamed(
+                        RouteNames.orderCreate,
+                        extra: {
+                          'customerId': customer.id,
+                          'customerName': customer.name,
+                        },
+                      );
+                    },
+                    icon: const Icon(Icons.add_shopping_cart, size: 18),
+                    label: const Text('New Order'),
                   ),
-                ),
-              ],
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      context.pushNamed(
+                        RouteNames.customerInvoices,
+                        extra: {
+                          'customer': customer,
+                        },
+                      );
+                    },
+                    icon: const Icon(Icons.history, size: 18),
+                    label: const Text('History'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => context.goNamed('customer-edit',
+                        pathParameters: {'id': customer.id}),
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: const Text('Edit'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.indigo,
+                      side: BorderSide(color: Colors.indigo.shade200),
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _deleteCustomerWithProgress(customer),
+                    icon: const Icon(Icons.delete, size: 18),
+                    label: const Text('Delete'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: BorderSide(color: Colors.red.shade200),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -116,6 +116,9 @@ class VoucherService {
       storeId: order.storeId ?? 0,
     );
 
+    final invoiceId = const Uuid().v4();
+    final jvPrefix = prefixes.where((p) => p.prefixCode == 'JV').firstOrNull;
+
     // 2. Create Transaction Entry (Revenue: Dr Receivable, Cr Sales)
     final revenueTransaction = Transaction(
       id: const Uuid().v4(),
@@ -125,11 +128,13 @@ class VoucherService {
       accountId: receivableAccountId, // Debit Receivable (GL Account)
       moduleAccount: order.businessPartnerId, // Sub-Ledger: Customer
       offsetAccountId: glSetup.salesAccountId, // Credit Sales
+      offsetModuleAccount: glSetup.salesAccountId,
       amount: order.totalAmount,
       description: 'Sales Invoice for Order #${order.orderNumber}',
       organizationId: order.organizationId,
       storeId: order.storeId,
       sYear: sYear,
+      invoiceId: invoiceId,
     );
 
     await _repository.createTransaction(revenueTransaction);
@@ -152,18 +157,26 @@ class VoucherService {
       }
 
       if (totalCost > 0) {
+        // Generate a dedicated JV number for COGS
+        final jvVoucherNumber = jvPrefix != null 
+            ? await generateVoucherNumber(prefixCode: jvPrefix.prefixCode, storeId: order.storeId ?? 0)
+            : 'COGS-$voucherNumber';
+
         final cogsTransaction = Transaction(
           id: const Uuid().v4(),
-          voucherPrefixId: sinvPrefix.id,
-          voucherNumber: voucherNumber,
+          voucherPrefixId: jvPrefix?.id ?? sinvPrefix.id,
+          voucherNumber: jvVoucherNumber,
           voucherDate: voucherDate,
           accountId: glSetup.cogsAccountId, // Debit COGS
+          moduleAccount: glSetup.cogsAccountId, // Internal: Module same as Account
           offsetAccountId: glSetup.inventoryAccountId, // Credit Inventory
+          offsetModuleAccount: glSetup.inventoryAccountId, // Internal: Offset Module same as Offset Account
           amount: totalCost,
           description: 'COGS for Order #${order.orderNumber}',
           organizationId: order.organizationId,
           storeId: order.storeId,
           sYear: sYear,
+          invoiceId: invoiceId,
         );
         await _repository.createTransaction(cogsTransaction);
       }
@@ -190,12 +203,16 @@ class VoucherService {
            throw Exception('No Cash Account configured and no Receivable Account available for receipt.'); 
         }
 
+        final bankCashAccounts = await _repository.getBankCashAccounts(organizationId: order.organizationId);
+        final cashModuleId = bankCashAccounts.where((bc) => bc.chartOfAccountId == cashAcctId).firstOrNull?.id;
+
         final receiptTransaction = Transaction(
           id: const Uuid().v4(),
           voucherPrefixId: crvPrefix.id,
           voucherNumber: receiptVoucherNumber,
           voucherDate: voucherDate,
           accountId: cashAcctId ?? receivableAccountId, // Debit Cash
+          moduleAccount: cashModuleId, // Sub-Ledger: Bank/Cash
           offsetAccountId: receivableAccountId, // Credit Receivable (GL Account)
           offsetModuleAccount: order.businessPartnerId, // Sub-Ledger: Customer
           amount: order.totalAmount,
@@ -203,6 +220,7 @@ class VoucherService {
           organizationId: order.organizationId,
           storeId: order.storeId,
           sYear: sYear,
+          invoiceId: invoiceId,
         );
 
         await _repository.createTransaction(receiptTransaction);
@@ -232,7 +250,6 @@ class VoucherService {
       ),
     );
 
-    final invoiceId = const Uuid().v4();
     final newInvoice = Invoice(
       id: invoiceId, 
       invoiceNumber: voucherNumber, // Use same number as GL voucher

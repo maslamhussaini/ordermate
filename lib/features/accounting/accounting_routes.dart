@@ -21,6 +21,8 @@ import 'package:ordermate/features/accounting/presentation/screens/financial_ses
 import 'package:ordermate/features/accounting/presentation/screens/financial_session_form_screen.dart';
 import 'package:ordermate/features/accounting/presentation/screens/gl_setup_screen.dart';
 import 'package:ordermate/features/accounting/presentation/screens/cash_flow_screen.dart';
+import 'package:ordermate/features/accounting/presentation/screens/receipt_screen.dart';
+import 'package:ordermate/features/accounting/domain/entities/invoice.dart';
 
 final List<AppRoute> accountingRoutes = [
   AppRoute(
@@ -63,6 +65,10 @@ final List<AppRoute> accountingRoutes = [
          AppRoute(path: 'create', title: 'Create', routeName: RouteNames.financialSessionCreate, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const FinancialSessionFormScreen()),
          AppRoute(path: 'edit/:id', title: 'Edit', routeName: RouteNames.financialSessionEdit, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => FinancialSessionFormScreen(sYear: int.tryParse(state.pathParameters['id'] ?? ''))),
       ]),
+      AppRoute(path: 'receipt', title: 'Receipt', routeName: RouteNames.receipt, module: 'accounting', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) {
+        final invoice = state.extra as Invoice;
+        return ReceiptScreen(invoice: invoice);
+      }),
     ]
   ),
 ];

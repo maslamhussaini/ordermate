@@ -180,33 +180,41 @@ class SyncService {
         return;
       }
 
+      debugPrint('SyncService: Full Sync Started for Org: $orgId');
       _ref.read(syncProgressProvider.notifier).setSyncing(true, message: 'Starting Sync...', progress: 0.0);
-      debugPrint('SyncService: Starting Full Sync...');
 
+      debugPrint('--- SYNC STEP 1/7: Pushing local changes ---');
       _updateStatus('Pushing local changes...', 0.1);
       await pushLocalChanges(); 
 
+      debugPrint('--- SYNC STEP 2/7: Syncing Inventory ---');
       _updateStatus('Syncing Inventory...', 0.3);
       await syncInventory(); 
 
+      debugPrint('--- SYNC STEP 3/7: Syncing Accounting ---');
       _updateStatus('Syncing Accounting...', 0.5);
       await syncAccounting(); 
 
+      debugPrint('--- SYNC STEP 4/7: Syncing Products ---');
       _updateStatus('Syncing Products...', 0.7);
       await syncProducts(); 
 
+      debugPrint('--- SYNC STEP 5/7: Syncing Partners ---');
       _updateStatus('Syncing Partners...', 0.8);
       await syncPartners(); 
 
+      debugPrint('--- SYNC STEP 6/7: Syncing Orders ---');
       _updateStatus('Syncing Orders...', 0.9);
       await syncOrders(); 
 
+      debugPrint('--- SYNC STEP 7/7: Updating Metadata ---');
       _updateStatus('Updating Metadata...', 1.0);
       await syncMetadata(); 
 
-      debugPrint('SyncService: Full Sync Complete.');
-    } catch (e) {
-      debugPrint('SyncService: Sync Error: $e');
+      debugPrint('✅ SyncService: Full Sync Successfully Completed.');
+    } catch (e, stack) {
+      debugPrint('❌ SyncService: Critical Sync Error: $e');
+      debugPrint(stack.toString());
     } finally {
       SupabaseConfig.isOfflineLoggedIn = wasOffline;
       _ref.read(syncProgressProvider.notifier).setSyncing(false, message: 'Sync Complete');
@@ -218,96 +226,89 @@ class SyncService {
     final storeId = _ref.read(organizationProvider).selectedStore?.id;
 
     try {
-      debugPrint('SyncService: Starting Accounting Sync (Pull)...');
+      debugPrint('SyncService: Starting Accounting Pull (COA, Terms, Bank, Prefix, Types, Cats, Invoices, Transactions)...');
       
       try {
-        debugPrint('SyncService: Pulling Chart of Accounts...');
-        _updateStatus('Pulling Chart of Accounts...', 0.51);
-        await _accountingRepository.getChartOfAccounts(organizationId: orgId);
+        final items = await _accountingRepository.getChartOfAccounts(organizationId: orgId);
+        debugPrint('   - COA Pulled: ${items.length} items');
+        _updateStatus('Pulled Chart of Accounts...', 0.51);
       } catch (e) {
-        debugPrint('SyncService: Chart of Accounts pull failed: $e');
-      }
-      
-      try {
-        debugPrint('SyncService: Pulling Payment Terms...');
-        _updateStatus('Pulling Payment Terms...', 0.52);
-        await _accountingRepository.getPaymentTerms(organizationId: orgId);
-      } catch (e) {
-        debugPrint('SyncService: Payment Terms pull failed: $e');
-      }
-
-      try {
-        debugPrint('SyncService: Pulling Bank Accounts...');
-        _updateStatus('Pulling Bank Accounts...', 0.53);
-        await _accountingRepository.getBankCashAccounts(organizationId: orgId);
-      } catch (e) {
-        debugPrint('SyncService: Bank Accounts pull failed: $e');
-      }
-
-      try {
-        debugPrint('SyncService: Pulling Voucher Prefixes...');
-        _updateStatus('Pulling Voucher Prefixes...', 0.54);
-        await _accountingRepository.getVoucherPrefixes(organizationId: orgId);
-      } catch (e) {
-        debugPrint('SyncService: Voucher Prefixes pull failed: $e');
-      }
-
-      try {
-        debugPrint('SyncService: Pulling Account Types...');
-        _updateStatus('Pulling Account Types...', 0.55);
-        await _accountingRepository.getAccountTypes(organizationId: orgId);
-      } catch (e) {
-        debugPrint('SyncService: Account Types pull failed: $e');
+        debugPrint('   - ❌ COA pull failed: $e');
       }
       
       try {
-        debugPrint('SyncService: Pulling Account Categories...');
-        _updateStatus('Pulling Account Categories...', 0.56);
-        await _accountingRepository.getAccountCategories(organizationId: orgId);
+        final items = await _accountingRepository.getPaymentTerms(organizationId: orgId);
+        debugPrint('   - Payment Terms Pulled: ${items.length} items');
+        _updateStatus('Pulled Payment Terms...', 0.52);
       } catch (e) {
-        debugPrint('SyncService: Account Categories pull failed: $e');
+        debugPrint('   - ❌ Payment Terms pull failed: $e');
+      }
+
+      try {
+        final items = await _accountingRepository.getBankCashAccounts(organizationId: orgId);
+        debugPrint('   - Bank/Cash Pulled: ${items.length} items');
+        _updateStatus('Pulled Bank Accounts...', 0.53);
+      } catch (e) {
+        debugPrint('   - ❌ Bank Accounts pull failed: $e');
+      }
+
+      try {
+        final items = await _accountingRepository.getVoucherPrefixes(organizationId: orgId);
+        debugPrint('   - Voucher Prefixes Pulled: ${items.length} items');
+        _updateStatus('Pulled Voucher Prefixes...', 0.54);
+      } catch (e) {
+        debugPrint('   - ❌ Voucher Prefixes pull failed: $e');
+      }
+
+      try {
+        final items = await _accountingRepository.getAccountTypes(organizationId: orgId);
+        debugPrint('   - Account Types Pulled: ${items.length} items');
+        _updateStatus('Pulled Account Types...', 0.55);
+      } catch (e) {
+        debugPrint('   - ❌ Account Types pull failed: $e');
+      }
+      
+      try {
+        final items = await _accountingRepository.getAccountCategories(organizationId: orgId);
+        debugPrint('   - Account Categories Pulled: ${items.length} items');
+        _updateStatus('Pulled Account Categories...', 0.56);
+      } catch (e) {
+        debugPrint('   - ❌ Account Categories pull failed: $e');
       }
 
        try {
-         debugPrint('SyncService: Pulling Invoice Types...');
-         _updateStatus('Pulling Invoice Types...', 0.57);
-         await _accountingRepository.getInvoiceTypes(organizationId: orgId);
+         final items = await _accountingRepository.getInvoiceTypes(organizationId: orgId);
+         debugPrint('   - Invoice Types Pulled: ${items.length} items');
+         _updateStatus('Pulled Invoice Types...', 0.57);
        } catch (e) {
-         debugPrint('SyncService: Invoice Types pull failed: $e');
+         debugPrint('   - ❌ Invoice Types pull failed: $e');
        }
       
        try {
-         debugPrint('SyncService: Pulling Invoices...');
-         _updateStatus('Pulling Invoices...', 0.58);
-         await _accountingRepository.getInvoices(organizationId: orgId, storeId: storeId);
+         final invoices = await _accountingRepository.getInvoices(organizationId: orgId, storeId: storeId);
+         debugPrint('   - Invoices Pulled: ${invoices.length} items');
+         _updateStatus('Pulled Invoices...', 0.58);
          if (orgId != null) {
-           debugPrint('SyncService: Pulling Invoice Items & GL Setup...');
-           try {
-             await _accountingRepository.getInvoiceItemsByOrg(orgId);
-           } catch (e) {
-             debugPrint('SyncService: Invoice items pull failed: $e');
-           }
-           try {
-             await _accountingRepository.getGLSetup(orgId);
-           } catch (e) {
-             debugPrint('SyncService: GL Setup pull failed: $e');
-           }
+            final items = await _accountingRepository.getInvoiceItemsByOrg(orgId);
+            debugPrint('   - Invoice Items Pulled: ${items.length} items');
+            await _accountingRepository.getGLSetup(orgId);
+            debugPrint('   - GL Setup Pulled');
          }
        } catch (e) {
-         debugPrint('SyncService: Invoices pull failed: $e');
+         debugPrint('   - ❌ Invoices/Items push failed: $e');
        }
       
        try {
-         debugPrint('SyncService: Pulling Transactions...');
-         _updateStatus('Pulling Transactions...', 0.59);
-         await _accountingRepository.getTransactions(organizationId: orgId, storeId: storeId);
+         final txs = await _accountingRepository.getTransactions(organizationId: orgId, storeId: storeId);
+         debugPrint('   - Transactions Pulled: ${txs.length} items');
+         _updateStatus('Pulled Transactions...', 0.59);
        } catch (e) {
-         debugPrint('SyncService: Transactions pull failed: $e');
+         debugPrint('   - ❌ Transactions pull failed: $e');
        }
 
-      debugPrint('SyncService: Accounting Sync Complete.');
+      debugPrint('SyncService: Accounting Sync Step Complete.');
     } catch (e) {
-      debugPrint('SyncService: Accounting Sync Failed: $e');
+      debugPrint('❌ SyncService: Accounting Sync Major Failure: $e');
     }
   }
 

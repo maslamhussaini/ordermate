@@ -81,6 +81,7 @@ class RouteNames {
   static const ledgerReport = 'ledger-report';
   static const salesReport = 'sales-report';
   static const returnsReport = 'returns-report';
+  static const salesLocationReport = 'sales-location-report';
 
   // Accounting
   static const accounting = 'accounting';
@@ -108,5 +109,6 @@ class RouteNames {
   static const financialSessionCreate = 'financial-session-create';
   static const financialSessionEdit = 'financial-session-edit';
   static const transactions = 'transactions';
+  static const receipt = 'receipt';
   static const locationTracker = 'location-tracker';
 }

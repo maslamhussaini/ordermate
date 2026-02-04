@@ -251,8 +251,10 @@ class AppLocalizations {
       'login_with_biometrics': 'Login with Biometrics',
       'tap_to_authenticate': 'Tap to Authenticate',
       'select_workspace': 'Select Workspace',
+      'workspace_configuration': 'workspace_configuration',
       'organization': 'Organization',
       'store_branch': 'Store / Branch',
+      'financial_year': 'financial_year',
       'continue_to_dashboard': 'Continue to Dashboard',
 
       // Settings

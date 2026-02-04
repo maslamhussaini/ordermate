@@ -54,6 +54,9 @@ class _CustomerInvoicesScreenState extends ConsumerState<CustomerInvoicesScreen>
 
       final results = await repo.getUnpaidInvoices(widget.customer.id, organizationId: widget.customer.organizationId);
       
+      // Ensure accounting data like accounts and GL Setup are loaded for receipts
+      ref.read(accountingProvider.notifier).loadAll(organizationId: widget.customer.organizationId);
+      
       if (mounted) {
         setState(() {
           _invoices = results;
@@ -249,6 +252,10 @@ class _CustomerInvoicesScreenState extends ConsumerState<CustomerInvoicesScreen>
 
     final prefixes = await accountingRepo.getVoucherPrefixes(organizationId: customer.organizationId);
     final activeSession = await accountingRepo.getActiveFinancialSession(organizationId: customer.organizationId);
+    final accounts = ref.read(accountingProvider).accounts;
+
+    final cashAccountName = accounts.where((a) => a.id == glSetup.cashAccountId).firstOrNull?.accountTitle ?? 'Cash Account';
+    final bankAccountName = accounts.where((a) => a.id == glSetup.bankAccountId).firstOrNull?.accountTitle ?? 'Bank Account';
 
     if (!mounted) return;
 
@@ -318,8 +325,12 @@ class _CustomerInvoicesScreenState extends ConsumerState<CustomerInvoicesScreen>
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Account: ${paymentType == "Cash" ? "Cash Account" : "Bank Account"} (Auto)',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontStyle: FontStyle.italic),
+                  'Account: ${paymentType == "Cash" ? cashAccountName : bankAccountName}',
+                  style: const TextStyle(color: Colors.indigo, fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Auto-populated from GL Setup',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontStyle: FontStyle.italic),
                 ),
               ],
             ),
@@ -360,19 +371,26 @@ class _CustomerInvoicesScreenState extends ConsumerState<CustomerInvoicesScreen>
                    return;
                 }
 
+                final bankCashAccounts = ref.read(accountingProvider).bankCashAccounts;
+                final moduleId = bankCashAccounts.where((bc) => bc.chartOfAccountId == targetAccountId).firstOrNull?.id;
+
                 final transaction = Transaction(
                   id: const Uuid().v4(),
                   voucherPrefixId: prefix.id,
                   voucherNumber: '$targetPrefixCode-${DateTime.now().millisecondsSinceEpoch}', 
                   voucherDate: DateTime.now(),
                   accountId: targetAccountId!, 
+                  moduleAccount: moduleId,
                   offsetAccountId: customer.chartOfAccountId, 
+                  offsetModuleAccount: customer.id,
                   amount: enteredAmount,
                   description: narrationController.text,
                   organizationId: customer.organizationId,
                   storeId: customer.storeId,
                   sYear: activeSession?.sYear,
                   status: 'posted',
+                  paymentMode: paymentType,
+                  invoiceId: invoice['id'],
                 );
 
                 try {

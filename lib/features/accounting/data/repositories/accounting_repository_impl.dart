@@ -497,8 +497,12 @@ class AccountingRepositoryImpl implements AccountingRepository {
       if (storeId != null) query = query.eq('store_id', storeId);
       if (sYear != null) query = query.eq('syear', sYear);
       final response = await query.order('voucher_date', ascending: false);
-      final txs = (response as List).map((e) => TransactionModel.fromJson(e)).toList().cast<Transaction>();
-      return txs;
+      final txs = (response as List).map((e) => TransactionModel.fromJson(e)).toList();
+      
+      // CACHE LOCALLY
+      await _localRepo.cacheTransactions(txs, organizationId: organizationId, storeId: storeId);
+      
+      return txs.cast<Transaction>();
     } catch (e) {
       return _localRepo.getTransactions(organizationId: organizationId, storeId: storeId, sYear: sYear).then((list) => list.cast<Transaction>());
     }
@@ -512,10 +516,15 @@ class AccountingRepositoryImpl implements AccountingRepository {
         query = query.eq('organization_id', organizationId);
       }
       final response = await query.order('bank_name');
+      
+      // DEBUG LOG
+      print('DEBUGGING_BANK_CASH: Fetched ${response.length} accounts: ${response.map((e) => "${e['bank_name']} (Org: ${e['organization_id']})").toList()}');
+
       final accounts = (response as List).map((e) => BankCashModel.fromJson(e)).toList().cast<BankCash>();
       await _localRepo.cacheBankCashAccounts(accounts.map((e) => BankCashModel.fromEntity(e)).toList(), organizationId: organizationId);
       return accounts;
     } catch (e) {
+      print('DEBUGGING_BANK_CASH: Error fetching accounts: $e');
       return _localRepo.getBankCashAccounts(organizationId: organizationId).then((list) => list.cast<BankCash>());
     }
   }

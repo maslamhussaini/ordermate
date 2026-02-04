@@ -7,6 +7,7 @@ import 'package:ordermate/features/business_partners/presentation/providers/busi
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/core/services/pdf_invoice_service.dart';
 import 'package:ordermate/features/business_partners/domain/entities/business_partner.dart';
+import 'package:ordermate/core/router/route_names.dart';
 
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -454,154 +455,130 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               elevation: 2,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.all(16),
-                                leading: CircleAvatar(
-                                  backgroundColor: Colors.green.withAlpha(26),
-                                  child: const Icon(Icons.receipt, color: Colors.green),
+                              child: ExpansionTile(
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.receipt_long, 
+                                    color: Colors.green,
+                                    size: 24,
+                                  ),
                                 ),
-                                title: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        invoice.invoiceNumber,
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Text(
-                                      NumberFormat.currency(symbol: '').format(invoice.totalAmount),
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green),
-                                    ),
-                                  ],
+                                title: Text(
+                                  invoice.invoiceNumber,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Text(
+                                      partnerName,
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Date: ${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      NumberFormat.currency(symbol: '').format(invoice.totalAmount),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: Colors.green,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
-                                    Text(partnerName, style: const TextStyle(fontWeight: FontWeight.w500)),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Text('Date: ${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}'),
-                                        const Spacer(),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: _getStatusColor(invoice.status).withAlpha(26),
-                                            borderRadius: BorderRadius.circular(6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: _getStatusColor(invoice.status).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        invoice.status,
+                                        style: TextStyle(
+                                          color: _getStatusColor(invoice.status),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        alignment: WrapAlignment.end,
+                                        children: [
+                                          OutlinedButton.icon(
+                                            onPressed: () => context.push('/invoices/${invoice.id}'),
+                                            icon: const Icon(Icons.visibility, size: 16),
+                                            label: const Text('View'),
                                           ),
-                                          child: Text(
-                                            invoice.status,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: _getStatusColor(invoice.status),
+                                          OutlinedButton.icon(
+                                            onPressed: () => _handlePdfAction(invoice, 'print'),
+                                            icon: const Icon(Icons.print, size: 16),
+                                            label: const Text('Print'),
+                                          ),
+                                          OutlinedButton.icon(
+                                            onPressed: () => _handlePdfAction(invoice, 'share'),
+                                            icon: const Icon(Icons.share, size: 16),
+                                            label: const Text('Share'),
+                                          ),
+                                          OutlinedButton.icon(
+                                            onPressed: () => context.push('/invoices/edit/${invoice.id}'),
+                                            icon: const Icon(Icons.edit, size: 16),
+                                            label: const Text('Edit'),
+                                          ),
+                                          if (invoice.status.toLowerCase() != 'posted' && invoice.status.toLowerCase() != 'paid')
+                                            OutlinedButton.icon(
+                                              onPressed: () => _updateStatus(invoice, 'Posted'),
+                                              icon: const Icon(Icons.check_circle, size: 16),
+                                              label: const Text('Post'),
+                                              style: OutlinedButton.styleFrom(foregroundColor: Colors.green),
                                             ),
+                                          if (invoice.status.toLowerCase() == 'posted' && invoice.status.toLowerCase() != 'paid')
+                                            OutlinedButton.icon(
+                                              onPressed: () => context.pushNamed(RouteNames.receipt, extra: invoice),
+                                              icon: const Icon(Icons.payments, size: 16),
+                                              label: const Text('Receipt'),
+                                              style: OutlinedButton.styleFrom(foregroundColor: Colors.green),
+                                            ),
+                                          OutlinedButton.icon(
+                                            onPressed: () => _deleteInvoice(invoice),
+                                            icon: const Icon(Icons.delete, size: 16),
+                                            label: const Text('Delete'),
+                                            style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                trailing: PopupMenuButton<String>(
-                                  onSelected: (val) {
-                                    if (val == 'view') {
-                                      context.push('/invoices/${invoice.id}');
-                                    } else if (val == 'edit') {
-                                      context.push('/invoices/edit/${invoice.id}');
-                                    } else if (val == 'preview') {
-                                      _handlePdfAction(invoice, 'preview');
-                                    } else if (val == 'print') {
-                                      _handlePdfAction(invoice, 'print');
-                                    } else if (val == 'share') {
-                                      _handlePdfAction(invoice, 'share');
-                                    } else if (val == 'post') {
-                                      _updateStatus(invoice, 'Posted');
-                                    } else if (val == 'unpost') {
-                                      _updateStatus(invoice, 'Draft');
-                                    } else if (val == 'delete') {
-                                      _deleteInvoice(invoice);
-                                    }
-                                  },
-                                  itemBuilder: (context) => [
-                                    const PopupMenuItem(
-                                      value: 'preview',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.visibility, color: Colors.blue),
-                                          SizedBox(width: 8),
-                                          Text('Preview PDF'),
                                         ],
                                       ),
                                     ),
-                                    const PopupMenuItem(
-                                      value: 'print',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.print, color: Colors.grey),
-                                          SizedBox(width: 8),
-                                          Text('Print'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'share',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.share, color: Colors.teal),
-                                          SizedBox(width: 8),
-                                          Text('Share'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuDivider(),
-                                    const PopupMenuItem(
-                                      value: 'edit',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.edit, color: Colors.indigo),
-                                          SizedBox(width: 8),
-                                          Text('Edit'),
-                                        ],
-                                      ),
-                                    ),
-                                    if (invoice.status.toLowerCase() != 'posted')
-                                      const PopupMenuItem(
-                                        value: 'post',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.check_circle, color: Colors.green),
-                                            SizedBox(width: 8),
-                                            Text('Post To GL'),
-                                          ],
-                                        ),
-                                      ),
-                                    if (invoice.status.toLowerCase() == 'posted')
-                                      const PopupMenuItem(
-                                        value: 'unpost',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.undo, color: Colors.orange),
-                                            SizedBox(width: 8),
-                                            Text('Unpost'),
-                                          ],
-                                        ),
-                                      ),
-                                    const PopupMenuItem(
-                                      value: 'delete',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.delete, color: Colors.red),
-                                          SizedBox(width: 8),
-                                          Text('Delete'),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                onTap: () => context.push('/invoices/${invoice.id}'),
+                                  ),
+                                ],
                               ),
                             );
                           },

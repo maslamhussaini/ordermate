@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/accounting_provider.dart';
+import 'transactions_screen.dart';
 import '../../domain/entities/chart_of_account.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
@@ -165,9 +166,19 @@ class _BankCashScreenState extends ConsumerState<BankCashScreen> {
                                   ),
                                 ),
                                 child: ListTile(
-                                  onTap: () => context.push('/accounting/bank-cash/edit/${account.id}'),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  leading: Container(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TransactionsScreen(
+                                            accountId: account.id,
+                                            accountName: account.name,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    leading: Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                       color: isBank 

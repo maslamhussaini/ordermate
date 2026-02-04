@@ -8,6 +8,7 @@ import 'package:ordermate/features/organization/domain/repositories/organization
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 import 'package:ordermate/features/auth/presentation/providers/user_provider.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // State
 class OrganizationState {
@@ -61,12 +62,66 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   final Ref ref;
 
   OrganizationNotifier(this._repository, this.ref) : super(const OrganizationState()) {
+    _init();
+    
     // Listen for logout events to reset state
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (previous?.isLoggedIn == true && !next.isLoggedIn) {
         reset();
       }
     });
+  }
+
+  Future<void> _init() async {
+    await loadOrganizations();
+    await _loadPersistedSelection();
+  }
+
+  Future<void> _loadPersistedSelection() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final orgId = prefs.getInt('selected_organization_id');
+      final storeId = prefs.getInt('selected_store_id');
+      final year = prefs.getInt('selected_financial_year');
+
+      if (orgId != null && state.organizations.isNotEmpty) {
+        final org = state.organizations.where((o) => o.id == orgId).firstOrNull;
+        if (org != null) {
+          state = state.copyWith(selectedOrganization: org);
+          await loadStores(orgId);
+          
+          if (storeId != null) {
+            final store = state.stores.where((s) => s.id == storeId).firstOrNull;
+            if (store != null) {
+              state = state.copyWith(selectedStore: store);
+            }
+          }
+          
+          if (year != null) {
+            state = state.copyWith(selectedFinancialYear: year);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading persisted selection: $e');
+    }
+  }
+
+  Future<void> _persistSelection() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (state.selectedOrganization != null) {
+        await prefs.setInt('selected_organization_id', state.selectedOrganization!.id);
+      }
+      if (state.selectedStore != null) {
+        await prefs.setInt('selected_store_id', state.selectedStore!.id);
+      }
+      if (state.selectedFinancialYear != null) {
+        await prefs.setInt('selected_financial_year', state.selectedFinancialYear!);
+      }
+    } catch (e) {
+      debugPrint('Error persisting selection: $e');
+    }
   }
 
   Future<void> loadOrganizations() async {
@@ -116,10 +171,12 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   Future<void> selectOrganization(Organization org) async {
     state = state.copyWith(selectedOrganization: org);
     await loadStores(org.id);
+    await _persistSelection();
   }
 
   Future<void> selectStore(Store? store) async {
      state = state.copyWith(selectedStore: store);
+     await _persistSelection();
   }
 
   void clearSelection() {
@@ -132,6 +189,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
 
   void selectFinancialYear(int? year) {
     state = state.copyWith(selectedFinancialYear: year);
+    _persistSelection();
   }
 
   Future<Organization> createOrganization(
@@ -204,9 +262,12 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         // Corporate Admins see all stores. 
         // Others (ADMIN, EMPLOYEE) might be restricted to one store.
         final role = userProfile.role.toUpperCase();
-        if (role != 'CORPORATE_ADMIN' && userProfile.storeId != null) {
+        print('DEBUG_LOG: Check Access - Role: $role, Assigned StoreID: ${userProfile.storeId}');
+        
+        if (role != 'CORPORATE_ADMIN' && role != 'ADMIN' && role != 'SUPER USER' && userProfile.storeId != null) {
           allowedStores = allStores.where((s) => s.id == userProfile.storeId).toList();
         }
+        print('DEBUG_LOG: Filter Results - All: ${allStores.length}, Allowed: ${allowedStores.length}');
       }
 
       // Auto select first store logic

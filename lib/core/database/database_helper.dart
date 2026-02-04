@@ -7,7 +7,7 @@ class DatabaseHelper {
 
   DatabaseHelper._init();
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static const int _databaseVersion = 73;
+  static const int _databaseVersion = 74;
   static Database? _database;
   static Future<Database>? _dbOpenFuture;
 
@@ -1713,6 +1713,19 @@ class DatabaseHelper {
         debugPrint('Database: v73 migration error: $e');
       }
       debugPrint('Database: v73 migration complete.');
+    }
+
+    if (oldVersion < 74) {
+      debugPrint('Database: Starting v74 migration (Transaction Payment Details)...');
+      try {
+        await db.execute('ALTER TABLE local_transactions ADD COLUMN payment_mode TEXT');
+        await db.execute('ALTER TABLE local_transactions ADD COLUMN reference_number TEXT');
+        await db.execute('ALTER TABLE local_transactions ADD COLUMN reference_date INTEGER');
+        await db.execute('ALTER TABLE local_transactions ADD COLUMN reference_bank TEXT');
+        await db.execute('ALTER TABLE local_transactions ADD COLUMN invoice_id TEXT');
+      } catch (e) {
+        debugPrint('Database: v74 migration error: $e');
+      }
     }
   }
 

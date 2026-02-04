@@ -119,6 +119,11 @@ class Transaction {
   final int? sYear;
   final String? moduleAccount;
   final String? offsetModuleAccount;
+  final String? paymentMode;
+  final String? referenceNumber;
+  final DateTime? referenceDate;
+  final String? referenceBank;
+  final String? invoiceId;
 
   const Transaction({
     required this.id,
@@ -135,6 +140,11 @@ class Transaction {
     this.sYear,
     this.moduleAccount,
     this.offsetModuleAccount,
+    this.paymentMode,
+    this.referenceNumber,
+    this.referenceDate,
+    this.referenceBank,
+    this.invoiceId,
   });
 }
 

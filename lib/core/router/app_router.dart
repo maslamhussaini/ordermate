@@ -5,6 +5,7 @@ import 'package:ordermate/core/enums/permission.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/core/router/app_route_model.dart';
 import 'package:ordermate/core/router/app_routes_config.dart';
+import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/core/router/auth_guard.dart';
 import 'package:ordermate/core/router/route_names.dart';
 import 'package:ordermate/core/views/responsive_scaffold.dart';
@@ -107,7 +108,26 @@ final routerProvider = Provider<GoRouter>((ref) {
       // 3. Logic for Logged In Users
       if (!auth.isLoggedIn) return '/login';
 
+      // 4. Workspace Selection check (Org, Store, Year) 
+      // Mandatory before dashboard access
+      final orgState = ref.read(organizationProvider);
+      final isWorkspaceSelected = orgState.selectedOrganization != null && 
+                                  orgState.selectedStore != null && 
+                                  orgState.selectedFinancialYear != null;
+
       final location = state.matchedLocation;
+      
+      // Exempt onboarding and workspace-selection itself
+      final isExempt = location.startsWith('/onboarding') || 
+                       location == '/workspace-selection' || 
+                       location == '/organizations-list' || 
+                       location == '/splash' ||
+                       location == '/login';
+
+      if (!isWorkspaceSelected && !isExempt) {
+          debugPrint('Router: Workspace not fully configured (Org: ${orgState.selectedOrganizationId}, Store: ${orgState.selectedStoreId}, Year: ${orgState.selectedFinancialYear}). Redirecting to workspace-selection.');
+          return '/workspace-selection';
+      }
       
       // 4. Permission & Role Guard
       // If permissions are still loading from the DB, don't redirect yet
@@ -121,7 +141,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (route != null) {
          // A. Role Check 
          if (!route.roles.contains(auth.role)) {
-             debugPrint('RBAC: Role ${auth.role} denied for ${state.matchedLocation}');
+             debugPrint('RBAC: Role ${auth.role} denied for $location');
              return '/dashboard';
          }
          
@@ -167,5 +187,6 @@ class _RiverpodListenable extends ChangeNotifier {
   _RiverpodListenable(Ref ref) {
     ref.listen(authProvider, (_, __) => notifyListeners());
     ref.listen(settingsProvider, (_, __) => notifyListeners());
+    ref.listen(organizationProvider, (_, __) => notifyListeners());
   }
 }

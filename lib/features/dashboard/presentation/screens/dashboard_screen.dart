@@ -43,6 +43,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerPr
     'Inventory': true,
     'Suppliers': true,
     'Vendors': true,
+    'Reports': true,
   };
 
   @override
@@ -563,6 +564,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerPr
                               color: const Color(0xFFFFAB00), // Amber/Gold
                               onTap: () => context.push('/vendors'),
                             ),
+                          ],
+                        ),
+
+                        // 7. REPORTS SECTION
+                        _buildCollapsibleSection(
+                          title: 'Reports',
+                          icon: Icons.analytics_rounded,
+                          isExpanded: _expandedSections['Reports'] ?? true,
+                          onToggle: () => setState(() => _expandedSections['Reports'] = !(_expandedSections['Reports'] ?? true)),
+                          cards: [
+                            if (auth.can('reports', Permission.read)) ...[
+                               StatCard(
+                                title: 'Reports Hub',
+                                value: 'Center',
+                                icon: Icons.analytics_rounded,
+                                color: Colors.blueGrey,
+                                onTap: () => context.push('/reports'),
+                              ),
+                              StatCard(
+                                title: 'Sales Location',
+                                value: 'Map',
+                                icon: Icons.location_on_rounded,
+                                color: Colors.deepOrange,
+                                onTap: () => context.push('/reports/location'),
+                              ),
+                            ]
                           ],
                         ),
                         

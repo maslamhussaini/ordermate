@@ -13,7 +13,10 @@ import 'package:ordermate/features/business_partners/presentation/providers/busi
 import 'package:ordermate/core/widgets/processing_dialog.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
-  const TransactionsScreen({super.key});
+  final String? accountId;
+  final String? accountName;
+
+  const TransactionsScreen({super.key, this.accountId, this.accountName});
 
   @override
   ConsumerState<TransactionsScreen> createState() => _TransactionsScreenState();
@@ -40,11 +43,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(accountingProvider);
     final partnerState = ref.watch(businessPartnerProvider);
-    final selectedStore = ref.watch(organizationProvider).selectedStore;
+
+    final transactions = widget.accountId == null 
+        ? state.transactions 
+        : state.transactions.where((t) => t.accountId == widget.accountId || t.offsetAccountId == widget.accountId).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions'),
+        title: Text(widget.accountName != null ? 'Account: ${widget.accountName}' : 'Transactions'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -57,8 +63,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           ),
         ],
       ),
-      floatingActionButton: (state.selectedFinancialSession?.isClosed == true) 
-          ? null // Hide Create button if closed year selected
+      floatingActionButton: (widget.accountId != null || state.selectedFinancialSession?.isClosed == true) 
+          ? null // Hide Create button if filtered or closed year selected
           : FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -68,91 +74,113 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         },
         child: const Icon(Icons.add),
       ),
-      body: state.isLoading && state.transactions.isEmpty
+      body: state.isLoading && transactions.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : state.error != null && state.transactions.isEmpty
+          : state.error != null && transactions.isEmpty
               ? Center(child: Text('Error: ${state.error}'))
-              : state.transactions.isEmpty
+              : transactions.isEmpty
                   ? const Center(child: Text('No transactions found'))
                   : ListView.builder(
                       padding: const EdgeInsets.all(8),
-                      itemCount: state.transactions.length,
+                      itemCount: transactions.length,
                       itemBuilder: (context, index) {
-                        final tx = state.transactions[index];
+                        final tx = transactions[index];
 
                         // Helper to find account name
-                        String getAccountName(String id, {String? moduleAccount}) {
-                           final gl = state.accounts.where((a) => a.id == id).firstOrNull;
-                           
-                           // If moduleAccount is provided and differs from accountCode, use moduleAccount
-                           if (moduleAccount != null && moduleAccount.isNotEmpty) {
-                             if (gl != null && gl.accountCode != moduleAccount) {
-                               return '$moduleAccount - ${gl.accountTitle}';
-                             }
+                        String getAccountName(String glId, {String? moduleId}) {
+                           // 1. Resolve Module Account Name if available
+                           if (moduleId != null && moduleId.isEmpty == false) {
+                              final cust = partnerState.customers.where((c) => c.id == moduleId).firstOrNull;
+                              if (cust != null) return cust.name;
+
+                              final vend = partnerState.vendors.where((v) => v.id == moduleId).firstOrNull;
+                              if (vend != null) return vend.name;
+
+                              final bank = state.bankCashAccounts.where((b) => b.id == moduleId).firstOrNull;
+                              if (bank != null) return bank.name;
                            }
-                           
-                           // Otherwise use standard account code
-                           if (gl != null) return '${gl.accountCode} - ${gl.accountTitle}';
-                           
-                           final cust = partnerState.customers.where((c) => c.id == id).firstOrNull;
-                           if (cust != null) return '[CUST] ${cust.name}';
 
-                           final vend = partnerState.vendors.where((v) => v.id == id).firstOrNull;
-                           if (vend != null) return '[VEND] ${vend.name}';
+                           // 2. Fallback to General Ledger Account Title
+                           final gl = state.accounts.where((a) => a.id == glId).firstOrNull;
+                           if (gl != null) return gl.accountTitle;
 
-                           final bank = state.bankCashAccounts.where((b) => b.id == id).firstOrNull;
-                           if (bank != null) return '[BANK] ${bank.name}';
-
-                           return id; // Fallback
+                           return 'Unknown Account';
                         }
 
-                        final accountName = getAccountName(tx.accountId, moduleAccount: tx.moduleAccount);
+                        final accountName = getAccountName(tx.accountId, moduleId: tx.moduleAccount);
                         final offsetAccountName = tx.offsetAccountId != null 
-                            ? getAccountName(tx.offsetAccountId!, moduleAccount: tx.offsetModuleAccount) 
+                            ? getAccountName(tx.offsetAccountId!, moduleId: tx.offsetModuleAccount) 
                             : null;
                         
-                        // We also need Objects for Printer pass-through (if it expects ChartOfAccount)
-                        // The printer expects ChartOfAccount. If it's a BP, we might need to mock or update Printer.
-                        // TransactionPrinter uses: account?.accountTitle ?? tx.accountId.
-                        // So passing null for 'account' (ChartOfAccount) means it prints the ID. 
-                        // We should probably update printer too?
-                        // For now, let's keep printer as is, but UI will show correct name.
-                        // Wait, 'account' variable in build was ChartOfAccount.
-                        // I will remove that strict type dependency in UI display logic.
-
+                        final voucherPrefix = state.voucherPrefixes.where((p) => p.id == tx.voucherPrefixId).firstOrNull;
+                        
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 4),
                           child: ExpansionTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Theme.of(context).brightness == Brightness.dark 
-                                  ? Colors.blue.withValues(alpha: 0.12) 
-                                  : Colors.blue.shade50,
-                              child: const Icon(Icons.receipt_long, color: Colors.blue),
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: tx.amount < 0 ? Colors.red.shade50 : Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.receipt_long, 
+                                color: tx.amount < 0 ? Colors.red : Colors.green,
+                                size: 24,
+                              ),
                             ),
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            title: Text(
+                              tx.voucherNumber,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(tx.voucherNumber,
-                                    style: const TextStyle(fontWeight: FontWeight.bold)),
                                 Text(
-                                  NumberFormat.currency(symbol: '').format(tx.amount),
+                                  accountName,
                                   style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: tx.amount < 0 ? Colors.red : Colors.green,
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                Text(
+                                  'Date: ${_dateFormat.format(tx.voucherDate)}',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ],
                             ),
-                            subtitle: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(_dateFormat.format(tx.voucherDate)),
                                 Text(
-                                  tx.status.toUpperCase(),
+                                  NumberFormat.currency(symbol: '').format(tx.amount),
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    color: tx.status == 'posted' ? Colors.blue : Colors.orange,
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: tx.amount < 0 ? Colors.red : Colors.green,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'Posted',
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -168,111 +196,130 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                       _buildDetailRow('Offset Account', offsetAccountName!),
                                     if (tx.description != null && tx.description!.isNotEmpty)
                                       _buildDetailRow('Description', tx.description!),
-                                    _buildDetailRow('Voucher Type ID', tx.voucherPrefixId.toString()),
+                                    
+                                    if (voucherPrefix != null)
+                                      _buildDetailRow('Voucher Type', voucherPrefix.prefixCode),
+                                    
+                                    if (tx.paymentMode != null)
+                                      _buildDetailRow('Payment Mode', tx.paymentMode!),
+                                    if (tx.invoiceId != null)
+                                      _buildDetailRow('Linked Invoice', tx.invoiceId!.substring(0, 8) + '...'),
                                     
                                     const SizedBox(height: 16),
-                                    Wrap(
-                                      spacing: 8,
-                                      children: [
-                                        if (state.financialSessions.any((s) => s.sYear == tx.sYear && s.isClosed)) 
-                                           const Padding(
-                                             padding: EdgeInsets.all(8.0),
-                                             child: Text('Read Only (Closed Year)', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                                           )
-                                        else ...[
-                                          OutlinedButton.icon(
-                                            icon: const Icon(Icons.edit, size: 16),
-                                            label: const Text('Edit'),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => TransactionFormScreen(transaction: tx)),
-                                              );
-                                            },
-                                          ),
-                                          OutlinedButton.icon(
-                                            icon: const Icon(Icons.print, size: 16),
-                                            label: const Text('Print'),
-                                            onPressed: () async {
-                                              final org = ref.read(organizationProvider).selectedOrganization;
-                                              
-                                              // Mock ChartOfAccount wrappers for Printer using resolved names
-                                              final mockAccount = ChartOfAccount(
-                                                  id: tx.accountId, accountCode: '', accountTitle: accountName, 
-                                                  level: 0, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: org?.id ?? 0);
-                                              final mockOffset = tx.offsetAccountId != null ? ChartOfAccount(
-                                                  id: tx.offsetAccountId!, accountCode: '', accountTitle: offsetAccountName!, 
-                                                  level: 0, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: org?.id ?? 0) : null;
-  
-                                              await TransactionPrinter.printTransaction(
-                                                tx: tx,
-                                                account: mockAccount,
-                                                offsetAccount: mockOffset,
-                                                org: org,
-                                              );
-                                            },
-                                          ),
-                                           OutlinedButton.icon(
-                                            icon: const Icon(Icons.share, size: 16),
-                                            label: const Text('Share'),
-                                            onPressed: () async {
-                                             final org = ref.read(organizationProvider).selectedOrganization;
-                                              // Mock for printer
-                                              final mockAccount = ChartOfAccount(
-                                                  id: tx.accountId, accountCode: '', accountTitle: accountName, 
-                                                  level: 0, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: org?.id ?? 0);
-                                              final mockOffset = tx.offsetAccountId != null ? ChartOfAccount(
-                                                  id: tx.offsetAccountId!, accountCode: '', accountTitle: offsetAccountName!, 
-                                                  level: 0, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: org?.id ?? 0) : null;
-  
-                                              await TransactionPrinter.shareTransaction(
-                                                tx: tx,
-                                                account: mockAccount,
-                                                offsetAccount: mockOffset,
-                                                org: org,
-                                              );
-                                            },
-                                          ),
-                                          OutlinedButton.icon(
-                                            icon: const Icon(Icons.delete, size: 16, color: Colors.red),
-                                            label: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                            onPressed: () async {
-                                              final confirm = await showDialog<bool>(
-                                                context: context,
-                                                builder: (context) => AlertDialog(
-                                                  title: const Text('Delete Transaction'),
-                                                  content: const Text('Are you sure you want to delete this transaction?'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () => Navigator.pop(context, false),
-                                                      child: const Text('Cancel'),
-                                                    ),
-                                                    TextButton(
-                                                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                                                      onPressed: () => Navigator.pop(context, true),
-                                                      child: const Text('Delete'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                              
-                                              if (confirm == true) {
-                                                 await showDialog(
-                                                  context: context,
-                                                  barrierDismissible: false,
-                                                  builder: (context) => ProcessingDialog(
-                                                    initialMessage: 'Deleting Transaction...',
-                                                    successMessage: 'Deleted Successfully!',
-                                                    task: () async {
-                                                      await ref.read(accountingProvider.notifier).deleteTransaction(tx.id);
-                                                    },
-                                                  ),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        alignment: WrapAlignment.end,
+                                        children: [
+                                          if (state.financialSessions.any((s) => s.sYear == tx.sYear && s.isClosed)) 
+                                             const Padding(
+                                               padding: EdgeInsets.all(8.0),
+                                               child: Text('Read Only (Closed Year)', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                             )
+                                          else ...[
+                                            OutlinedButton.icon(
+                                              icon: const Icon(Icons.edit, size: 16),
+                                              label: const Text('Edit'),
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => TransactionFormScreen(transaction: tx)),
+                                                );
+                                              },
+                                            ),
+                                            OutlinedButton.icon(
+                                              icon: const Icon(Icons.print, size: 16),
+                                              label: const Text('Print'),
+                                              onPressed: () async {
+                                                final org = ref.read(organizationProvider).selectedOrganization;
+                                                
+                                                // Mock ChartOfAccount wrappers for Printer using resolved names
+                                                final mockAccount = ChartOfAccount(
+                                                    id: tx.accountId, accountCode: '', accountTitle: accountName, 
+                                                    level: 0, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: org?.id ?? 0);
+                                                final mockOffset = tx.offsetAccountId != null ? ChartOfAccount(
+                                                    id: tx.offsetAccountId!, accountCode: '', accountTitle: offsetAccountName!, 
+                                                    level: 0, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: org?.id ?? 0) : null;
+                    
+                                                 final voucherPrefix = state.voucherPrefixes.where((p) => p.id == tx.voucherPrefixId).firstOrNull;
+                    
+                                                 await TransactionPrinter.printTransaction(
+                                                   tx: tx,
+                                                   account: mockAccount,
+                                                   offsetAccount: mockOffset,
+                                                   org: org,
+                                                   voucherTypeName: voucherPrefix?.description,
                                                  );
-                                              }
-                                            },
-                                          ),
+                                              },
+                                            ),
+                                             OutlinedButton.icon(
+                                              icon: const Icon(Icons.share, size: 16),
+                                              label: const Text('Share'),
+                                              onPressed: () async {
+                                               final org = ref.read(organizationProvider).selectedOrganization;
+                                                // Mock for printer
+                                                final mockAccount = ChartOfAccount(
+                                                    id: tx.accountId, accountCode: '', accountTitle: accountName, 
+                                                    level: 0, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: org?.id ?? 0);
+                                                final mockOffset = tx.offsetAccountId != null ? ChartOfAccount(
+                                                    id: tx.offsetAccountId!, accountCode: '', accountTitle: offsetAccountName!, 
+                                                    level: 0, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: org?.id ?? 0) : null;
+                    
+                                                 final voucherPrefix = state.voucherPrefixes.where((p) => p.id == tx.voucherPrefixId).firstOrNull;
+                    
+                                                 await TransactionPrinter.shareTransaction(
+                                                   tx: tx,
+                                                   account: mockAccount,
+                                                   offsetAccount: mockOffset,
+                                                   org: org,
+                                                   voucherTypeName: voucherPrefix?.description,
+                                                 );
+                                              },
+                                            ),
+                                            OutlinedButton.icon(
+                                              icon: const Icon(Icons.delete, size: 16, color: Colors.red),
+                                              label: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                              onPressed: () async {
+                                                final confirm = await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) => AlertDialog(
+                                                    title: const Text('Delete Transaction'),
+                                                    content: const Text('Are you sure you want to delete this transaction?'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () => Navigator.pop(context, false),
+                                                        child: const Text('Cancel'),
+                                                      ),
+                                                      TextButton(
+                                                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                                        onPressed: () => Navigator.pop(context, true),
+                                                        child: const Text('Delete'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                                
+                                                if (confirm == true) {
+                                                   if (!context.mounted) return;
+                                                   await showDialog(
+                                                    context: context,
+                                                    barrierDismissible: false,
+                                                    builder: (context) => ProcessingDialog(
+                                                      initialMessage: 'Deleting Transaction...',
+                                                      successMessage: 'Deleted Successfully!',
+                                                      task: () async {
+                                                        await ref.read(accountingProvider.notifier).deleteTransaction(tx.id);
+                                                      },
+                                                    ),
+                                                   );
+                                                }
+                                              },
+                                            ),
+                                          ],
                                         ],
-                                      ],
+                                      ),
                                     ),
                                   ],
                                 ),
