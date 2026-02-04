@@ -10,6 +10,7 @@ import 'package:ordermate/features/products/presentation/providers/product_provi
 import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 
 class StockTransferFormScreen extends ConsumerStatefulWidget {
   const StockTransferFormScreen({super.key});
@@ -45,6 +46,7 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
     if (ref.read(productProvider).products.isEmpty) {
         ref.read(productProvider.notifier).loadProducts();
     }
+    ref.read(businessPartnerProvider.notifier).loadEmployees();
   }
 
   int? _sourceStoreId;
@@ -53,6 +55,7 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
   Widget build(BuildContext context) {
     final orgState = ref.watch(organizationProvider);
     final productState = ref.watch(productProvider);
+    final partnerState = ref.watch(businessPartnerProvider);
     
     // Valid sources are allow stores if none selected
     // Valid destinations: All stores except source
@@ -106,9 +109,15 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
                          ],
                        ),
                        const SizedBox(height: 10),
-                       TextFormField(
-                         controller: _driverController,
+                       DropdownButtonFormField<String>(
+                         value: _driverController.text.isNotEmpty && partnerState.employees.any((e) => e.name == _driverController.text) ? _driverController.text : null,
                          decoration: const InputDecoration(labelText: 'Driver Name (Optional)'),
+                         items: partnerState.employees.map((e) => DropdownMenuItem(value: e.name, child: Text(e.name))).toList(),
+                         onChanged: (val) {
+                           if (val != null) {
+                             _driverController.text = val;
+                           }
+                         },
                        ),
                        TextFormField(
                          controller: _vehicleController,
