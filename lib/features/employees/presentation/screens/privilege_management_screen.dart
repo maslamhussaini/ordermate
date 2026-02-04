@@ -34,6 +34,11 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
       ref.read(businessPartnerProvider.notifier).loadRoles();
       ref.read(businessPartnerProvider.notifier).loadAppUsers(); // Changed from loadEmployees
       ref.read(businessPartnerProvider.notifier).loadAppForms();
+      
+      final orgId = ref.read(organizationProvider).selectedOrganizationId;
+      if (orgId != null) {
+        ref.read(organizationProvider.notifier).loadStores(orgId);
+      }
     });
   }
 
@@ -372,6 +377,10 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
               onPressed: () {
                 ref.read(businessPartnerProvider.notifier).loadRoles();
                 ref.read(businessPartnerProvider.notifier).loadAppUsers();
+                final orgId = ref.read(organizationProvider).selectedOrganizationId;
+                if (orgId != null) {
+                  ref.read(organizationProvider.notifier).loadStores(orgId);
+                }
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Refreshing data...')));
               },
             ),

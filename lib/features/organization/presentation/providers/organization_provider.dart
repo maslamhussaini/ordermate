@@ -264,7 +264,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         final role = userProfile.role.toUpperCase();
         print('DEBUG_LOG: Check Access - Role: $role, Assigned StoreID: ${userProfile.storeId}');
         
-        if (role != 'CORPORATE_ADMIN' && role != 'ADMIN' && role != 'SUPER USER' && userProfile.storeId != null) {
+        if (role != 'CORPORATE_ADMIN' && role != 'ADMIN' && role != 'SUPER USER' && role != 'OWNER' && userProfile.storeId != null) {
           allowedStores = allStores.where((s) => s.id == userProfile.storeId).toList();
         }
         print('DEBUG_LOG: Filter Results - All: ${allStores.length}, Allowed: ${allowedStores.length}');
