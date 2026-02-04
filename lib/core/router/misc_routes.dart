@@ -273,18 +273,18 @@ final List<AppRoute> organizationRoutes = [
         path: 'create',
         title: 'New Organization',
         routeName: RouteNames.organizationCreate,
-        module: 'organization', // Creation still requires proper permission
+        module: 'dashboard', // Changed from organization to allow access
         showInMenu: false,
-        roles: [UserRole.admin],
+        roles: [UserRole.superUser],
         builder: (_, __) => const OrganizationFormScreen(),
       ),
       AppRoute(
         path: 'edit/:id',
         title: 'Edit Organization',
         routeName: RouteNames.organizationEdit,
-        module: 'organization', // Editing still requires proper permission
+        module: 'dashboard', // Changed from organization to allow access
         showInMenu: false,
-        roles: [UserRole.admin],
+        roles: [UserRole.superUser],
         builder: (_, state) => OrganizationFormScreen(organizationId: state.pathParameters['id']),
       ),
     ],

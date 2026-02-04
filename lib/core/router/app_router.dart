@@ -120,7 +120,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Exempt onboarding and workspace-selection itself
       final isExempt = location.startsWith('/onboarding') || 
                        location == '/workspace-selection' || 
-                       location == '/organizations-list' || 
+                       location.startsWith('/organizations-list') || 
                        location == '/splash' ||
                        location == '/login';
 

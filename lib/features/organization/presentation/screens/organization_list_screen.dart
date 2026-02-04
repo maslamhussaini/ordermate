@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
 class OrganizationListScreen extends ConsumerStatefulWidget {
@@ -85,35 +86,35 @@ class _OrganizationListScreenState
                 ),
                 const SizedBox(width: 8),
               ],
-              OutlinedButton.icon(
-                onPressed: () {
-                  ref.read(organizationProvider.notifier).selectOrganization(org);
-                  context.pushNamed('organization-edit', pathParameters: {'id': org.id.toString()});
-                },
-                icon: const Icon(Icons.edit, size: 18),
-                label: const Text('Edit'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.indigo,
-                  side: BorderSide(color: Colors.indigo.shade200),
+              if (ref.watch(authProvider).role == UserRole.superUser) ...[
+                OutlinedButton.icon(
+                  onPressed: () {
+                    ref.read(organizationProvider.notifier).selectOrganization(org);
+                    context.pushNamed('organization-edit', pathParameters: {'id': org.id.toString()});
+                  },
+                  icon: const Icon(Icons.edit, size: 18),
+                  label: const Text('Edit'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.indigo,
+                    side: BorderSide(color: Colors.indigo.shade200),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                // Only enable if storeCount is 0 (assuming storeCount is available on org)
-                // We cast dynamic org to Organization to get autocomplete/checking
-                // But filteredOrgs is List<Organization>, so org should be Organization.
-                onPressed: (org.storeCount == 0 && !isSelected)
-                    ? () => _confirmDelete(org)
-                    : null,
-                icon: const Icon(Icons.delete, size: 18),
-                label: const Text('Delete'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  disabledForegroundColor: Colors.grey,
-                  side: BorderSide(
-                      color: (org.storeCount == 0 && !isSelected) ? Colors.red.shade200 : Colors.grey.shade300),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  // Only enable if storeCount is 0 (assuming storeCount is available on org)
+                  onPressed: (org.storeCount == 0 && !isSelected)
+                      ? () => _confirmDelete(org)
+                      : null,
+                  icon: const Icon(Icons.delete, size: 18),
+                  label: const Text('Delete'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    disabledForegroundColor: Colors.grey,
+                    side: BorderSide(
+                        color: (org.storeCount == 0 && !isSelected) ? Colors.red.shade200 : Colors.grey.shade300),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ],
@@ -136,7 +137,7 @@ class _OrganizationListScreenState
 
     if (selectedStore != null) {
       // Auto-selected (1 store) or persisted
-      _navigateToDashboard(org.name, selectedStore.name);
+      _onSelectionComplete(org.name, selectedStore.name);
     } else if (stores.isNotEmpty) {
       // Multiple stores, force selection
       _showStoreSelectionDialog(stores);
@@ -266,6 +267,7 @@ class _OrganizationListScreenState
             onPressed: () =>
                 ref.read(organizationProvider.notifier).loadOrganizations(),
           ),
+          if (ref.watch(authProvider).role == UserRole.superUser)
           TextButton.icon(
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text('New', style: TextStyle(color: Colors.white)),

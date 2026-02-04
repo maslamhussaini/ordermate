@@ -31,7 +31,7 @@ class AuthState {
   });
 
   bool can(String module, Permission action) {
-    if (role == UserRole.admin) return true; 
+    if (role == UserRole.superUser) return true; 
     
     // While loading, we can't confirm permission, so deny by default
     // or return true if it's a "loading" state the UI handles.
@@ -126,7 +126,7 @@ class AuthNotifier extends Notifier<AuthState> {
   List<PermissionObject> _getPermissionsForRole(UserRole role) {
     if (RolePermissions.admin.isEmpty) return []; // Guard
     
-    final Map<String, Set<Permission>> permissionMap = (role == UserRole.admin) 
+    final Map<String, Set<Permission>> permissionMap = (role == UserRole.superUser || role == UserRole.admin) 
         ? RolePermissions.admin 
         : RolePermissions.staff;
 
@@ -174,7 +174,9 @@ class AuthNotifier extends Notifier<AuthState> {
 
       // Determine the role
       UserRole determinedRole = UserRole.staff;
-      if (roleStr == 'CORPORATE_ADMIN' || roleStr == 'ADMIN' || roleStr == 'ORG_ADMIN' || roleStr == 'MANAGER') {
+      if (roleStr == 'SUPER USER' || roleStr == 'OWNER') {
+        determinedRole = UserRole.superUser;
+      } else if (roleStr == 'CORPORATE_ADMIN' || roleStr == 'ADMIN' || roleStr == 'ORG_ADMIN' || roleStr == 'MANAGER') {
         determinedRole = UserRole.admin;
       }
       
@@ -185,8 +187,8 @@ class AuthNotifier extends Notifier<AuthState> {
         organizationId: organizationId, // Update State
       );
 
-      // Corporate Admins bypass all checks
-      if (determinedRole == UserRole.admin) {
+      // Super Users bypass all checks
+      if (determinedRole == UserRole.superUser) {
         state = state.copyWith(isPermissionLoading: false);
         return;
       }

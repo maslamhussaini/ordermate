@@ -139,6 +139,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
   @override
   Widget build(BuildContext context) {
     final businessPartnerState = ref.watch(businessPartnerProvider);
+    final isSuperUserRole = _nameController.text.toUpperCase() == 'SUPER USER' || _nameController.text.toUpperCase() == 'OWNER';
     final departments = businessPartnerState.departments;
 
     // Auto-fill logic: If not set and departments exist, pick first
@@ -163,9 +164,12 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                enabled: !isSuperUserRole,
+                decoration: InputDecoration(
                   labelText: 'Role Name',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  helperText: isSuperUserRole ? 'System core role. Cannot be renamed.' : null,
+                  helperStyle: const TextStyle(color: Colors.orange),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -208,35 +212,35 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
                 title: const Text('Can Read'),
                 subtitle: const Text('Allows viewing records'),
                 value: _canRead,
-                onChanged: (v) => setState(() => _canRead = v ?? false),
+                onChanged: isSuperUserRole ? null : (v) => setState(() => _canRead = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               CheckboxListTile(
                 title: const Text('Can Write'),
                 subtitle: const Text('Allows creating new records'),
                 value: _canWrite,
-                onChanged: (v) => setState(() => _canWrite = v ?? false),
+                onChanged: isSuperUserRole ? null : (v) => setState(() => _canWrite = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               CheckboxListTile(
                 title: const Text('Can Edit'),
                 subtitle: const Text('Allows modifying existing records'),
                 value: _canEdit,
-                onChanged: (v) => setState(() => _canEdit = v ?? false),
+                onChanged: isSuperUserRole ? null : (v) => setState(() => _canEdit = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               CheckboxListTile(
                 title: const Text('Can Print'),
                 subtitle: const Text('Allows printing/exporting reports'),
                 value: _canPrint,
-                onChanged: (v) => setState(() => _canPrint = v ?? false),
+                onChanged: isSuperUserRole ? null : (v) => setState(() => _canPrint = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: _isLoading ? null : _save,
+                  onPressed: (_isLoading || isSuperUserRole) ? null : _save,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,

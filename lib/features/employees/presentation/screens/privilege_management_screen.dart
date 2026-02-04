@@ -340,6 +340,12 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
   Widget build(BuildContext context) {
     final state = ref.watch(businessPartnerProvider);
     final isMobile = MediaQuery.of(context).size.width < 900;
+
+    final isImmutable = _viewMode == 'role' 
+      ? state.roles.where((r) => r['id'] == _selectedRoleId).firstOrNull?['role_name']?.toString().toUpperCase() == 'SUPER USER' || 
+        state.roles.where((r) => r['id'] == _selectedRoleId).firstOrNull?['role_name']?.toString().toUpperCase() == 'OWNER'
+      : state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull?.roleName?.toString().toUpperCase() == 'SUPER USER' ||
+        state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull?.roleName?.toString().toUpperCase() == 'OWNER';
     
     final formsByModule = <String, List<Map<String, dynamic>>>{};
     for (var form in state.appForms) {
@@ -386,7 +392,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: FilledButton.icon(
-                onPressed: (state.isLoading || (_pendingChanges.isEmpty && !_storeChangesDirty)) ? null : _saveChanges,
+                onPressed: (state.isLoading || isImmutable || (_pendingChanges.isEmpty && !_storeChangesDirty)) ? null : _saveChanges,
                 icon: state.isLoading
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.save),
@@ -503,6 +509,28 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                         ),
                         const SizedBox(height: 8),
                         const Text('Total privilege management for all system components.', style: TextStyle(color: Colors.grey)),
+                        if (isImmutable)
+                          Container(
+                            margin: const EdgeInsets.only(top: 16),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.orange.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.info_outline, color: Colors.orange),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'This is a core system ${ _viewMode == 'role' ? 'role' : 'user'}. Privileges are fixed and cannot be modified.',
+                                    style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         const SizedBox(height: 24),
                         const Divider(),
                         Padding(
@@ -517,7 +545,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                           ),
                         ),
                         const SizedBox(height: 24),
-                        if (_tabMode == 'privileges') ..._buildPrivilegesTab(formsByModule, state, isMobile) else _buildStoresTab(ref.watch(organizationProvider).stores, isMobile),
+                        if (_tabMode == 'privileges') ..._buildPrivilegesTab(formsByModule, state, isMobile, isImmutable) else _buildStoresTab(ref.watch(organizationProvider).stores, isMobile, isImmutable),
                       ],
                     ),
             ),
@@ -526,7 +554,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
     );
   }
 
-  List<Widget> _buildPrivilegesTab(Map<String, List<Map<String, dynamic>>> formsByModule, BusinessPartnerState state, bool isMobile) {
+  List<Widget> _buildPrivilegesTab(Map<String, List<Map<String, dynamic>>> formsByModule, BusinessPartnerState state, bool isMobile, bool isImmutable) {
     return [
       Text(
         'Form Privileges for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ' +
@@ -578,7 +606,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                                           final formId = form['id'] as int;
                                           _togglePrivilege(formId, 'all', !allEnabled);
                                         }
-                                      },
+                                      } : null,
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
@@ -655,13 +683,13 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                                             padding: const EdgeInsets.all(12.0),
                                             child: Text(form['form_name'], style: const TextStyle(fontWeight: FontWeight.w500)),
                                           ),
-                                          _buildToggleCell(formId, 'all', isAll, activeColor: Colors.blue.shade300),
-                                          _buildToggleCell(formId, 'can_view', canView),
-                                          _buildToggleCell(formId, 'can_add', canAdd),
-                                          _buildToggleCell(formId, 'can_edit', canEdit),
-                                          _buildToggleCell(formId, 'can_delete', canDelete),
-                                          _buildToggleCell(formId, 'can_read', canRead),
-                                          _buildToggleCell(formId, 'can_print', canPrint),
+                                          _buildToggleCell(formId, 'all', isAll, activeColor: Colors.blue.shade300, isImmutable: isImmutable),
+                                          _buildToggleCell(formId, 'can_view', canView, isImmutable: isImmutable),
+                                          _buildToggleCell(formId, 'can_add', canAdd, isImmutable: isImmutable),
+                                          _buildToggleCell(formId, 'can_edit', canEdit, isImmutable: isImmutable),
+                                          _buildToggleCell(formId, 'can_delete', canDelete, isImmutable: isImmutable),
+                                          _buildToggleCell(formId, 'can_read', canRead, isImmutable: isImmutable),
+                                          _buildToggleCell(formId, 'can_print', canPrint, isImmutable: isImmutable),
                                         ],
                                       );
                                     }),
@@ -679,7 +707,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
   ];
 }
 
-  Widget _buildStoresTab(List<dynamic> stores, bool isMobile) {
+  Widget _buildStoresTab(List<dynamic> stores, bool isMobile, bool isImmutable) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -714,7 +742,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                 title: Text(store.name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                 subtitle: Text('ST-${store.id}'),
                 value: isSelected,
-                onChanged: (val) => _toggleStoreAccess(store.id, val),
+                onChanged: isImmutable ? null : (val) => _toggleStoreAccess(store.id, val),
                 secondary: Icon(Icons.storefront, color: isSelected ? Colors.blue : Colors.grey),
               ),
             );
@@ -724,13 +752,13 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
     );
   }
 
-  Widget _buildToggleCell(int formId, String flag, bool value, {Color? activeColor}) {
+  Widget _buildToggleCell(int formId, String flag, bool value, {Color? activeColor, bool isImmutable = false}) {
     return TableCell(
       child: Center(
         child: Switch(
           value: value,
           activeThumbColor: activeColor ?? Colors.blue.shade700,
-          onChanged: (val) => _togglePrivilege(formId, flag, val),
+          onChanged: isImmutable ? null : (val) => _togglePrivilege(formId, flag, val),
         ),
       ),
     );
