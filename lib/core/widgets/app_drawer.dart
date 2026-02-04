@@ -7,6 +7,7 @@ import 'package:ordermate/features/auth/presentation/providers/user_provider.dar
 import 'package:ordermate/core/localization/app_localizations.dart';
 import 'package:ordermate/core/enums/permission.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
+import 'package:ordermate/core/services/sync_service.dart';
 
 class AppDrawer extends ConsumerStatefulWidget {
   const AppDrawer({super.key});
