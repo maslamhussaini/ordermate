@@ -47,4 +47,138 @@ abstract class ReportRepository {
     int? organizationId,
     int? storeId,
   });
+
+  // Gross Sales
+  Future<Map<String, dynamic>> getGrossSalesSummary({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getGrossSalesDetails({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getGrossSalesByCustomer({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getGrossSalesByProduct({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? categoryId,
+  });
+
+  // Net Sales
+  Future<Map<String, dynamic>> getNetSalesSummary({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getNetSalesDetails({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getNetSalesByCustomer({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getNetSalesByProduct({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  // Gross Purchase
+  Future<Map<String, dynamic>> getGrossPurchaseSummary({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getGrossPurchaseDetails({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getGrossPurchaseByVendor({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getGrossPurchaseByProduct({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? categoryId,
+  });
+
+  // Net Purchase
+  Future<Map<String, dynamic>> getNetPurchaseSummary({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getNetPurchaseDetails({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getNetPurchaseByVendor({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  Future<List<Map<String, dynamic>>> getNetPurchaseByProduct({
+    required int organizationId,
+    int? storeId,
+    required int sYear,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
 }

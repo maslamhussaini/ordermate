@@ -65,6 +65,38 @@ class OrderItem extends Equatable {
   String get formattedRate => rate.toStringAsFixed(2);
   String get formattedTotal => total.toStringAsFixed(2);
 
+  factory OrderItem.fromJson(Map<String, dynamic> json) {
+    return OrderItem(
+      id: json['id'] as String? ?? '',
+      orderId: json['order_id'] as String? ?? '',
+      productId: json['product_id'] as String? ?? '',
+      productName: json['product_name'] as String?,
+      productSku: json['product_sku'] as String?,
+      quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
+      rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
+      total: (json['total'] as num?)?.toDouble() ?? 0.0,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
+      uomId: (json['uom_id'] as num?)?.toInt(),
+      uomSymbol: json['uom_symbol'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'order_id': orderId,
+      'product_id': productId,
+      'product_name': productName,
+      'product_sku': productSku,
+      'quantity': quantity,
+      'rate': rate,
+      'total': total,
+      'created_at': createdAt.toIso8601String(),
+      'uom_id': uomId,
+      'uom_symbol': uomSymbol,
+    };
+  }
+
   @override
   List<Object?> get props => [
         id,

@@ -43,6 +43,11 @@ class ReportsHubScreen extends StatelessWidget {
               _ReportItem(title: 'Returns - Customer Wise', icon: Icons.person_remove, route: '/reports/returns/customer', color: Colors.pink),
             ]),
             const SizedBox(height: 24),
+            _buildSectionHeader('INVENTORY REPORTS'),
+            _buildReportGrid(context, [
+              _ReportItem(title: 'General Journal', icon: Icons.history_edu, route: '/reports/inventory-journal', color: Colors.brown),
+            ]),
+            const SizedBox(height: 24),
             _buildSectionHeader('OTHER REPORTS'),
             _buildReportGrid(context, [
               _ReportItem(title: 'Sales Manager (Loc)', icon: Icons.location_on, route: '/reports/location', color: Colors.blueGrey),

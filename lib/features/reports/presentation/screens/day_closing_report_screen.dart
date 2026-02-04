@@ -58,7 +58,7 @@ class _DayClosingReportScreenState extends ConsumerState<DayClosingReportScreen>
                     // Organization (Read Only if not Super Admin, but let's show it)
                     if (orgState.organizations.isNotEmpty)
                       DropdownButtonFormField<int>(
-                        initialValue: _selectedOrganizationId,
+                        value: _selectedOrganizationId,
                         decoration: const InputDecoration(labelText: 'Organization'),
                         items: orgState.organizations.map((org) {
                           return DropdownMenuItem<int>(
@@ -73,7 +73,7 @@ class _DayClosingReportScreenState extends ConsumerState<DayClosingReportScreen>
                     const SizedBox(height: 16),
                     // Store
                     DropdownButtonFormField<int>(
-                      initialValue: _selectedStoreId,
+                      value: _selectedStoreId,
                       decoration: const InputDecoration(labelText: 'Store'),
                       items: orgState.stores.map((store) {
                         return DropdownMenuItem<int>(
@@ -407,11 +407,11 @@ class _DayClosingReportScreenState extends ConsumerState<DayClosingReportScreen>
        // Allow bill amount only from sales to be summed? 
        // Usually "Total" row sums the cash/cheque collected.
        // The "Bill Amount" sum usually implies "Total Sales Volume" (Section 1 only).
-       if (x['section'] == 'Current Sales') {
-         totalBill += (x['bill_amount'] as double);
-       }
-       totalCash += (x['cash'] as double);
-       totalCheque += (x['cheque'] as double);
+        if (x['section'] == 'Current Sales') {
+          totalBill += (x['bill_amount'] as num?)?.toDouble() ?? 0.0;
+        }
+        totalCash += (x['cash'] as num?)?.toDouble() ?? 0.0;
+        totalCheque += (x['cheque'] as num?)?.toDouble() ?? 0.0;
        // Credit sum? 
        // For sales: New debt issued.
        // For collections: Remaining debt? Mixing them is weird.
@@ -419,18 +419,18 @@ class _DayClosingReportScreenState extends ConsumerState<DayClosingReportScreen>
        // The image shows a single total line.
        // Usually: Total Cash In Hand = Sum(Cash).
        // Total Credit = Sum(Credit Issued in Sales). 
-       if (x['section'] == 'Current Sales') {
-          totalCredit += (x['credit'] as double);
-       } else {
-          // For collections, do we add to credit? No, that's remaining balance.
-          // Wait, the image writes "3500" in total credit. 
-          // Row 1: 2000 credit. Row 2: 0. Row 3: 1500 (Collection?).
-          // 2000 + 1500 = 3500. 
-          // So "Credit" column in collection section means "Amount NOT collecting today"? 
-          // Or "Amount still pending"?
-          // Just summing the visible column for now as per image logic.
-          totalCredit += (x['credit'] as double);
-       }
+        if (x['section'] == 'Current Sales') {
+           totalCredit += (x['credit'] as num?)?.toDouble() ?? 0.0;
+        } else {
+           // For collections, do we add to credit? No, that's remaining balance.
+           // Wait, the image writes "3500" in total credit. 
+           // Row 1: 2000 credit. Row 2: 0. Row 3: 1500 (Collection?).
+           // 2000 + 1500 = 3500. 
+           // So "Credit" column in collection section means "Amount NOT collecting today"? 
+           // Or "Amount still pending"?
+           // Just summing the visible column for now as per image logic.
+           totalCredit += (x['credit'] as num?)?.toDouble() ?? 0.0;
+        }
     }
 
     return SingleChildScrollView(
@@ -516,10 +516,10 @@ class _DayClosingReportScreenState extends ConsumerState<DayClosingReportScreen>
          return DataRow(cells: [
             DataCell(Text(row['inv_no'].toString())),
             DataCell(Text(row['date'].toString())),
-            DataCell(Text((row['bill_amount'] as double).toStringAsFixed(0))),
-            DataCell(Text((row['cash'] as double).toStringAsFixed(0))),
-            DataCell(Text((row['cheque'] as double).toStringAsFixed(0))),
-            DataCell(Text((row['credit'] as double).toStringAsFixed(0))),
+            DataCell(Text((row['bill_amount'] as num?)?.toDouble().toStringAsFixed(0) ?? '0')),
+            DataCell(Text((row['cash'] as num?)?.toDouble().toStringAsFixed(0) ?? '0')),
+            DataCell(Text((row['cheque'] as num?)?.toDouble().toStringAsFixed(0) ?? '0')),
+            DataCell(Text((row['credit'] as num?)?.toDouble().toStringAsFixed(0) ?? '0')),
          ]);
        }).toList(),
      );

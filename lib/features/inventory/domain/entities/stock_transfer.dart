@@ -103,6 +103,26 @@ class StockTransferItem extends Equatable {
      required this.uomSymbol,
   });
 
+  StockTransferItem copyWith({
+    String? id,
+    String? transferId,
+    String? productId,
+    String? productName,
+    double? quantity,
+    int? uomId,
+    String? uomSymbol,
+  }) {
+    return StockTransferItem(
+      id: id ?? this.id,
+      transferId: transferId ?? this.transferId,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      quantity: quantity ?? this.quantity,
+      uomId: uomId ?? this.uomId,
+      uomSymbol: uomSymbol ?? this.uomSymbol,
+    );
+  }
+
   @override
   List<Object?> get props => [id, transferId, productId, productName, quantity, uomId, uomSymbol];
   

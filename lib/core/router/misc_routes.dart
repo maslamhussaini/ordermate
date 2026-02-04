@@ -49,6 +49,7 @@ import 'package:ordermate/features/inventory/presentation/screens/uom_form_scree
 import 'package:ordermate/features/inventory/presentation/screens/unit_conversion_form_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/stock_transfer_list_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/stock_transfer_form_screen.dart';
+import 'package:ordermate/features/reports/presentation/screens/inventory_general_journal_report_screen.dart';
 
 final List<AppRoute> orderRoutes = [
   AppRoute(
@@ -179,8 +180,17 @@ final List<AppRoute> inventoryRoutes = [
              module: 'inventory', 
              showInMenu: false, 
              roles: [UserRole.admin, UserRole.staff], 
-             builder: (_, __) => const StockTransferFormScreen()
-           ),
+              builder: (_, __) => const StockTransferFormScreen()
+            ),
+            AppRoute(
+              path: 'edit/:id', 
+              title: 'Edit Transfer', 
+              routeName: 'stock-transfer-edit', 
+              module: 'inventory', 
+              showInMenu: false, 
+              roles: [UserRole.admin, UserRole.staff], 
+              builder: (_, state) => StockTransferFormScreen(transferId: state.pathParameters['id'])
+            ),
          ]
       ),
     ],
@@ -332,6 +342,15 @@ final List<AppRoute> reportRoutes = [
          roles: [UserRole.admin, UserRole.staff],
          builder: (_, __) => const DayClosingReportScreen(),
        ),
+        AppRoute(
+          path: 'inventory-journal',
+          title: 'Inventory General Journal',
+          routeName: 'inventory-general-journal', 
+          module: 'reports',
+          showInMenu: false,
+          roles: [UserRole.admin, UserRole.staff],
+          builder: (_, __) => const InventoryGeneralJournalReportScreen(),
+        ),
     ]
   ),
 ];

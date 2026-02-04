@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:ordermate/features/inventory/data/models/stock_transfer_model.dart';
 import 'package:ordermate/features/inventory/domain/entities/stock_transfer.dart';
 import 'package:ordermate/features/inventory/presentation/providers/stock_transfer_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
@@ -13,7 +14,8 @@ import 'package:uuid/uuid.dart';
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 
 class StockTransferFormScreen extends ConsumerStatefulWidget {
-  const StockTransferFormScreen({super.key});
+  final String? transferId;
+  const StockTransferFormScreen({super.key, this.transferId});
 
   @override
   ConsumerState<StockTransferFormScreen> createState() => _StockTransferFormScreenState();
@@ -27,8 +29,10 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
   
   String? _transferNumber;
   DateTime _transferDate = DateTime.now();
+  int? _sourceStoreId;
   int? _destinationStoreId;
-  final List<StockTransferItem> _items = [];
+  List<StockTransferItem> _items = [];
+  bool _isLoading = false;
   
   @override
   void initState() {
@@ -37,57 +41,119 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
   }
 
   Future<void> _loadInitialData() async {
-    final notifier = ref.read(stockTransferProvider.notifier);
-    final number = await notifier.generateNumber();
-    setState(() {
-      _transferNumber = number;
-    });
-    // Load products if empty
+    setState(() => _isLoading = true);
+    
+    // Load Dependencies
     if (ref.read(productProvider).products.isEmpty) {
-        ref.read(productProvider.notifier).loadProducts();
+        await ref.read(productProvider.notifier).loadProducts();
     }
-    ref.read(businessPartnerProvider.notifier).loadEmployees();
+    await ref.read(businessPartnerProvider.notifier).loadEmployees();
+
+    // Check Edit Mode
+    if (widget.transferId != null) {
+      final transferState = ref.read(stockTransferProvider);
+      // Try finding in state first
+      final existing = transferState.transfers.where((t) => t.id == widget.transferId).firstOrNull;
+      
+      if (existing != null) {
+        _populateForm(existing);
+      } else {
+        // Fetch specific if needed (future improvement: add getTransferById to provider)
+        // For now, assume state is loaded or we might fail.
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error: Transfer not found locally. Please refresh list.')));
+        if (mounted) context.pop();
+        return;
+      }
+    } else {
+      // Create Mode
+      final notifier = ref.read(stockTransferProvider.notifier);
+      final number = await notifier.generateNumber();
+      setState(() {
+        _transferNumber = number;
+      });
+    }
+    
+    setState(() => _isLoading = false);
   }
 
-  int? _sourceStoreId;
+  void _populateForm(StockTransfer transfer) {
+    setState(() {
+      _transferNumber = transfer.transferNumber;
+      _transferDate = transfer.transferDate;
+      _sourceStoreId = transfer.sourceStoreId;
+      _destinationStoreId = transfer.destinationStoreId;
+      _driverController.text = transfer.driverName ?? '';
+      _vehicleController.text = transfer.vehicleNumber ?? '';
+      _remarksController.text = transfer.remarks ?? '';
+      _items = List.from(transfer.items);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final orgState = ref.watch(organizationProvider);
-    final productState = ref.watch(productProvider);
     final partnerState = ref.watch(businessPartnerProvider);
-    
-    // Valid sources are allow stores if none selected
-    // Valid destinations: All stores except source
+    final isEditing = widget.transferId != null;
     
     final currentStoreId = orgState.selectedStore?.id ?? _sourceStoreId;
     final validDestinations = orgState.stores.where((s) => s.id != currentStoreId).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('New Gate Pass')),
-      body: Form(
+      appBar: AppBar(
+        title: Text(isEditing ? 'Edit Gate Pass' : 'New Gate Pass'),
+        elevation: 0,
+      ),
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator()) 
+          : Form(
         key: _formKey,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
              crossAxisAlignment: CrossAxisAlignment.stretch,
              children: [
-               // Header Info
+               // Header Info Card
                Card(
+                 elevation: 2,
+                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                  child: Padding(
-                   padding: const EdgeInsets.all(16),
+                   padding: const EdgeInsets.all(20),
                    child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
                      children: [
-                       Text('Transfer #: ${_transferNumber ?? 'Loading...'}', style: Theme.of(context).textTheme.titleMedium),
-                       const SizedBox(height: 10),
+                       Row(
+                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                         children: [
+                           Text(
+                             'Transfer #: ${_transferNumber ?? 'Loading...'}', 
+                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.teal)
+                           ),
+                           Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.blue.shade200),
+                              ),
+                              child: Text(
+                                DateFormat('dd MMM yyyy').format(_transferDate),
+                                style: TextStyle(color: Colors.blue.shade800, fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                           ),
+                         ],
+                       ),
+                       const Divider(height: 30),
                        Row(
                          children: [
                            Expanded(
                              child: orgState.selectedStore != null 
-                             ? Text('Source: ${orgState.selectedStore!.name}', style: const TextStyle(fontWeight: FontWeight.bold))
+                             ? InputDecorator(
+                                 decoration: const InputDecoration(labelText: 'Source Store', prefixIcon: Icon(Icons.store_mall_directory_outlined)),
+                                 child: Text(orgState.selectedStore!.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                               )
                              : DropdownButtonFormField<int>(
                                value: _sourceStoreId,
-                               decoration: const InputDecoration(labelText: 'Source Store'),
+                               decoration: const InputDecoration(labelText: 'Source Store', prefixIcon: Icon(Icons.store_mall_directory_outlined)),
                                items: orgState.stores.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
                                onChanged: (val) => setState(() {
                                  _sourceStoreId = val;
@@ -100,7 +166,7 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
                            Expanded(
                              child: DropdownButtonFormField<int>(
                                value: _destinationStoreId,
-                               decoration: const InputDecoration(labelText: 'Destination Store'),
+                               decoration: const InputDecoration(labelText: 'Destination Store', prefixIcon: Icon(Icons.store)),
                                items: validDestinations.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
                                onChanged: (val) => setState(() => _destinationStoreId = val),
                                validator: (val) => val == null ? 'Required' : null,
@@ -108,24 +174,35 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
                            ),
                          ],
                        ),
-                       const SizedBox(height: 10),
-                       DropdownButtonFormField<String>(
-                         value: _driverController.text.isNotEmpty && partnerState.employees.any((e) => e.name == _driverController.text) ? _driverController.text : null,
-                         decoration: const InputDecoration(labelText: 'Driver Name (Optional)'),
-                         items: partnerState.employees.map((e) => DropdownMenuItem(value: e.name, child: Text(e.name))).toList(),
-                         onChanged: (val) {
-                           if (val != null) {
-                             _driverController.text = val;
-                           }
-                         },
+                       const SizedBox(height: 16),
+                       Row(
+                         children: [
+                           Expanded(
+                             child: DropdownButtonFormField<String>(
+                               value: _driverController.text.isNotEmpty && partnerState.employees.any((e) => e.name == _driverController.text) ? _driverController.text : null,
+                               decoration: const InputDecoration(labelText: 'Driver Name', prefixIcon: Icon(Icons.person_outline)),
+                               items: partnerState.employees.map((e) => DropdownMenuItem(value: e.name, child: Text(e.name))).toList(),
+                               onChanged: (val) {
+                                 if (val != null) {
+                                   _driverController.text = val;
+                                 }
+                               },
+                               validator: (val) => null, // Optional
+                             ),
+                           ),
+                           const SizedBox(width: 16),
+                           Expanded(
+                             child: TextFormField(
+                               controller: _vehicleController,
+                               decoration: const InputDecoration(labelText: 'Vehicle #', prefixIcon: Icon(Icons.local_shipping_outlined)),
+                             ),
+                           ),
+                         ],
                        ),
-                       TextFormField(
-                         controller: _vehicleController,
-                         decoration: const InputDecoration(labelText: 'Vehicle # (Optional)'),
-                       ),
+                       const SizedBox(height: 16),
                        TextFormField(
                          controller: _remarksController,
-                         decoration: const InputDecoration(labelText: 'Remarks'),
+                         decoration: const InputDecoration(labelText: 'Remarks', prefixIcon: Icon(Icons.note_alt_outlined)),
                          maxLines: 2,
                        ),
                      ],
@@ -133,44 +210,84 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
                  ),
                ),
                
-               const SizedBox(height: 16),
+               const SizedBox(height: 24),
                
                // Items Section
                Row(
                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                  children: [
-                   const Text('Items', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                   IconButton(onPressed: _showAddItemDialog, icon: const Icon(Icons.add_circle, color: Colors.teal)),
+                   Text('Items (${_items.length})', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                   ElevatedButton.icon(
+                     onPressed: _showAddItemDialog, 
+                     icon: const Icon(Icons.add, size: 18),
+                     label: const Text('Add Item'),
+                     style: ElevatedButton.styleFrom(
+                       backgroundColor: Colors.teal, 
+                       foregroundColor: Colors.white,
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                     ),
+                   ),
                  ],
                ),
-               
-               ..._items.map((item) => Card(
-                 color: Colors.grey.shade50,
-                 child: ListTile(
-                   title: Text(item.productName),
-                   subtitle: Text('${item.quantity} ${item.uomSymbol}'),
-                   trailing: IconButton(
-                     icon: const Icon(Icons.delete, color: Colors.red),
-                     onPressed: () {
-                       setState(() {
-                         _items.remove(item);
-                       });
-                     },
-                   ),
-                 ),
-               )),
+               const SizedBox(height: 12),
                
                if (_items.isEmpty)
-                 const Padding(
-                   padding: EdgeInsets.all(16.0),
-                   child: Center(child: Text('No items added', style: TextStyle(color: Colors.grey))),
-                 ),
+                 Container(
+                   padding: const EdgeInsets.all(32),
+                   decoration: BoxDecoration(
+                     color: Colors.grey.shade100,
+                     borderRadius: BorderRadius.circular(12),
+                     border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+                   ),
+                   child: const Center(
+                     child: Column(
+                       children: [
+                         Icon(Icons.playlist_add, size: 48, color: Colors.grey),
+                         SizedBox(height: 8),
+                         Text('No items added yet', style: TextStyle(color: Colors.grey)),
+                       ],
+                     ),
+                   ),
+                 )
+               else
+                 ..._items.map((item) => Card(
+                   margin: const EdgeInsets.only(bottom: 8),
+                   color: Colors.white,
+                   elevation: 1,
+                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.grey.shade200)),
+                   child: ListTile(
+                     leading: CircleAvatar(
+                       backgroundColor: Colors.teal.shade50,
+                       child: Text(
+                         item.productName.isNotEmpty ? item.productName[0] : '?',
+                         style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.bold),
+                       ),
+                     ),
+                     title: Text(item.productName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                     subtitle: Text('${item.quantity.toStringAsFixed(2)} ${item.uomSymbol}'),
+                     trailing: IconButton(
+                       icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                       onPressed: () {
+                         setState(() {
+                           _items.remove(item);
+                         });
+                       },
+                     ),
+                   ),
+                 )),
                  
-               const SizedBox(height: 24),
+               const SizedBox(height: 32),
+               
                ElevatedButton(
                  onPressed: _submit,
-                 style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                 child: const Text('Create Gate Pass'),
+                 style: ElevatedButton.styleFrom(
+                   minimumSize: const Size(double.infinity, 54),
+                   backgroundColor: Colors.teal,
+                   foregroundColor: Colors.white,
+                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                   textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                 ),
+                 child: Text(isEditing ? 'Update Gate Pass' : 'Create Gate Pass'),
                )
              ],
           ),
@@ -183,16 +300,23 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
     final productState = ref.read(productProvider);
     String? selectedProductId;
     double quantity = 1;
+    String uomSymbol = '';  // To display selected UOM
     
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           final selectedProduct = productState.products.where((p) => p.id == selectedProductId).firstOrNull;
+          if (selectedProduct != null) {
+              uomSymbol = selectedProduct.uomSymbol ?? '';
+          }
+          
           return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Text('Add Item'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 DropdownButtonFormField<String>(
                   value: selectedProductId,
@@ -202,17 +326,46 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
                   onChanged: (val) {
                     setDialogState(() => selectedProductId = val);
                   },
+                  decoration: InputDecoration(
+                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  ),
                 ),
                 if (selectedProduct != null)
                    Padding(
-                     padding: const EdgeInsets.only(top: 8.0),
-                      child: Text('Available Stock: ${selectedProduct.stockQty}'),
+                     padding: const EdgeInsets.only(top: 8.0, left: 4),
+                      child: Text(
+                        'Available: ${selectedProduct.stockQty} ${selectedProduct.uomSymbol ?? ''}',
+                        style: TextStyle(color: Colors.green.shade700, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
                    ),
-                TextFormField(
-                  initialValue: '1',
-                  decoration: const InputDecoration(labelText: 'Quantity'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  onChanged: (val) => quantity = double.tryParse(val) ?? 0,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        initialValue: '1',
+                        decoration: InputDecoration(
+                          labelText: 'Quantity',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (val) => quantity = double.tryParse(val) ?? 0,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 1,
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'UOM',
+                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                         child: Text(uomSymbol.isNotEmpty ? uomSymbol : '-', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -225,7 +378,7 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
                       setState(() {
                         _items.add(StockTransferItem(
                           id: const Uuid().v4(),
-                          transferId: '', // Set on submit
+                          transferId: widget.transferId ?? '', // If editing, use ID, else empty until submit
                           productId: product.id,
                           productName: product.name,
                           quantity: quantity,
@@ -236,6 +389,7 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
                       Navigator.pop(ctx);
                    }
                 },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
                 child: const Text('Add'),
               ),
             ],
@@ -260,28 +414,21 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
       return;
     }
     
-    final newId = const Uuid().v4();
+    final isEditing = widget.transferId != null;
+    final transferId = widget.transferId ?? const Uuid().v4();
     
-    // Update items with the new Transfer ID
-    final updatedItems = _items.map((item) => StockTransferItem(
-      id: item.id,
-      transferId: newId,
-      productId: item.productId,
-      productName: item.productName,
-      quantity: item.quantity,
-      uomId: item.uomId,
-      uomSymbol: item.uomSymbol,
-    )).toList();
+    // Update items with appropriate Transfer ID
+    final List<StockTransferItem> updatedItems = _items.map((item) => item.copyWith(transferId: transferId)).toList();
 
     final authState = ref.read(authProvider);
     final accountingState = ref.read(accountingProvider);
 
     final transfer = StockTransfer(
-      id: newId,
+      id: transferId,
       transferNumber: _transferNumber ?? 'DRAFT',
       sourceStoreId: currentStoreId,
       destinationStoreId: _destinationStoreId,
-      status: 'Draft',
+      status: isEditing ? 'Draft' : 'Draft', // Status logic might differ
       transferDate: _transferDate,
       createdBy: authState.userId,
       driverName: _driverController.text,
@@ -296,14 +443,26 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
     );
     
     try {
-      await ref.read(stockTransferProvider.notifier).createTransfer(transfer);
+      showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
+      
+      if (isEditing) {
+        await ref.read(stockTransferProvider.notifier).updateTransfer(transfer);
+      } else {
+        await ref.read(stockTransferProvider.notifier).createTransfer(transfer);
+      }
+      
       if (mounted) {
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stock Transfer Created')));
+        Navigator.pop(context); // Pop loading
+        context.pop(); // Pop screen
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(isEditing ? 'Gate Pass updated' : 'Gate Pass created'),
+          backgroundColor: Colors.green,
+        ));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        Navigator.pop(context); // Pop loading
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
       }
     }
   }

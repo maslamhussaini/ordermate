@@ -72,6 +72,28 @@ class StockTransferNotifier extends StateNotifier<StockTransferState> {
   Future<String> generateNumber() async {
     return await _repository.generateTransferNumber('GP');
   }
+
+  Future<void> updateTransfer(StockTransfer transfer) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.updateTransfer(transfer);
+      await loadTransfers();
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteTransfer(String id) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.deleteTransfer(id);
+      await loadTransfers();
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
 }
 
 // Providers

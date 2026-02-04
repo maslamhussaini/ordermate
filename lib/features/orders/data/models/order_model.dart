@@ -1,6 +1,8 @@
 // lib/features/orders/data/models/order_model.dart
 
+import 'dart:convert';
 import 'package:ordermate/features/orders/domain/entities/order.dart';
+import 'package:ordermate/features/orders/domain/entities/order_item.dart';
 
 class OrderModel extends Order {
   const OrderModel({
@@ -29,14 +31,27 @@ class OrderModel extends Order {
     super.dueDate,
     super.isInvoiced,
     super.sYear,
+    super.items,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    List<OrderItem> parsedItems = [];
+    if (json['items'] != null) {
+      if (json['items'] is List) {
+        parsedItems = (json['items'] as List).map((i) => OrderItem.fromJson(i)).toList();
+      }
+    } else if (json['items_payload'] != null && json['items_payload'].toString().isNotEmpty) {
+      try {
+        final List<dynamic> list = jsonDecode(json['items_payload']);
+        parsedItems = list.map((e) => OrderItem.fromJson(e)).toList();
+      } catch (_) {}
+    }
+
     return OrderModel(
-      id: json['id'] as String? ?? '', // Handle potential null id (though shouldn't happen)
+      id: json['id'] as String? ?? '', 
       orderNumber: json['order_number'] as String? ?? 'UNKNOWN',
       businessPartnerId: json['business_partner_id'] as String? ?? '',
-      businessPartnerName: json['business_partner_name'] as String?, // Note: May map to a joined view in future
+      businessPartnerName: json['business_partner_name'] as String?, 
       orderType: json['order_type'] as String? ?? 'SO', 
       createdBy: json['created_by'] as String? ?? '',
       createdByName: json['created_by_name'] as String?,
@@ -58,6 +73,7 @@ class OrderModel extends Order {
       dueDate: json['due_date'] != null ? DateTime.parse(json['due_date'] as String) : null,
       isInvoiced: json['is_invoiced'] == true || json['is_invoiced'] == 1,
       sYear: json['syear'] as int?,
+      items: parsedItems,
     );
   }
 
@@ -88,6 +104,7 @@ class OrderModel extends Order {
       dueDate: order.dueDate,
       isInvoiced: order.isInvoiced,
       sYear: order.sYear,
+      items: order.items,
     );
   }
 
@@ -116,6 +133,7 @@ class OrderModel extends Order {
       'due_date': dueDate?.toIso8601String().split('T')[0],
       'is_invoiced': isInvoiced ? 1 : 0,
       'syear': sYear,
+      'items_payload': jsonEncode(items.map((e) => e.toJson()).toList()),
     };
   }
 

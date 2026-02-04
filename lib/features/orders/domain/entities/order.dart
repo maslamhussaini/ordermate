@@ -1,6 +1,7 @@
 // lib/features/orders/domain/entities/order.dart
 
 import 'package:equatable/equatable.dart';
+import 'package:ordermate/features/orders/domain/entities/order_item.dart';
 
 enum OrderStatus {
   booked,
@@ -56,6 +57,7 @@ class Order extends Equatable {
     this.dueDate,
     this.isInvoiced = false,
     this.sYear,
+    this.items = const [],
   });
   final String id;
   final String orderNumber;
@@ -82,6 +84,7 @@ class Order extends Equatable {
   final DateTime? dueDate;
   final bool isInvoiced;
   final int? sYear;
+  final List<OrderItem> items;
 
   Order copyWith({
     String? id,
@@ -109,6 +112,7 @@ class Order extends Equatable {
     DateTime? dueDate,
     bool? isInvoiced,
     int? sYear,
+    List<OrderItem>? items,
   }) {
     return Order(
       id: id ?? this.id,
@@ -136,6 +140,7 @@ class Order extends Equatable {
       dueDate: dueDate ?? this.dueDate,
       isInvoiced: isInvoiced ?? this.isInvoiced,
       sYear: sYear ?? this.sYear,
+      items: items ?? this.items,
     );
   }
 
@@ -169,5 +174,6 @@ class Order extends Equatable {
         dueDate,
         isInvoiced,
         sYear,
+        items,
       ];
 }

@@ -22,7 +22,7 @@ class OrderRepositoryImpl implements OrderRepository {
     try {
       var query = SupabaseConfig.client
           .from('omtbl_orders')
-          .select('*, omtbl_businesspartners(name)'); // Fetch name from related tables
+          .select('*, omtbl_businesspartners(name), items:omtbl_order_items(*, product:omtbl_products(name), uom:omtbl_units_of_measure(unit_symbol))'); // Fetch items too
           
       if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
@@ -43,6 +43,21 @@ class OrderRepositoryImpl implements OrderRepository {
         if (json['omtbl_businesspartners'] != null) {
              json['business_partner_name'] = json['omtbl_businesspartners']['name'];
         }
+        
+        // Flatten items if present (Same logic as in getOrdersByDateRange)
+        if (json['items'] != null && json['items'] is List) {
+           json['items'] = (json['items'] as List).map((item) {
+             final itemMap = Map<String, dynamic>.from(item);
+             if (itemMap['product'] != null) {
+               itemMap['product_name'] = itemMap['product']['name'];
+             }
+             if (itemMap['uom'] != null) {
+               itemMap['uom_symbol'] = itemMap['uom']['unit_symbol'];
+             }
+             return itemMap;
+           }).toList();
+        }
+        
         return OrderModel.fromJson(json);
 
       }).toList();
@@ -307,7 +322,7 @@ class OrderRepositoryImpl implements OrderRepository {
      try {
       var query = SupabaseConfig.client
           .from('omtbl_orders')
-          .select('*, omtbl_businesspartners(name)')
+          .select('*, omtbl_businesspartners(name), items:omtbl_order_items(*, product:omtbl_products(name), uom:omtbl_units_of_measure(unit_symbol))')
           .gte('order_date', start.toIso8601String())
           .lte('order_date', end.toIso8601String());
           
@@ -322,6 +337,21 @@ class OrderRepositoryImpl implements OrderRepository {
         if (json['omtbl_businesspartners'] != null) {
              json['business_partner_name'] = json['omtbl_businesspartners']['name'];
         }
+        
+        // Flatten items if present
+        if (json['items'] != null && json['items'] is List) {
+           json['items'] = (json['items'] as List).map((item) {
+             final itemMap = Map<String, dynamic>.from(item);
+             if (itemMap['product'] != null) {
+               itemMap['product_name'] = itemMap['product']['name'];
+             }
+             if (itemMap['uom'] != null) {
+               itemMap['uom_symbol'] = itemMap['uom']['unit_symbol'];
+             }
+             return itemMap;
+           }).toList();
+        }
+
         return OrderModel.fromJson(json);
       }).toList();
 

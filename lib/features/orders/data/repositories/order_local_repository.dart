@@ -1,6 +1,7 @@
 import 'package:ordermate/core/database/database_helper.dart';
 import 'package:ordermate/features/orders/domain/entities/order.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:ordermate/features/orders/domain/entities/order_item.dart';
 import 'dart:convert';
 
 class OrderLocalRepository {
@@ -81,12 +82,22 @@ class OrderLocalRepository {
     );
 
     return maps.map((map) {
-      
       final statusString = map['status'] as String;
       final status = OrderStatus.values.firstWhere(
         (e) => e.name == statusString,
         orElse: () => OrderStatus.pending,
       );
+
+      List<OrderItem> items = [];
+      if (map['items_payload'] != null) {
+         try {
+           final payload = map['items_payload'] as String;
+           if (payload.isNotEmpty && payload != '{}') {
+              final List<dynamic> list = jsonDecode(payload);
+              items = list.map((e) => OrderItem.fromJson(e)).toList();
+           }
+         } catch (_) {}
+      }
 
       return Order(
         id: map['id'] as String,
@@ -107,6 +118,7 @@ class OrderLocalRepository {
         dispatchDate: map['dispatch_date'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dispatch_date'] as int) : null,
         isInvoiced: map['is_invoiced'] == 1,
         sYear: map['syear'] as int?,
+        items: items,
       );
     }).toList();
   }
@@ -142,6 +154,17 @@ class OrderLocalRepository {
         orElse: () => OrderStatus.pending,
       );
 
+      List<OrderItem> items = [];
+      if (map['items_payload'] != null) {
+         try {
+           final payload = map['items_payload'] as String;
+           if (payload.isNotEmpty && payload != '{}') {
+              final List<dynamic> list = jsonDecode(payload);
+              items = list.map((e) => OrderItem.fromJson(e)).toList();
+           }
+         } catch (_) {}
+      }
+
       return Order(
         id: map['id'] as String,
         orderNumber: map['order_number'] as String? ?? 'OFFLINE',
@@ -161,6 +184,7 @@ class OrderLocalRepository {
         dispatchDate: map['dispatch_date'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dispatch_date'] as int) : null,
         isInvoiced: map['is_invoiced'] == 1,
         sYear: map['syear'] as int?,
+        items: items,
       );
     }).toList();
   }

@@ -565,7 +565,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                       child: TextFormField(
                                         controller: _stockQtyController,
                                         decoration: InputDecoration(
-                                          labelText: 'Opening Stock', 
+                                          labelText: 'Opening Stock ${_uomSymbol != null ? '($_uomSymbol)' : ''}', 
                                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                         ),
                                         keyboardType: TextInputType.number,

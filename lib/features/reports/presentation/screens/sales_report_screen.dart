@@ -177,8 +177,8 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
           double totalAmt = 0;
           double totalQty = 0;
           for (var i in items) {
-             totalAmt += (i['amount'] as num).toDouble();
-             totalQty += (i['quantity'] as num).toDouble();
+             totalAmt += (i['amount'] as num?)?.toDouble() ?? 0.0;
+             totalQty += (i['quantity'] as num?)?.toDouble() ?? 0.0;
           }
 
           return Card(
@@ -197,8 +197,8 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
                    visualDensity: VisualDensity.compact,
                    title: Text("${item['invoice_number']} • ${DateFormat('MMM dd').format(date)}"),
                    subtitle: Text(item['customer_name'] ?? ''),
-                   trailing: Text("$currency ${(item['amount'] as num).toDouble().toStringAsFixed(2)}"),
-                 );
+                    trailing: Text("$currency ${((item['amount'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)}"),
+                  );
               }).toList(),
             ),
           );
@@ -215,7 +215,7 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
               title: Text(item['customer_name'] ?? 'Unknown Customer', style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text("${item['total_invoices']} Invoices"),
               trailing: Text(
-                "$currency ${(item['total_amount'] as num).toDouble().toStringAsFixed(2)}",
+                "$currency ${((item['total_amount'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)}",
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo, fontSize: 16),
               ),
             ),
