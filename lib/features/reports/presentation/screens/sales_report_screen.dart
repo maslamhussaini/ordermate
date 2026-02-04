@@ -32,19 +32,23 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
     setState(() => _isLoading = true);
     try {
       final repo = ref.read(reportRepositoryProvider);
+      final orgId = ref.read(organizationProvider).selectedOrganization?.id;
+
       List<Map<String, dynamic>> results;
-      
+
       if (widget.groupBy == 'product') {
         // Use detailed view for products
         results = await repo.getSalesDetailsByProduct(
           startDate: _startDate,
           endDate: _endDate,
+          organizationId: orgId,
           type: widget.invoiceType,
         );
       } else {
         results = await repo.getSalesByCustomer(
           startDate: _startDate,
           endDate: _endDate,
+          organizationId: orgId,
           type: widget.invoiceType,
         );
       }
@@ -58,20 +62,24 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    String title = widget.invoiceType == 'SI' ? "Sales Report" : "Returns Report";
-    title += widget.groupBy == 'product' ? " (Product-wise)" : " (Customer-wise)";
+    String title =
+        widget.invoiceType == 'SI' ? "Sales Report" : "Returns Report";
+    title +=
+        widget.groupBy == 'product' ? " (Product-wise)" : " (Customer-wise)";
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.indigo,
         elevation: 0,
@@ -83,7 +91,8 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _data.isEmpty
-                    ? const Center(child: Text("No records found for the selected period."))
+                    ? const Center(
+                        child: Text("No records found for the selected period."))
                     : _buildReportTableView(),
           ),
         ],
@@ -128,7 +137,10 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
     );
   }
 
-  Widget _buildDatePicker({required String label, required DateTime value, required ValueChanged<DateTime> onChanged}) {
+  Widget _buildDatePicker(
+      {required String label,
+      required DateTime value,
+      required ValueChanged<DateTime> onChanged}) {
     return InkWell(
       onTap: () async {
         final date = await showDatePicker(
@@ -148,8 +160,10 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
-            Text(DateFormat('MMM dd, yyyy').format(value), style: const TextStyle(fontSize: 13)),
+            Text(label,
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+            Text(DateFormat('MMM dd, yyyy').format(value),
+                style: const TextStyle(fontSize: 13)),
           ],
         ),
       ),
@@ -157,7 +171,11 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
   }
 
   Widget _buildReportTableView() {
-    final currency = ref.watch(organizationProvider).selectedStore?.storeDefaultCurrency ?? 'USD';
+    final currency = ref
+            .watch(organizationProvider)
+            .selectedStore
+            ?.storeDefaultCurrency ??
+        'USD';
 
     if (widget.groupBy == 'product') {
       // Group by Product Name
@@ -173,38 +191,55 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
         itemBuilder: (context, index) {
           final product = grouped.keys.elementAt(index);
           final items = grouped[product]!;
-          
+
           double totalAmt = 0;
           double totalQty = 0;
           for (var i in items) {
-             totalAmt += (i['amount'] as num?)?.toDouble() ?? 0.0;
-             totalQty += (i['quantity'] as num?)?.toDouble() ?? 0.0;
+            totalAmt += (i['amount'] as num?)?.toDouble() ?? 0.0;
+            totalQty += (i['quantity'] as num?)?.toDouble() ?? 0.0;
           }
 
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: ExpansionTile(
-              title: Text(product, style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(product,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text("Sold: $totalQty"),
               trailing: Text(
                 "$currency ${totalAmt.toStringAsFixed(2)}",
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 16),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                    fontSize: 16),
               ),
               children: items.map((item) {
-                 final date = DateTime.fromMillisecondsSinceEpoch(item['invoice_date'] as int);
-                 return ListTile(
-                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                   visualDensity: VisualDensity.compact,
-                   title: Text("${item['invoice_number']} • ${DateFormat('MMM dd').format(date)}"),
-                   subtitle: Text(item['customer_name'] ?? ''),
-                    trailing: Text("$currency ${((item['amount'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)}"),
-                  );
+                final rawDate = item['invoice_date'];
+                final DateTime date;
+                if (rawDate is int) {
+                  date = DateTime.fromMillisecondsSinceEpoch(rawDate);
+                } else if (rawDate is String) {
+                  date = DateTime.parse(rawDate);
+                } else {
+                  date = DateTime.now();
+                }
+
+                return ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  visualDensity: VisualDensity.compact,
+                  title: Text(
+                      "${item['invoice_number']} • ${DateFormat('MMM dd').format(date)}"),
+                  subtitle: Text(item['customer_name'] ?? ''),
+                  trailing: Text(
+                      "$currency ${((item['amount'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)}"),
+                );
               }).toList(),
             ),
           );
         },
       );
-    } else {
+    }
+ else {
       return ListView.builder(
         itemCount: _data.length,
         itemBuilder: (context, index) {

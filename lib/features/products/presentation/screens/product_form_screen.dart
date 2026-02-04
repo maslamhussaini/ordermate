@@ -55,11 +55,24 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
   bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
+  double _afterDiscountPrice = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _priceController.addListener(_calculateAfterDiscount);
+    _discountLimitController.addListener(_calculateAfterDiscount);
+    _limitPriceController.addListener(_calculateAfterDiscount);
     Future.microtask(_loadInitialData);
+  }
+
+  void _calculateAfterDiscount() {
+    final price = double.tryParse(_priceController.text) ?? 0.0;
+    final discLimit = double.tryParse(_discountLimitController.text) ?? 0.0;
+    
+    setState(() {
+      _afterDiscountPrice = price * (1 - (discLimit / 100));
+    });
   }
 
   Future<void> _loadInitialData() async {
@@ -197,6 +210,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
   @override
   void dispose() {
+    _priceController.removeListener(_calculateAfterDiscount);
+    _discountLimitController.removeListener(_calculateAfterDiscount);
+    _limitPriceController.removeListener(_calculateAfterDiscount);
     _nameController.dispose();
     _skuController.dispose();
     _descriptionController.dispose();
@@ -553,11 +569,23 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                       child: TextFormField(
                                         controller: _limitPriceController,
                                         decoration: InputDecoration(
-                                          labelText: 'Limit Price (Min)', 
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          labelText: 'Limit Price (Min)',
+                                          border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
                                           hintText: 'Min Sales Price',
                                         ),
                                         keyboardType: TextInputType.number,
+                                        validator: (v) {
+                                          if (v != null && v.isNotEmpty) {
+                                            final limit =
+                                                double.tryParse(v) ?? 0.0;
+                                            if (_afterDiscountPrice < limit - 0.01) {
+                                              return 'Must be ≤ After-Disc Price (${_afterDiscountPrice.toStringAsFixed(2)})';
+                                            }
+                                          }
+                                          return null;
+                                        },
                                       ),
                                     ),
                                     const SizedBox(width: 16),
@@ -669,10 +697,37 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                         controller: _discountLimitController,
                                         decoration: InputDecoration(
                                           labelText: 'Discount Limit %',
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
                                           suffixText: '%',
+                                          helperText:
+                                              'Price after limit: ${_afterDiscountPrice.toStringAsFixed(2)}',
+                                          helperStyle: TextStyle(
+                                            color: _afterDiscountPrice <
+                                                    (double.tryParse(
+                                                            _limitPriceController
+                                                                .text) ??
+                                                        0.0) - 0.01
+                                                ? Colors.red
+                                                : Colors.green,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                         keyboardType: TextInputType.number,
+                                        validator: (v) {
+                                          if (v != null && v.isNotEmpty) {
+                                            final limitPrice = double.tryParse(
+                                                    _limitPriceController
+                                                        .text) ??
+                                                0.0;
+                                            if (_afterDiscountPrice <
+                                                limitPrice - 0.01) {
+                                              return 'Disc price must be ≥ Limit Price';
+                                            }
+                                          }
+                                          return null;
+                                        },
                                       ),
                                     ),
                                   ],

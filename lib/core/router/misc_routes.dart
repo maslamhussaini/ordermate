@@ -323,7 +323,7 @@ final List<AppRoute> reportRoutes = [
     children: [
        AppRoute(path: 'ledger/:type', title: 'Ledger', routeName: RouteNames.ledgerReport, module: 'reports', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => LedgerReportScreen(type: state.pathParameters['type']!)),
        AppRoute(path: 'sales/:groupBy', title: 'Sales Report', routeName: RouteNames.salesReport, module: 'reports', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => SalesReportScreen(groupBy: state.pathParameters['groupBy']!, invoiceType: 'SI')),
-       AppRoute(path: 'returns/:groupBy', title: 'Returns Report', routeName: RouteNames.returnsReport, module: 'reports', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => SalesReportScreen(groupBy: state.pathParameters['groupBy']!, invoiceType: 'SIR')),
+       AppRoute(path: 'returns/:groupBy', title: 'Returns Report', routeName: RouteNames.returnsReport, module: 'reports', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => SalesReportScreen(groupBy: state.pathParameters['groupBy']!, invoiceType: 'SR')),
        AppRoute(
          path: 'location',
          title: 'Sales Location Report',

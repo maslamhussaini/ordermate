@@ -7,6 +7,9 @@ import '../../../accounting/data/models/accounting_models.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:ordermate/core/utils/connectivity_helper.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -332,11 +335,67 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getSalesByProduct(
-      {DateTime? startDate,
-      DateTime? endDate,
-      int? organizationId,
-      String? type}) async {
+  Future<List<Map<String, dynamic>>> getSalesByProduct({
+    DateTime? startDate,
+    DateTime? endDate,
+    int? organizationId,
+    String? type,
+  }) async {
+    // try online first
+    if (organizationId != null) {
+      final connectivity = await ConnectivityHelper.check();
+      if (!connectivity.contains(ConnectivityResult.none)) {
+        try {
+          final dates = await _resolveDates(
+            organizationId: organizationId,
+            sYear: (startDate ?? DateTime.now()).year,
+            startDate: startDate,
+            endDate: endDate,
+          );
+          final start = dates['start']!;
+          final end = dates['end']!;
+          final typeIds = await _getInvoiceTypeIds(type ?? 'SI',
+              organizationId: organizationId);
+
+          if (typeIds.isNotEmpty) {
+            final res = await _supabase
+                .from('omtbl_invoice_items')
+                .select('*, omtbl_invoices!inner(*)')
+                .eq('omtbl_invoices.organization_id', organizationId)
+                .filter('omtbl_invoices.id_invoice_type', 'in', typeIds)
+                .gte('omtbl_invoices.invoice_date',
+                    DateFormat('yyyy-MM-dd').format(start))
+                .lte('omtbl_invoices.invoice_date',
+                    DateFormat('yyyy-MM-dd').format(end));
+
+            final Map<String, Map<String, dynamic>> grouped = {};
+            for (var item in res as List) {
+              final pId = item['product_id'].toString();
+              final pName = item['product_name'] ?? 'Unknown Product';
+              final qty = (item['quantity'] as num?)?.toDouble() ?? 0.0;
+              final total = (item['total'] as num?)?.toDouble() ?? 0.0;
+
+              if (!grouped.containsKey(pId)) {
+                grouped[pId] = {
+                  'product_id': pId,
+                  'product_name': pName,
+                  'total_quantity': 0.0,
+                  'total_amount': 0.0,
+                };
+              }
+              grouped[pId]!['total_quantity'] =
+                  (grouped[pId]!['total_quantity'] as double) + qty;
+              grouped[pId]!['total_amount'] =
+                  (grouped[pId]!['total_amount'] as double) + total;
+            }
+            return grouped.values.toList();
+          }
+        } catch (e) {
+          debugPrint('Online getSalesByProduct failed: $e');
+        }
+      }
+    }
+
     final db = await _dbHelper.database;
     String sql = '''
       SELECT 
@@ -357,7 +416,8 @@ class ReportRepositoryImpl implements ReportRepository {
     }
 
     if (type != null) {
-      sql += ' AND i.id_invoice_type = ?';
+      // For local, we assume types are synced correctly or we use names
+      sql += ' AND i.id_invoice_type_name = ?';
       args.add(type);
     }
 
@@ -377,11 +437,58 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getSalesDetailsByProduct(
-      {DateTime? startDate,
-      DateTime? endDate,
-      int? organizationId,
-      String? type}) async {
+  Future<List<Map<String, dynamic>>> getSalesDetailsByProduct({
+    DateTime? startDate,
+    DateTime? endDate,
+    int? organizationId,
+    String? type,
+  }) async {
+    if (organizationId != null) {
+      final connectivity = await ConnectivityHelper.check();
+      if (!connectivity.contains(ConnectivityResult.none)) {
+        try {
+          final dates = await _resolveDates(
+            organizationId: organizationId,
+            sYear: (startDate ?? DateTime.now()).year,
+            startDate: startDate,
+            endDate: endDate,
+          );
+          final start = dates['start']!;
+          final end = dates['end']!;
+          final typeIds = await _getInvoiceTypeIds(type ?? 'SI',
+              organizationId: organizationId);
+
+          if (typeIds.isNotEmpty) {
+            final res = await _supabase
+                .from('omtbl_invoice_items')
+                .select('*, omtbl_invoices!inner(*, omtbl_businesspartners(name))')
+                .eq('omtbl_invoices.organization_id', organizationId)
+                .filter('omtbl_invoices.id_invoice_type', 'in', typeIds)
+                .gte('omtbl_invoices.invoice_date',
+                    DateFormat('yyyy-MM-dd').format(start))
+                .lte('omtbl_invoices.invoice_date',
+                    DateFormat('yyyy-MM-dd').format(end));
+
+            return (res as List).map((e) {
+              final inv = e['omtbl_invoices'];
+              final bp = inv['omtbl_businesspartners'];
+              return {
+                'product_id': e['product_id'],
+                'product_name': e['product_name'] ?? 'Unknown Product',
+                'invoice_number': inv['invoice_number'],
+                'invoice_date': inv['invoice_date'], // String
+                'customer_name': bp != null ? bp['name'] : 'Unknown Customer',
+                'quantity': e['quantity'],
+                'amount': e['total'],
+              };
+            }).toList();
+          }
+        } catch (e) {
+          debugPrint('Online getSalesDetailsByProduct failed: $e');
+        }
+      }
+    }
+
     final db = await _dbHelper.database;
     String sql = '''
       SELECT 
@@ -406,7 +513,7 @@ class ReportRepositoryImpl implements ReportRepository {
     }
 
     if (type != null) {
-      sql += ' AND i.id_invoice_type = ?';
+      sql += ' AND i.id_invoice_type_name = ?';
       args.add(type);
     }
 
@@ -427,11 +534,63 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getSalesByCustomer(
-      {DateTime? startDate,
-      DateTime? endDate,
-      int? organizationId,
-      String? type}) async {
+  Future<List<Map<String, dynamic>>> getSalesByCustomer({
+    DateTime? startDate,
+    DateTime? endDate,
+    int? organizationId,
+    String? type,
+  }) async {
+    if (organizationId != null) {
+      final connectivity = await ConnectivityHelper.check();
+      if (!connectivity.contains(ConnectivityResult.none)) {
+        try {
+          final dates = await _resolveDates(
+            organizationId: organizationId,
+            sYear: (startDate ?? DateTime.now()).year,
+            startDate: startDate,
+            endDate: endDate,
+          );
+          final start = dates['start']!;
+          final end = dates['end']!;
+          final typeIds = await _getInvoiceTypeIds(type ?? 'SI',
+              organizationId: organizationId);
+
+          if (typeIds.isNotEmpty) {
+            final res = await _supabase
+                .from('omtbl_invoices')
+                .select('*, omtbl_businesspartners(name)')
+                .eq('organization_id', organizationId)
+                .filter('id_invoice_type', 'in', typeIds)
+                .gte('invoice_date', DateFormat('yyyy-MM-dd').format(start))
+                .lte('invoice_date', DateFormat('yyyy-MM-dd').format(end));
+
+            final Map<String, Map<String, dynamic>> grouped = {};
+            for (var item in res as List) {
+              final bp = item['omtbl_businesspartners'];
+              final name = bp != null ? bp['name'] : 'Unknown Customer';
+              final amt = (item['total_amount'] as num?)?.toDouble() ?? 0.0;
+
+              if (!grouped.containsKey(name)) {
+                grouped[name] = {
+                  'business_partner_id': item['business_partner_id'],
+                  'customer_name': name,
+                  'total_invoices': 0,
+                  'total_amount': 0.0,
+                };
+              }
+              grouped[name]!['total_invoices'] =
+                  (grouped[name]!['total_invoices'] as int) + 1;
+              grouped[name]!['total_amount'] =
+                  (grouped[name]!['total_amount'] as double) + amt;
+            }
+            return grouped.values.toList();
+          }
+        } catch (e) {
+          debugPrint('Online getSalesByCustomer failed: $e');
+        }
+      }
+    }
+
     final db = await _dbHelper.database;
     String sql = '''
       SELECT 
@@ -451,7 +610,7 @@ class ReportRepositoryImpl implements ReportRepository {
     }
 
     if (type != null) {
-      sql += ' AND i.id_invoice_type = ?';
+      sql += ' AND i.id_invoice_type_name = ?';
       args.add(type);
     }
 
@@ -464,6 +623,8 @@ class ReportRepositoryImpl implements ReportRepository {
       sql += ' AND i.invoice_date <= ?';
       args.add(endDate.millisecondsSinceEpoch);
     }
+
+    sql += ' GROUP BY i.business_partner_id';
 
     return await db.rawQuery(sql, args);
   }
