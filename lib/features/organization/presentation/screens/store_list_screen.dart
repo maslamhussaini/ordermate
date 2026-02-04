@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
+import 'package:ordermate/core/router/route_names.dart';
 
 class StoreListScreen extends ConsumerStatefulWidget {
   const StoreListScreen({super.key});
@@ -143,7 +144,7 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
               ],
               OutlinedButton.icon(
                 onPressed: () {
-                   context.pushNamed('branch-edit', pathParameters: {'id': store.id.toString()});
+                   context.pushNamed(RouteNames.storeEdit, pathParameters: {'id': store.id.toString()});
                 },
                 icon: const Icon(Icons.edit, size: 18),
                 label: const Text('Edit'),
@@ -205,7 +206,7 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
           TextButton.icon(
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text('New', style: TextStyle(color: Colors.white)),
-            onPressed: () => context.pushNamed('branch-create'),
+            onPressed: () => context.pushNamed(RouteNames.storeCreate),
             style: TextButton.styleFrom(foregroundColor: Colors.white),
           ),
         ],
@@ -250,7 +251,7 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
                                 const Text('No branches found', style: TextStyle(color: Colors.grey, fontSize: 16)),
                                 const SizedBox(height: 16),
                                 ElevatedButton(
-                                  onPressed: () => context.pushNamed('branch-create'),
+                                  onPressed: () => context.pushNamed(RouteNames.storeCreate),
                                   child: const Text('Create Branch'),
                                 )
                              ] else
