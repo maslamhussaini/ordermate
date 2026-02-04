@@ -1727,7 +1727,6 @@ class DatabaseHelper {
         debugPrint('Database: v74 migration error: $e');
       }
     }
-  }
 
     if (oldVersion < 75) {
       debugPrint('Database: Starting v75 migration (Stock Transfers)...');

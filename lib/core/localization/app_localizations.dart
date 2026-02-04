@@ -110,6 +110,9 @@ class AppLocalizations {
       'sales_orders_approved': 'Commandes Approuvées',
       'sales_orders_pending': 'Commandes En Attente',
       'sales_orders_rejected': 'Commandes Rejetées',
+      'recent_changes': 'Changements récents',
+      'day_summary': 'Résumé de la journée',
+      'sales_manager': 'Directeur des ventes',
     },
     'es': {
       'title': 'OrderMate',
@@ -208,6 +211,9 @@ class AppLocalizations {
       'sales_orders_approved': 'Pedidos Aprobados',
       'sales_orders_pending': 'Pedidos Pendientes',
       'sales_orders_rejected': 'Pedidos Rechazados',
+      'recent_changes': 'Cambios recientes',
+      'day_summary': 'Resumen del día',
+      'sales_manager': 'Gerente de ventas',
     },
     'en': {
       'title': 'OrderMate',
@@ -308,6 +314,9 @@ class AppLocalizations {
       'sales_orders_approved': 'Sales Orders Approved',
       'sales_orders_pending': 'Sales Orders Pending',
       'sales_orders_rejected': 'Sales Orders Rejected',
+      'recent_changes': 'Recent Changes',
+      'day_summary': 'Day Summary',
+      'sales_manager': 'Sales Manager',
     },
   };
 

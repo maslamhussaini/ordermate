@@ -197,7 +197,7 @@ class _StockTransferFormScreenState extends ConsumerState<StockTransferFormScree
                 if (selectedProduct != null)
                    Padding(
                      padding: const EdgeInsets.only(top: 8.0),
-                     child: Text('Available Stock: ${selectedProduct.stockQuantity}'),
+                      child: Text('Available Stock: ${selectedProduct.stockQty}'),
                    ),
                 TextFormField(
                   initialValue: '1',

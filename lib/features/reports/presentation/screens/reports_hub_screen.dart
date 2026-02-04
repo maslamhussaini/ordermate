@@ -44,9 +44,9 @@ class ReportsHubScreen extends StatelessWidget {
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('OTHER REPORTS'),
-             _buildReportGrid(context, [
-              _ReportItem(title: 'Location Report', icon: Icons.location_on, route: '/reports/location', color: Colors.blueGrey),
-              _ReportItem(title: 'Day Closing Report', icon: Icons.summarize, route: '/reports/day-closing', color: Colors.indigo),
+            _buildReportGrid(context, [
+              _ReportItem(title: 'Sales Manager (Loc)', icon: Icons.location_on, route: '/reports/location', color: Colors.blueGrey),
+              _ReportItem(title: 'Day Summary Report', icon: Icons.summarize, route: '/reports/day-closing', color: Colors.indigo),
             ]),
           ],
         ),

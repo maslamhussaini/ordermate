@@ -28,6 +28,7 @@ import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/features/inventory/domain/repositories/stock_transfer_repository.dart';
 import 'package:ordermate/features/inventory/data/repositories/stock_transfer_local_repository.dart';
 import 'package:ordermate/features/inventory/presentation/providers/stock_transfer_provider.dart';
+import 'package:ordermate/features/inventory/data/models/stock_transfer_model.dart';
 
 // Inventory Providers
 final inventoryRepositoryProvider = Provider<InventoryRepository>((ref) {

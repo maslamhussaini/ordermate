@@ -1,0 +1,126 @@
+﻿Analyzing ordermate...                                          
+
+   info - Use interpolation to compose strings and values - lib\core\router\app_router.dart:77:24 - prefer_interpolation_to_compose_strings
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\widgets\processing_dialog.dart:102:36 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\features\accounting\data\repositories\accounting_repository_impl.dart:521:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\accounting\data\repositories\accounting_repository_impl.dart:527:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\accounting\data\repositories\accounting_repository_impl.dart:615:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\accounting\presentation\providers\accounting_provider.dart:740:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\accounting\presentation\providers\accounting_provider.dart:796:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\accounting\presentation\providers\accounting_provider.dart:1056:7 - avoid_print
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\providers\voucher_service.dart:113:33 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\providers\voucher_service.dart:159:102 - dead_null_aware_expression
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\providers\voucher_service.dart:195:37 - dead_null_aware_expression
+warning - The operand can't be 'null', so the condition is always 'false' - lib\features\accounting\presentation\providers\voucher_service.dart:199:55 - unnecessary_null_comparison
+warning - The left operand can't be null, so the right operand is never executed - lib\features\accounting\presentation\screens\invoice_entry_screen.dart:251:39 - dead_null_aware_expression
+   info - Don't invoke 'print' in production code - lib\features\accounting\presentation\screens\invoice_entry_screen.dart:506:13 - avoid_print
+warning - The value of the local variable 'orgState' isn't used - lib\features\accounting\presentation\screens\invoices_screen.dart:277:11 - unused_local_variable
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\accounting\presentation\screens\invoices_screen.dart:512:80 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\features\auth\presentation\screens\reset_password_screen.dart:93:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\auth\presentation\screens\reset_password_screen.dart:101:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\auth\presentation\screens\splash_screen.dart:165:9 - use_build_context_synchronously
+warning - The value of the local variable 'successCount' isn't used - lib\features\business_partners\presentation\providers\business_partner_provider.dart:563:9 - unused_local_variable
+warning - The left operand can't be null, so the right operand is never executed - lib\features\customers\presentation\screens\customer_invoices_screen.dart:243:80 - dead_null_aware_expression
+   info - Don't use 'BuildContext's across async gaps - lib\features\customers\presentation\screens\customer_list_screen.dart:159:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\customers\presentation\screens\customer_list_screen.dart:284:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\customers\presentation\screens\customer_list_screen.dart:603:32 - use_build_context_synchronously
+warning - The value of the local variable 'sessionUser' isn't used - lib\features\dashboard\presentation\screens\dashboard_screen.dart:278:11 - unused_local_variable
+warning - The declaration '_handleUserHeaderTap' isn't referenced - lib\features\dashboard\presentation\screens\dashboard_screen.dart:642:8 - unused_element
+warning - The declaration '_showOrgDetailsDialog' isn't referenced - lib\features\dashboard\presentation\screens\dashboard_screen.dart:681:8 - unused_element
+warning - The declaration '_showStoreDetailsDialog' isn't referenced - lib\features\dashboard\presentation\screens\dashboard_screen.dart:702:8 - unused_element
+warning - The declaration '_cleanCityName' isn't referenced - lib\features\employees\presentation\screens\employee_form_screen.dart:346:10 - unused_element
+warning - The declaration '_searchAddressWithOSM' isn't referenced - lib\features\employees\presentation\screens\employee_form_screen.dart:353:38 - unused_element
+   info - Don't use 'BuildContext's across async gaps - lib\features\employees\presentation\screens\employee_list_screen.dart:146:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\employees\presentation\screens\employee_list_screen.dart:357:31 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\employees\presentation\screens\employee_list_screen.dart:690:36 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\employees\presentation\screens\employee_list_screen.dart:693:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\employees\presentation\screens\employee_list_screen.dart:694:49 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\employees\presentation\screens\employee_list_screen.dart:698:41 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\employees\presentation\screens\employee_list_screen.dart:699:48 - use_build_context_synchronously
+   info - Use interpolation to compose strings and values - lib\features\employees\presentation\screens\privilege_management_screen.dart:509:27 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\features\employees\presentation\screens\privilege_management_screen.dart:565:9 - prefer_interpolation_to_compose_strings
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\employees\presentation\screens\privilege_management_screen.dart:618:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\employees\presentation\screens\role_list_screen.dart:208:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\employees\presentation\screens\role_list_screen.dart:210:41 - deprecated_member_use
+warning - Unused import: 'package:flutter/foundation.dart' - lib\features\inventory\presentation\providers\stock_transfer_provider.dart:2:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\brand_list_screen.dart:172:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\brand_list_screen.dart:346:32 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\category_list_screen.dart:132:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\category_list_screen.dart:339:33 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\product_type_list_screen.dart:138:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\inventory\presentation\screens\product_type_list_screen.dart:343:33 - use_build_context_synchronously
+warning - Unused import: 'package:intl/intl.dart' - lib\features\inventory\presentation\screens\stock_transfer_form_screen.dart:5:8 - unused_import
+   info - The private field _transferDate could be 'final' - lib\features\inventory\presentation\screens\stock_transfer_form_screen.dart:28:12 - prefer_final_fields
+warning - The value of the local variable 'productState' isn't used - lib\features\inventory\presentation\screens\stock_transfer_form_screen.dart:55:11 - unused_local_variable
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\inventory\presentation\screens\stock_transfer_form_screen.dart:86:32 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\inventory\presentation\screens\stock_transfer_form_screen.dart:99:32 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\inventory\presentation\screens\stock_transfer_form_screen.dart:189:19 - deprecated_member_use
+warning - Unused import: 'package:ordermate/features/inventory/domain/entities/stock_transfer.dart' - lib\features\inventory\presentation\screens\stock_transfer_list_screen.dart:6:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\location_tracking\presentation\screens\location_history_screen.dart:129:79 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\features\organization\data\repositories\organization_repository_impl.dart:189:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\organization\presentation\providers\organization_provider.dart:265:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\organization\presentation\providers\organization_provider.dart:270:9 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\features\products\presentation\screens\product_debug_screen.dart:233:43 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\products\presentation\screens\product_debug_screen.dart:236:43 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\products\presentation\screens\product_form_screen.dart:725:40 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\features\products\presentation\screens\product_list_screen.dart:211:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\products\presentation\screens\product_list_screen.dart:451:32 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:85:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:86:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:98:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:101:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:110:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:112:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:117:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:119:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:123:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:125:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:127:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:217:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:218:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:222:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\features\reports\data\repositories\report_repository_impl.dart:225:5 - avoid_print
+warning - The value of the local variable 'query' isn't used - lib\features\reports\presentation\screens\day_closing_report_screen.dart:155:11 - unused_local_variable
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\reports\presentation\screens\ledger_report_screen.dart:98:38 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\ledger_report_screen.dart:133:51 - deprecated_member_use
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\features\reports\presentation\screens\ledger_report_screen.dart:228:25 - deprecated_member_use
+   info - 'share' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\features\reports\presentation\screens\ledger_report_screen.dart:228:31 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\reports\presentation\screens\ledger_report_screen.dart:231:42 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\ledger_report_screen.dart:283:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\ledger_report_screen.dart:286:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\ledger_report_screen.dart:310:51 - deprecated_member_use
+warning - The declaration '_getEntityAccountId' isn't referenced - lib\features\reports\presentation\screens\ledger_report_screen.dart:331:11 - unused_element
+warning - The declaration '_buildDatePicker' isn't referenced - lib\features\reports\presentation\screens\ledger_report_screen.dart:338:10 - unused_element
+warning - The left operand can't be null, so the right operand is never executed - lib\features\reports\presentation\screens\ledger_report_screen.dart:378:39 - dead_null_aware_expression
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\ledger_report_screen.dart:612:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\ledger_report_screen.dart:625:80 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\features\reports\presentation\screens\ledger_report_screen.dart:736:30 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\reports\presentation\screens\ledger_report_screen.dart:737:28 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\reports\presentation\screens\ledger_report_screen.dart:738:29 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\reports\presentation\screens\ledger_report_screen.dart:739:12 - curly_braces_in_flow_control_structures
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\ledger_report_screen.dart:751:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\ledger_report_screen.dart:753:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\reports\presentation\screens\reports_hub_screen.dart:105:43 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\features\reports\presentation\utils\ledger_printer.dart:211:30 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\reports\presentation\utils\ledger_printer.dart:212:28 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\reports\presentation\utils\ledger_printer.dart:213:29 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\reports\presentation\utils\ledger_printer.dart:214:12 - curly_braces_in_flow_control_structures
+   info - Don't use 'BuildContext's across async gaps - lib\features\vendors\presentation\screens\vendor_list_screen.dart:210:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\vendors\presentation\screens\vendor_list_screen.dart:418:31 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:21:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:25:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:31:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:37:6 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:38:6 - avoid_print
+   info - Don't invoke 'print' in production code - test_stats_raw.dart:40:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:11:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:22:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:24:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:27:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:37:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:39:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_supabase_stats.dart:42:5 - avoid_print
+

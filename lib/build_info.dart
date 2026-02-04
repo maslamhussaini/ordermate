@@ -2,13 +2,14 @@
 // Do not edit manually.
 
 const String appVersion = '1.1.0';
-const String buildTime = '2026-01-25 15:00:59';
+const String buildTime = '2026-02-04 20:00:00';
 
 const String whatsNew = '''
-📦 Version 1.0.6 Updates:
-- ✨ Stunning New Dashboard: Added animated StatCards with tiered gradients and hover effects.
-- 🛡️ Auto-Error Logger: Implemented global error interception with silent email reporting.
-- 📧 Mailer Upgrade: Updated to mailer 6.0.1 for more robust SMTP performance.
-- 📍 Release Refinements: Hidden debug banners and technical notifications for a cleaner experience.
-- 🧹 Performance: General bug fixes and UI performance optimizations.
+📦 Version 1.1.0 Updates:
+- 🛡️ Advanced RBAC: Implemented granular permission checks for all roles.
+- 👑 Super User Role: Introduced restricted access for organization management to Super Users only.
+- 📊 Management Reports: Added Day Summary and Sales Manager tracking to Dashboard.
+- 🔒 Secure Infrastructure: Enhanced RLS policies and database security.
+- 📦 Stock Transfers: Initial support for inter-store stock movement.
+- 🧹 Quality: Resolved multiple Flutter analyze warnings and optimized routing.
 ''';

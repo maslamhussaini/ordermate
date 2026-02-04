@@ -341,11 +341,16 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
     final state = ref.watch(businessPartnerProvider);
     final isMobile = MediaQuery.of(context).size.width < 900;
 
-    final isImmutable = _viewMode == 'role' 
-      ? state.roles.where((r) => r['id'] == _selectedRoleId).firstOrNull?['role_name']?.toString().toUpperCase() == 'SUPER USER' || 
-        state.roles.where((r) => r['id'] == _selectedRoleId).firstOrNull?['role_name']?.toString().toUpperCase() == 'OWNER'
-      : state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull?.roleName?.toString().toUpperCase() == 'SUPER USER' ||
-        state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull?.roleName?.toString().toUpperCase() == 'OWNER';
+    final bool isImmutable;
+    if (_viewMode == 'role') {
+      final role = state.roles.where((r) => r['id'] == _selectedRoleId).firstOrNull;
+      final roleName = role?['role_name']?.toString().toUpperCase();
+      isImmutable = roleName == 'SUPER USER' || roleName == 'OWNER';
+    } else {
+      final user = state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull;
+      final roleName = user?.roleName?.toString().toUpperCase();
+      isImmutable = roleName == 'SUPER USER' || roleName == 'OWNER';
+    }
     
     final formsByModule = <String, List<Map<String, dynamic>>>{};
     for (var form in state.appForms) {
@@ -587,7 +592,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                                     ),
                                     const SizedBox(width: 16),
                                     InkWell(
-                                      onTap: () {
+                                      onTap: !isImmutable ? () {
                                         // Check if all forms in this section are enabled
                                         final allEnabled = entry.value.every((form) {
                                           final formId = form['id'] as int;

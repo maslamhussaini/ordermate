@@ -23,6 +23,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
   bool _managementExpanded = false;
   bool _setupsExpanded = false;
   bool _accountingExpanded = false;
+  bool _reportsExpanded = false;
 
   void _closeDrawerIfOpen(BuildContext context) {
     final scaffold = Scaffold.maybeOf(context);
@@ -136,6 +137,29 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   onTap: () {
                     _closeDrawerIfOpen(context);
                     context.go('/dashboard');
+                  },
+                ),
+                
+                 _buildMenuItem(
+                  icon: Icons.history_rounded,
+                  title: AppLocalizations.of(context)?.get('recent_changes') ?? 'Recent Changes',
+                  onTap: () {
+                    _closeDrawerIfOpen(context);
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(AppLocalizations.of(context)?.get('whats_new') ?? "What's New"),
+                        content: const SingleChildScrollView(
+                          child: Text(whatsNew),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(AppLocalizations.of(context)?.get('close') ?? 'Close'),
+                          ),
+                        ],
+                      ),
+                    );
                   },
                 ),
                 
@@ -435,13 +459,39 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 ),
 
                 if (auth.can('reports', Permission.read))
-                _buildMenuItem(
+                _buildExpandableMenuItem(
                   icon: Icons.bar_chart_outlined,
                   title: 'Reports',
+                  isExpanded: _reportsExpanded,
                   onTap: () {
-                    _closeDrawerIfOpen(context);
-                    context.go('/reports');
+                    setState(() => _reportsExpanded = !_reportsExpanded);
                   },
+                  children: [
+                    _buildSubMenuItem(
+                      title: 'Reports Hub',
+                      icon: Icons.grid_view_outlined,
+                      onTap: () {
+                        _closeDrawerIfOpen(context);
+                        context.go('/reports');
+                      },
+                    ),
+                    _buildSubMenuItem(
+                      title: AppLocalizations.of(context)?.get('day_summary') ?? 'Day Summary',
+                      icon: Icons.summarize_rounded,
+                      onTap: () {
+                        _closeDrawerIfOpen(context);
+                        context.push('/reports/day-closing');
+                      },
+                    ),
+                    _buildSubMenuItem(
+                      title: AppLocalizations.of(context)?.get('sales_manager') ?? 'Sales Manager',
+                      icon: Icons.location_on_rounded,
+                      onTap: () {
+                        _closeDrawerIfOpen(context);
+                        context.push('/reports/location');
+                      },
+                    ),
+                  ],
                 ),
 
                 // Setups (Expandable)

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
+import 'package:ordermate/core/enums/user_role.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
 class OrganizationListScreen extends ConsumerStatefulWidget {

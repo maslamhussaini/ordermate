@@ -21,6 +21,7 @@ import 'package:ordermate/features/auth/domain/entities/user.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/core/enums/permission.dart';
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
+import 'package:ordermate/build_info.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? initialSelection;
@@ -580,11 +581,41 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerPr
                                 onTap: () => context.push('/reports'),
                               ),
                               StatCard(
-                                title: 'Sales Location',
-                                value: 'Map',
+                                title: AppLocalizations.of(context)?.get('day_summary') ?? 'Day Summary',
+                                value: 'Today',
+                                icon: Icons.summarize_rounded,
+                                color: Colors.indigo,
+                                onTap: () => context.push('/reports/day-closing'),
+                              ),
+                              StatCard(
+                                title: AppLocalizations.of(context)?.get('sales_manager') ?? 'Sales Manager',
+                                value: 'Track',
                                 icon: Icons.location_on_rounded,
                                 color: Colors.deepOrange,
                                 onTap: () => context.push('/reports/location'),
+                              ),
+                              StatCard(
+                                title: AppLocalizations.of(context)?.get('recent_changes') ?? 'Recent Changes',
+                                value: 'Updates',
+                                icon: Icons.history_rounded,
+                                color: Colors.blue,
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text(AppLocalizations.of(context)?.get('whats_new') ?? "What's New"),
+                                      content: const SingleChildScrollView(
+                                        child: Text(whatsNew),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: Text(AppLocalizations.of(context)?.get('close') ?? 'Close'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
                             ]
                           ],

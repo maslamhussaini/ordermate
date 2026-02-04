@@ -1125,7 +1125,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
          final existingUser = await SupabaseConfig.client
              .from('omtbl_users')
              .select('id')
-             .eq('email', employee.email)
+             .eq('email', employee.email!)
              .maybeSingle();
              
          if (existingUser != null) {
