@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class AuthState {
+  final String userId;
   final String userFullName;
   final bool isLoggedIn;
   final bool isPasswordRecovery;
@@ -19,6 +20,7 @@ class AuthState {
   final int? organizationId;
  
    const AuthState({
+    this.userId = '',
     this.userFullName = '',
     this.isLoggedIn = false,
     this.isPasswordRecovery = false,
@@ -41,6 +43,7 @@ class AuthState {
   }
   
   AuthState copyWith({
+    String? userId,
     String? userFullName,
     bool? isLoggedIn,
     bool? isPasswordRecovery,
@@ -50,6 +53,7 @@ class AuthState {
     int? organizationId,
   }) {
     return AuthState(
+      userId: userId ?? this.userId,
       userFullName: userFullName ?? this.userFullName,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
       isPasswordRecovery: isPasswordRecovery ?? this.isPasswordRecovery,
@@ -175,6 +179,7 @@ class AuthNotifier extends Notifier<AuthState> {
       }
       
       state = state.copyWith(
+        userId: employeeId ?? '',
         userFullName: fullName ?? state.userFullName,
         role: determinedRole,
         organizationId: organizationId, // Update State

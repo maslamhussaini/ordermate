@@ -47,6 +47,8 @@ import 'package:ordermate/features/inventory/presentation/screens/category_form_
 import 'package:ordermate/features/inventory/presentation/screens/product_type_form_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/uom_form_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/unit_conversion_form_screen.dart';
+import 'package:ordermate/features/inventory/presentation/screens/stock_transfer_list_screen.dart';
+import 'package:ordermate/features/inventory/presentation/screens/stock_transfer_form_screen.dart';
 
 final List<AppRoute> orderRoutes = [
   AppRoute(
@@ -162,6 +164,25 @@ final List<AppRoute> inventoryRoutes = [
          AppRoute(path: 'create', title: 'New Conversion', routeName: 'unit-conversion-create', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, __) => const UnitConversionFormScreen()),
          AppRoute(path: 'edit/:id', title: 'Edit Conversion', routeName: 'unit-conversion-edit', module: 'inventory', showInMenu: false, roles: [UserRole.admin, UserRole.staff], builder: (_, state) => UnitConversionFormScreen(conversionId: state.pathParameters['id'])),
       ]),
+      AppRoute(
+         path: 'transfers', 
+         title: 'Stock Transfers', 
+         routeName: 'stock-transfers', 
+         module: 'inventory', 
+         roles: [UserRole.admin, UserRole.staff], 
+         builder: (_, __) => const StockTransferListScreen(),
+         children: [
+           AppRoute(
+             path: 'create', 
+             title: 'New Transfer', 
+             routeName: 'stock-transfer-create', 
+             module: 'inventory', 
+             showInMenu: false, 
+             roles: [UserRole.admin, UserRole.staff], 
+             builder: (_, __) => const StockTransferFormScreen()
+           ),
+         ]
+      ),
     ],
   ),
 ];

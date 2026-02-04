@@ -7,7 +7,7 @@ class DatabaseHelper {
 
   DatabaseHelper._init();
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static const int _databaseVersion = 74;
+  static const int _databaseVersion = 75;
   static Database? _database;
   static Future<Database>? _dbOpenFuture;
 
@@ -1726,6 +1726,33 @@ class DatabaseHelper {
       } catch (e) {
         debugPrint('Database: v74 migration error: $e');
       }
+    }
+  }
+
+    if (oldVersion < 75) {
+      debugPrint('Database: Starting v75 migration (Stock Transfers)...');
+       // 25. Stock Transfers (Gate Pass)
+       await db.execute('''
+        CREATE TABLE IF NOT EXISTS local_stock_transfers(
+          id TEXT PRIMARY KEY,
+          transfer_number TEXT,
+          source_store_id INTEGER,
+          destination_store_id INTEGER,
+          status TEXT, -- Draft, Approved, Completed, Cancelled
+          transfer_date TEXT,
+          created_by TEXT,
+          driver_name TEXT,
+          vehicle_number TEXT,
+          remarks TEXT,
+          organization_id INTEGER,
+          syear INTEGER,
+          created_at TEXT,
+          updated_at TEXT,
+          is_synced INTEGER DEFAULT 0,
+          items_payload TEXT
+        )
+      ''');
+       debugPrint('Database: v75 migration complete.');
     }
   }
 

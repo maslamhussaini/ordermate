@@ -25,6 +25,9 @@ import 'package:ordermate/features/accounting/domain/repositories/accounting_rep
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
+import 'package:ordermate/features/inventory/domain/repositories/stock_transfer_repository.dart';
+import 'package:ordermate/features/inventory/data/repositories/stock_transfer_local_repository.dart';
+import 'package:ordermate/features/inventory/presentation/providers/stock_transfer_provider.dart';
 
 // Inventory Providers
 final inventoryRepositoryProvider = Provider<InventoryRepository>((ref) {
@@ -57,6 +60,8 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     ref.watch(inventoryLocalRepositoryProvider),
     ref.watch(accountingRepositoryProvider),
     ref.watch(localAccountingRepositoryProvider),
+    ref.watch(stockTransferRepositoryProvider),
+    ref.watch(stockTransferLocalRepositoryProvider),
   );
 });
 
@@ -118,6 +123,8 @@ class SyncService {
     this._inventoryLocalRepository,
     this._accountingRepository,
     this._accountingLocalRepository,
+    this._transferRepository,
+    this._transferLocalRepository,
   );
 
   final Ref _ref;
@@ -131,6 +138,8 @@ class SyncService {
   final InventoryLocalRepository _inventoryLocalRepository;
   final AccountingRepository _accountingRepository;
   final LocalAccountingRepository _accountingLocalRepository;
+  final StockTransferRepository _transferRepository;
+  final StockTransferLocalRepository _transferLocalRepository;
 
   void _updateStatus(String message, double progress) {
     _ref.read(syncProgressProvider.notifier).updateMessage(message, progress);
@@ -161,6 +170,9 @@ class SyncService {
     if (invoices.isNotEmpty) return true;
     final tx = await _accountingLocalRepository.getUnsyncedTransactions(organizationId: orgId);
     if (tx.isNotEmpty) return true;
+    
+    final transfers = await _transferLocalRepository.getUnsyncedTransfers(organizationId: orgId);
+    if (transfers.isNotEmpty) return true;
 
     return false;
   }
@@ -206,6 +218,10 @@ class SyncService {
       debugPrint('--- SYNC STEP 6/7: Syncing Orders ---');
       _updateStatus('Syncing Orders...', 0.9);
       await syncOrders(); 
+      
+      debugPrint('--- SYNC STEP 6.5/7: Syncing Stock Transfers ---');
+      _updateStatus('Syncing Stock Transfers...', 0.95);
+      await syncStockTransfers();
 
       debugPrint('--- SYNC STEP 7/7: Updating Metadata ---');
       _updateStatus('Updating Metadata...', 1.0);
@@ -583,6 +599,24 @@ class SyncService {
     await pushProducts();
     await pushOrders();
     await pushAccounting();
+    await pushStockTransfers();
+  }
+
+  Future<void> pushStockTransfers() async {
+    final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+    final unsynced = await _transferLocalRepository.getUnsyncedTransfers(organizationId: orgId);
+    if (unsynced.isEmpty) return;
+    
+    debugPrint('SyncService: Found ${unsynced.length} unsynced Stock Transfers to push');
+    for (final transfer in unsynced) {
+      try {
+        await _transferRepository.createTransfer(transfer);
+        await _transferLocalRepository.markTransferAsSynced(transfer.id);
+        debugPrint('SyncService: Pushed Stock Transfer ${transfer.transferNumber}');
+      } catch (e) {
+        debugPrint('SyncService: Failed to push Stock Transfer ${transfer.transferNumber}: $e');
+      }
+    }
   }
 
   Future<void> pushDeletions() async {
@@ -836,6 +870,38 @@ class SyncService {
           'SyncService: Order Sync Complete. Cached ${orders.length} items.');
     } catch (e) {
       debugPrint('SyncService: Order Sync Failed: $e');
+    }
+  }
+
+  Future<void> syncStockTransfers() async {
+    final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+    final storeId = _ref.read(organizationProvider).selectedStore?.id;
+
+    try {
+      debugPrint('SyncService: Starting Stock Transfer Sync (Pull)...');
+      final transfers = await _transferRepository.getTransfers(organizationId: orgId, storeId: storeId);
+      
+      if (transfers.isEmpty) {
+        debugPrint('SyncService: No stock transfers found.');
+        return;
+      }
+
+      // Convert to models for caching
+      final models = transfers.map((e) => StockTransferModel.fromEntity(e)).toList();
+      await _transferLocalRepository.cacheTransfers(models);
+
+      final db = await DatabaseHelper.instance.database;
+      await db.insert(
+        'sync_metadata',
+        {
+          'entity': 'stock_transfers',
+          'last_sync': DateTime.now().millisecondsSinceEpoch,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      debugPrint('SyncService: Stock Transfer Sync Complete. Cached ${transfers.length} items.');
+    } catch (e) {
+      debugPrint('SyncService: Stock Transfer Sync Failed: $e');
     }
   }
 
