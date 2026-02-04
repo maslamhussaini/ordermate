@@ -93,7 +93,8 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
             model.toJson()
               ..remove('id')
               ..remove('created_at')
-              ..remove('updated_at'),
+              ..remove('updated_at')
+              ..remove('store_count'),
           )
           .eq('id', organization.id);
     } catch (e) {
