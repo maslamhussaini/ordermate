@@ -60,8 +60,8 @@ class RouteNames {
   static const vendorEdit = 'vendor-edit';
 
   // Organization
-  static const organization = 'organization'; // Profile
-  static const organizations = 'organizations'; // List
+  static const organizationProfile = 'organization-profile'; // Profile
+  static const organizationsList = 'organizations-list'; // List
   static const workspaceSelection = 'workspace-selection';
   static const organizationCreate = 'organization-create';
   static const organizationEdit = 'organization-edit';

@@ -241,7 +241,7 @@ final List<AppRoute> organizationRoutes = [
   AppRoute(
     path: '/organizations-list',
     title: 'Organizations',
-    routeName: RouteNames.organizations,
+    routeName: RouteNames.organizationsList,
     module: 'dashboard', // Changed from organization to allow access
     icon: Icons.business,
     roles: [UserRole.admin, UserRole.staff],
@@ -309,7 +309,7 @@ final List<AppRoute> coreRoutes = [
   AppRoute(
     path: '/organization',
     title: 'Organization',
-    routeName: RouteNames.organization,
+    routeName: RouteNames.organizationProfile,
     module: 'organization',
     icon: Icons.business,
     roles: [UserRole.admin],
