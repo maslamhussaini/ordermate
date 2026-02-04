@@ -284,12 +284,15 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
         _streetController.text = placemark.street ?? '';
         _zipController.text = placemark.postalCode ?? '';
 
-        if (placemark.locality != null)
+        if (placemark.locality != null) {
           await _setCityByName(placemark.locality!);
-        if (placemark.country != null)
+        }
+        if (placemark.country != null) {
           await _setCountryByName(placemark.country!);
-        if (placemark.administrativeArea != null)
+        }
+        if (placemark.administrativeArea != null) {
           await _setStateByName(placemark.administrativeArea!);
+        }
 
         addressText = [
           placemark.street,
@@ -430,9 +433,10 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
       }
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -545,10 +549,11 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                   final orgId = ref
                                       .read(organizationProvider)
                                       .selectedOrganizationId;
-                                  if (orgId != null)
+                                  if (orgId != null) {
                                     await ref
                                         .read(businessPartnerProvider.notifier)
                                         .addDepartment(name, orgId);
+                                  }
                                 },
                               ),
                               const SizedBox(height: 16),
@@ -577,11 +582,12 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                   final orgId = ref
                                       .read(organizationProvider)
                                       .selectedOrganizationId;
-                                  if (orgId != null)
+                                  if (orgId != null) {
                                     await ref
                                         .read(businessPartnerProvider.notifier)
                                         .addRole(
                                             name, orgId, _selectedDepartmentId);
+                                  }
                                 },
                               ),
                               const SizedBox(height: 16),
@@ -624,7 +630,7 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                   ? 'An invitation email will be sent to the employee' 
                                   : 'Allow this employee to log in to the application'),
                                 value: _hasAppAccess,
-                                activeColor: Theme.of(context).primaryColor,
+                                activeThumbColor: Theme.of(context).primaryColor,
                                 onChanged: (val) {
                                   if (val && _emailController.text.trim().isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -659,7 +665,7 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                           icon: const Icon(Icons.refresh),
                                           tooltip: 'Generate Random Password',
                                           onPressed: () {
-                                            final randomPass = Uuid().v4().substring(0, 8);
+                                            final randomPass = const Uuid().v4().substring(0, 8);
                                             setState(() {
                                               _passwordController.text = randomPass;
                                               _obscurePassword = false;

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/features/business_partners/domain/entities/business_partner.dart';
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 import 'package:ordermate/features/accounting/domain/entities/invoice.dart';
@@ -396,7 +395,7 @@ class _InvoiceEntryScreenState extends ConsumerState<InvoiceEntryScreen> {
       } else {
           // Disable merging for now to prevent calculation issues with different rates/discounts
           // final existingIndex = _invoiceItems.indexWhere((i) => i['product_id'] == _selectedProduct!.id && i['uom_id'] == _selectedUomId);
-          final existingIndex = -1; 
+          const existingIndex = -1; 
           
           if (existingIndex >= 0) {
              // Merging logic disabled
@@ -665,7 +664,7 @@ class _InvoiceEntryScreenState extends ConsumerState<InvoiceEntryScreen> {
                             const SizedBox(height: 16),
 
                             DropdownButtonFormField<int>(
-                              value: ref.watch(accountingProvider).paymentTerms.any((t) => t.id == _selectedPaymentTermId) ? _selectedPaymentTermId : null,
+                              initialValue: ref.watch(accountingProvider).paymentTerms.any((t) => t.id == _selectedPaymentTermId) ? _selectedPaymentTermId : null,
                               decoration: const InputDecoration(
                                 labelText: 'Payment Term',
                                 border: OutlineInputBorder(),
@@ -777,7 +776,7 @@ class _InvoiceEntryScreenState extends ConsumerState<InvoiceEntryScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 DropdownButtonFormField<int>(
-                                  value: inventoryState.unitsOfMeasure.any((u) => u.id == _selectedUomId) ? _selectedUomId : null,
+                                  initialValue: inventoryState.unitsOfMeasure.any((u) => u.id == _selectedUomId) ? _selectedUomId : null,
                                   decoration: const InputDecoration(
                                       labelText: 'Invoice Unit',
                                       border: OutlineInputBorder(),

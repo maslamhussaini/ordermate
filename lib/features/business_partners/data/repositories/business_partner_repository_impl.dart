@@ -7,7 +7,6 @@ import 'package:ordermate/features/business_partners/domain/entities/business_pa
 import 'package:ordermate/features/business_partners/domain/repositories/business_partner_repository.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:math';
 import 'package:ordermate/core/services/email_service.dart';
 import 'package:ordermate/core/utils/connectivity_helper.dart';
 
@@ -505,7 +504,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
 
     // 2. Create the App User (omtbl_users) using the Auth ID if available
     try {
-        final userId = createdAuthUserId ?? Uuid().v4();
+        final userId = createdAuthUserId ?? const Uuid().v4();
         
         final data = {
           'id': userId, 
@@ -1114,7 +1113,28 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
         throw Exception(response.data['error'] ?? 'Edge function failed');
       }
 
-      final authUserId = response.data['user_id'];
+      debugPrint('Edge Function Response: ${response.data}');
+
+      String? authUserId = response.data['user_id'];
+      if (authUserId == null && response.data['user'] != null) {
+          authUserId = response.data['user']['id'];
+      }
+      
+      if (authUserId == null) {
+         // Attempt to find existing user by email if Edge Function didn't return ID (e.g. user already exists but script didn't pass ID back)
+         final existingUser = await SupabaseConfig.client
+             .from('omtbl_users')
+             .select('id')
+             .eq('email', employee.email)
+             .maybeSingle();
+             
+         if (existingUser != null) {
+            authUserId = existingUser['id'];
+         } else {
+            // Cannot proceed without an ID
+            throw Exception('Server returned success but no User ID provided, and user does not exist locally.');
+         }
+      }
       
       // 2. Update/Upsert omtbl_users
       await SupabaseConfig.client.from('omtbl_users').upsert({

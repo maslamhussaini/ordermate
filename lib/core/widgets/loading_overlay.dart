@@ -10,14 +10,14 @@ class LoadingOverlay extends StatelessWidget {
   final Widget? progressIndicator;
 
   const LoadingOverlay({
-    Key? key,
+    super.key,
     required this.isLoading,
     required this.child,
     this.message,
     this.opacity = 0.5,
     this.color,
     this.progressIndicator,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

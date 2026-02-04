@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 import 'package:ordermate/features/business_partners/domain/entities/business_partner.dart';
-import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 import 'package:ordermate/features/accounting/domain/entities/invoice.dart';
 import 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
@@ -44,14 +43,12 @@ class _CustomerInvoicesScreenState extends ConsumerState<CustomerInvoicesScreen>
       
       // Get currency from matching store or selected store
       String currency = 'AED';
-      if (widget.customer.organizationId != null) {
-        // Try to find the store from the current list in provider
-        final matchingStore = orgState.stores.where((s) => s.id == widget.customer.storeId).firstOrNull ?? orgState.selectedStore;
-        if (matchingStore != null) {
-           currency = matchingStore.storeDefaultCurrency;
-        }
+      // Try to find the store from the current list in provider
+      final matchingStore = orgState.stores.where((s) => s.id == widget.customer.storeId).firstOrNull ?? orgState.selectedStore;
+      if (matchingStore != null) {
+         currency = matchingStore.storeDefaultCurrency;
       }
-
+    
       final results = await repo.getUnpaidInvoices(widget.customer.id, organizationId: widget.customer.organizationId);
       
       // Ensure accounting data like accounts and GL Setup are loaded for receipts
@@ -379,7 +376,7 @@ class _CustomerInvoicesScreenState extends ConsumerState<CustomerInvoicesScreen>
                   voucherPrefixId: prefix.id,
                   voucherNumber: '$targetPrefixCode-${DateTime.now().millisecondsSinceEpoch}', 
                   voucherDate: DateTime.now(),
-                  accountId: targetAccountId!, 
+                  accountId: targetAccountId, 
                   moduleAccount: moduleId,
                   offsetAccountId: customer.chartOfAccountId, 
                   offsetModuleAccount: customer.id,

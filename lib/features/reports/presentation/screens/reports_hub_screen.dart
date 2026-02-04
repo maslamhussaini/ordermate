@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ordermate/core/widgets/app_drawer.dart';
 
 class ReportsHubScreen extends StatelessWidget {
   const ReportsHubScreen({super.key});
@@ -47,6 +46,7 @@ class ReportsHubScreen extends StatelessWidget {
             _buildSectionHeader('OTHER REPORTS'),
              _buildReportGrid(context, [
               _ReportItem(title: 'Location Report', icon: Icons.location_on, route: '/reports/location', color: Colors.blueGrey),
+              _ReportItem(title: 'Day Closing Report', icon: Icons.summarize, route: '/reports/day-closing', color: Colors.indigo),
             ]),
           ],
         ),

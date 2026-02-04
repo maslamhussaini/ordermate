@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ordermate/core/database/database_helper.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
-import 'package:ordermate/core/utils/connectivity_helper.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 

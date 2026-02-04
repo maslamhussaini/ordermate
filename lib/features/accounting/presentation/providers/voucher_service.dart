@@ -8,7 +8,7 @@ import '../../../orders/domain/entities/order.dart';
 import '../../domain/entities/chart_of_account.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_item.dart';
-import 'package:ordermate/features/accounting/domain/entities/invoice.dart'; // Ensure type is available if needed
+// Ensure type is available if needed
 
 import 'package:ordermate/features/orders/domain/repositories/order_repository.dart';
 import 'package:ordermate/features/products/domain/repositories/product_repository.dart';
@@ -78,16 +78,13 @@ class VoucherService {
 
   Future<void> convertOrderToInvoice(Order order, {required List<ChartOfAccount> accounts}) async {
     // if (order.isInvoiced) return; // Allow manual regeneration
-    if (order.organizationId == null) return;
-
-    // --- FETCH & VALIDATE SESSIONS ---
     final sessions = await _repository.getFinancialSessions(organizationId: order.organizationId);
     final voucherDate = DateTime.now(); // Date used for all entries
     final sYear = _validateSYear(voucherDate, sessions);
     // ---------------------------------
 
     // 0. Fetch GL Setup
-    final glSetup = await _repository.getGLSetup(order.organizationId!);
+    final glSetup = await _repository.getGLSetup(order.organizationId);
     if (glSetup == null) {
       throw Exception('Accounting GL Configuration not found for this organization. Please setup GL accounts first.');
     }

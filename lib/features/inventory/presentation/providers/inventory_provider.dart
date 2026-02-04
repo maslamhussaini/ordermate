@@ -1,5 +1,3 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:ordermate/core/utils/connectivity_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';

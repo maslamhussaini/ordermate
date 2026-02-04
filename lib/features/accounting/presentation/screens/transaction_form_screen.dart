@@ -9,7 +9,6 @@ import 'package:ordermate/features/accounting/domain/entities/chart_of_account.d
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 import 'package:ordermate/features/accounting/presentation/providers/voucher_service.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
-import 'package:ordermate/features/business_partners/domain/entities/business_partner.dart';
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 import 'package:ordermate/core/widgets/processing_dialog.dart';
 import 'package:uuid/uuid.dart';
@@ -25,7 +24,7 @@ class TransactionFormScreen extends ConsumerStatefulWidget {
 
 class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
-  bool _isLoading = false;
+  final bool _isLoading = false;
   
   // Maps to help reverse-lookup for Editing
   // We need to know if a Transaction GL ID belongs to a Partner or Bank to set the Dropdown ID correctly
@@ -60,12 +59,14 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     String? resolvedAccount = tx.accountId;
     // Check Banks
     final bank = accountingState.bankCashAccounts.where((b) => b.chartOfAccountId == tx.accountId).firstOrNull;
-    if (bank != null) resolvedAccount = bank.id;
-    else {
+    if (bank != null) {
+      resolvedAccount = bank.id;
+    } else {
       // Check Partners
       final cust = partnerState.customers.where((c) => c.chartOfAccountId == tx.accountId).firstOrNull;
-      if (cust != null) resolvedAccount = cust.id;
-      else {
+      if (cust != null) {
+        resolvedAccount = cust.id;
+      } else {
         final vend = partnerState.vendors.where((v) => v.chartOfAccountId == tx.accountId).firstOrNull;
         if (vend != null) resolvedAccount = vend.id;
       }
@@ -75,11 +76,13 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     String? resolvedOffset = tx.offsetAccountId;
     if (resolvedOffset != null) {
        final bankOffset = accountingState.bankCashAccounts.where((b) => b.chartOfAccountId == resolvedOffset).firstOrNull;
-       if (bankOffset != null) resolvedOffset = bankOffset.id;
-       else {
+       if (bankOffset != null) {
+         resolvedOffset = bankOffset.id;
+       } else {
          final custOffset = partnerState.customers.where((c) => c.chartOfAccountId == resolvedOffset).firstOrNull;
-         if (custOffset != null) resolvedOffset = custOffset.id;
-         else {
+         if (custOffset != null) {
+           resolvedOffset = custOffset.id;
+         } else {
            final vendOffset = partnerState.vendors.where((v) => v.chartOfAccountId == resolvedOffset).firstOrNull;
            if (vendOffset != null) resolvedOffset = vendOffset.id;
          }

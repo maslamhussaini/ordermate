@@ -12,7 +12,6 @@ import 'package:ordermate/features/auth/domain/entities/user.dart';
 import 'package:ordermate/features/auth/presentation/providers/user_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
-import 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart';
 
 class ResponsiveScaffold extends ConsumerWidget {
   final Widget child;
@@ -78,7 +77,7 @@ class ResponsiveScaffold extends ConsumerWidget {
                                     ref.read(accountingProvider.notifier).selectFinancialSession(s);
                                     Navigator.pop(context);
                                   },
-                               )).toList(),
+                               )),
                             ]
                          ),
                        ),
@@ -386,7 +385,7 @@ class ResponsiveScaffold extends ConsumerWidget {
                 const PopupMenuDivider(),
 
                 // Sign Out
-                PopupMenuItem<String>(
+                const PopupMenuItem<String>(
                   value: 'logout',
                   child: Row(
                     children: [

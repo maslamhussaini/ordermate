@@ -617,7 +617,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       
                       // Order Type Dropdown
                       DropdownButtonFormField<String>(
-                        value: _orderType,
+                        initialValue: _orderType,
                         decoration: const InputDecoration(
                           labelText: 'Order Type',
                           border: OutlineInputBorder(),
@@ -656,7 +656,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                       
                       // Payment Term Dropdown
                       DropdownButtonFormField<int>(
-                        value: ref.watch(accountingProvider).paymentTerms.any((t) => t.id == _selectedPaymentTermId) ? _selectedPaymentTermId : null,
+                        initialValue: ref.watch(accountingProvider).paymentTerms.any((t) => t.id == _selectedPaymentTermId) ? _selectedPaymentTermId : null,
                         decoration: const InputDecoration(
                           labelText: 'Payment Term',
                           border: OutlineInputBorder(),
@@ -828,7 +828,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                           const SizedBox(height: 12),
                           
                           DropdownButtonFormField<int>(
-                            value: inventoryState.unitsOfMeasure.any((u) => u.id == _selectedUomId) ? _selectedUomId : null,
+                            initialValue: inventoryState.unitsOfMeasure.any((u) => u.id == _selectedUomId) ? _selectedUomId : null,
                              decoration: const InputDecoration(
                                 labelText: 'Order Unit',
                                 border: OutlineInputBorder(),

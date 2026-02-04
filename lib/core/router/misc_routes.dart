@@ -36,6 +36,7 @@ import 'package:ordermate/features/reports/presentation/screens/ledger_report_sc
 import 'package:ordermate/features/reports/presentation/screens/sales_report_screen.dart';
 import 'package:ordermate/features/reports/presentation/screens/sales_location_report_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_profile_screen.dart';
+import 'package:ordermate/features/reports/presentation/screens/day_closing_report_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_list_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/organization_form_screen.dart';
 import 'package:ordermate/features/organization/presentation/screens/workspace_selection_screen.dart';
@@ -300,6 +301,15 @@ final List<AppRoute> reportRoutes = [
          showInMenu: false,
          roles: [UserRole.admin, UserRole.staff],
          builder: (_, __) => const SalesLocationReportScreen(),
+       ),
+       AppRoute(
+         path: 'day-closing',
+         title: 'Day Closing Report',
+         routeName: 'day-closing-report', 
+         module: 'reports',
+         showInMenu: false,
+         roles: [UserRole.admin, UserRole.staff],
+         builder: (_, __) => const DayClosingReportScreen(),
        ),
     ]
   ),

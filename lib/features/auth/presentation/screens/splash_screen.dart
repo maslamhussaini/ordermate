@@ -5,10 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:ordermate/build_info.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
-import 'package:ordermate/features/settings/presentation/providers/settings_provider.dart';
 import 'package:geolocator/geolocator.dart'; 
 import 'package:ordermate/core/services/sync_service.dart';
-import 'package:ordermate/core/enums/user_role.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {

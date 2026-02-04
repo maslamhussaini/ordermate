@@ -6,7 +6,6 @@ import 'package:ordermate/features/accounting/presentation/providers/accounting_
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/core/services/pdf_invoice_service.dart';
-import 'package:ordermate/features/business_partners/domain/entities/business_partner.dart';
 import 'package:ordermate/core/router/route_names.dart';
 
 import 'package:printing/printing.dart';

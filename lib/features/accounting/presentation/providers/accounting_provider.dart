@@ -983,7 +983,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
               final mainTx = Transaction(
                  id: const Uuid().v4(),
                  voucherPrefixId: prefixModel.id,
-                 voucherNumber: invoice.invoiceNumber!,
+                 voucherNumber: invoice.invoiceNumber,
                  voucherDate: invoice.invoiceDate,
                  accountId: debitAccount,
                  moduleAccount: invoice.businessPartnerId, // Customer/Vendor ID
@@ -1023,15 +1023,15 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
                      }
                   }
                   
-                  if (totalCost > 0 && glSetup.cogsAccountId != null && glSetup.inventoryAccountId != null) {
+                  if (totalCost > 0) {
                       final jvPrefix = state.voucherPrefixes.where((p) => p.prefixCode == 'JV').firstOrNull;
                       final cogsTx = Transaction(
                         id: const Uuid().v4(),
                         voucherPrefixId: jvPrefix?.id ?? prefixModel.id, 
-                        voucherNumber: jvPrefix != null ? 'SIJV-${invoice.invoiceNumber}' : invoice.invoiceNumber!,
+                        voucherNumber: jvPrefix != null ? 'SIJV-${invoice.invoiceNumber}' : invoice.invoiceNumber,
                         voucherDate: invoice.invoiceDate,
-                        accountId: glSetup.cogsAccountId!, // Debit COGS
-                        offsetAccountId: glSetup.inventoryAccountId!, // Credit Inventory
+                        accountId: glSetup.cogsAccountId, // Debit COGS
+                        offsetAccountId: glSetup.inventoryAccountId, // Credit Inventory
                         amount: totalCost,
                         description: 'Cost of Sales - Invoice ${invoice.invoiceNumber}',
                         status: 'posted',

@@ -58,7 +58,7 @@ class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
     final existing = ref.read(accountingProvider).paymentTerms.where((t) => 
       t.name.toLowerCase() == name.toLowerCase() && 
       t.id != widget.paymentTermId &&
-      (t.organizationId == orgId || t.organizationId == null)
+      (t.organizationId == orgId)
     ).firstOrNull;
 
     if (existing != null) {

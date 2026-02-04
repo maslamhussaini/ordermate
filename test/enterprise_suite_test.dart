@@ -35,7 +35,7 @@ void main() {
     
     // 1️⃣ Unit Test - Permission Logic
     test('can() returns true only for matching module/action', () {
-      final state = const AuthState(
+      const state = AuthState(
         isLoggedIn: true,
         role: UserRole.staff,
         permissions: [
@@ -95,7 +95,7 @@ void main() {
 
       final BuildContext context = tester.element(find.byType(MaterialAppWithRouter));
       final ProviderContainer container = ProviderScope.containerOf(context);
-      final GoRouter router = container.read(routerProvider) as GoRouter;
+      final GoRouter router = container.read(routerProvider);
       
       // Setup Auth
       final MockAuthNotifier notifier = container.read(authProvider.notifier) as MockAuthNotifier;

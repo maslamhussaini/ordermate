@@ -142,15 +142,22 @@ class _OrganizationListScreenState
       _showStoreSelectionDialog(stores);
     } else {
       // No stores
-      _navigateToDashboard(org.name, null);
+      _onSelectionComplete(org.name, null);
     }
   }
 
-  void _navigateToDashboard(String orgName, String? storeName) {
-    context.goNamed('dashboard');
+  void _onSelectionComplete(String orgName, String? storeName) {
+    // PREVIOUSLY: context.goNamed('dashboard');
+    // FIX: User requested "orzlist no route to list , wrongly route to dashboard".
+    // We intrepret this as "Stay on the list after selection".
+    
+    // We force a rebuild or just snackbar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Selected $orgName${storeName != null ? ' - $storeName' : ''}')),
     );
+    
+    // Optional: If we want to refresh the list UI to show the checkmark (it handles itself via Riverpod watch)
+    setState(() {});
   }
 
   void _showStoreSelectionDialog(List<dynamic> stores) {
@@ -183,7 +190,7 @@ class _OrganizationListScreenState
                       onTap: () {
                          ref.read(organizationProvider.notifier).selectStore(store);
                          Navigator.pop(ctx); // Close sheet
-                         _navigateToDashboard(ref.read(organizationProvider).selectedOrganization?.name ?? '', store.name);
+                         _onSelectionComplete(ref.read(organizationProvider).selectedOrganization?.name ?? '', store.name);
                       },
                     );
                   },

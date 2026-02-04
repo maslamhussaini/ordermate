@@ -203,7 +203,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                     if (tx.paymentMode != null)
                                       _buildDetailRow('Payment Mode', tx.paymentMode!),
                                     if (tx.invoiceId != null)
-                                      _buildDetailRow('Linked Invoice', tx.invoiceId!.substring(0, 8) + '...'),
+                                      _buildDetailRow('Linked Invoice', '${tx.invoiceId!.substring(0, 8)}...'),
                                     
                                     const SizedBox(height: 16),
                                     Align(

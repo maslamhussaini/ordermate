@@ -1,8 +1,6 @@
 // lib/features/reports/domain/repositories/report_repository.dart
 
 import '../../../accounting/domain/entities/chart_of_account.dart';
-import '../../../accounting/domain/entities/invoice.dart';
-import '../../../accounting/domain/entities/invoice_item.dart';
 
 abstract class ReportRepository {
   Future<Map<String, dynamic>> getLedgerData(

@@ -176,7 +176,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
-                value: _selectedDepartmentId ?? (departments.isNotEmpty ? departments.first['id'] as int? : null),
+                initialValue: _selectedDepartmentId ?? (departments.isNotEmpty ? departments.first['id'] as int? : null),
                 decoration: const InputDecoration(
                   labelText: 'Department',
                   border: OutlineInputBorder(),

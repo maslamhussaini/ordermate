@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:ordermate/core/widgets/lookup_field.dart';
 import 'package:ordermate/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:ordermate/features/inventory/domain/entities/brand.dart';
 import 'package:ordermate/features/inventory/domain/entities/product_category.dart';
@@ -21,17 +20,16 @@ import 'package:ordermate/features/vendors/presentation/providers/vendor_provide
 import 'package:ordermate/features/accounting/domain/repositories/accounting_repository.dart';
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 import 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart';
-import 'package:ordermate/features/accounting/domain/entities/gl_setup.dart';
 
 class TestOrganizationNotifier extends OrganizationNotifier {
-  TestOrganizationNotifier(OrganizationRepository repo, Ref ref, OrganizationState initialState) : super(repo, ref) {
+  TestOrganizationNotifier(super.repo, super.ref, OrganizationState initialState) {
     state = initialState;
   }
   @override Future<void> loadOrganizations() async {}
 }
 
 class TestInventoryNotifier extends InventoryNotifier {
-  TestInventoryNotifier(InventoryRepository repo, Ref ref, InventoryState initialState) : super(repo, ref) {
+  TestInventoryNotifier(super.repo, super.ref, InventoryState initialState) {
     state = initialState;
   }
   @override Future<void> loadBrands() async {}
@@ -42,7 +40,7 @@ class TestInventoryNotifier extends InventoryNotifier {
 }
 
 class TestVendorNotifier extends VendorNotifier {
-  TestVendorNotifier(Ref ref, VendorRepository repo, VendorState initialState) : super(ref, repo) {
+  TestVendorNotifier(super.ref, super.repo, VendorState initialState) {
     state = initialState;
   }
   @override Future<void> loadVendors() async {}
@@ -50,7 +48,7 @@ class TestVendorNotifier extends VendorNotifier {
 }
 
 class TestAccountingNotifier extends AccountingNotifier {
-  TestAccountingNotifier(AccountingRepository repo, Ref ref, AccountingState initialState) : super(repo, ref) {
+  TestAccountingNotifier(super.repo, super.ref, AccountingState initialState) {
     state = initialState;
   }
   @override Future<void> loadAll({int? organizationId}) async {}
@@ -104,7 +102,7 @@ void main() {
       unitsOfMeasure: [UnitOfMeasure(id: 1, name: 'UnitA', symbol: 'u', type: 'count', isDecimalAllowed: true, organizationId: 1, createdAt: now, updatedAt: now)],
     );
 
-    final venState = const VendorState();
+    const venState = VendorState();
 
     final accState = AccountingState(
       accounts: [
@@ -114,10 +112,10 @@ void main() {
         ChartOfAccount(id: 'acc4', accountCode: '4100', accountTitle: 'Discounts', organizationId: 1, level: 3, accountCategoryId: 4, isActive: true, createdAt: now, updatedAt: now),
       ],
       categories: [
-        AccountCategory(id: 1, categoryName: 'BasicInventory', accountTypeId: 1, organizationId: 1),
-        AccountCategory(id: 2, categoryName: 'BasicCOGS', accountTypeId: 1, organizationId: 1),
-        AccountCategory(id: 3, categoryName: 'BasicRevenue', accountTypeId: 1, organizationId: 1),
-        AccountCategory(id: 4, categoryName: 'Discount', accountTypeId: 1, organizationId: 1),
+        const AccountCategory(id: 1, categoryName: 'BasicInventory', accountTypeId: 1, organizationId: 1),
+        const AccountCategory(id: 2, categoryName: 'BasicCOGS', accountTypeId: 1, organizationId: 1),
+        const AccountCategory(id: 3, categoryName: 'BasicRevenue', accountTypeId: 1, organizationId: 1),
+        const AccountCategory(id: 4, categoryName: 'Discount', accountTypeId: 1, organizationId: 1),
       ],
     );
 

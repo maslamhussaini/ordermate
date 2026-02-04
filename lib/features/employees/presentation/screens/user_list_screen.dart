@@ -29,7 +29,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  List<String> _selectedEmployeeIdsForImport = [];
+  final List<String> _selectedEmployeeIdsForImport = [];
 
   Future<void> _showImportDialog() async {
     final bpState = ref.read(businessPartnerProvider);

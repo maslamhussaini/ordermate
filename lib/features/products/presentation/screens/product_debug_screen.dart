@@ -142,7 +142,7 @@ class _ProductDebugScreenState extends ConsumerState<ProductDebugScreen> {
             _buildSection('Vendors & Partners Summary', [
               _buildCountRow('Suppliers (is_supplier=1)', vendorState.suppliers.length),
               _buildCountRow('Vendors (is_vendor=1)', vendorState.vendors.length),
-              _buildCountRow('Total Loaded (Union)', ([...vendorState.vendors, ...vendorState.suppliers].toSet().length)),
+              _buildCountRow('Total Loaded (Union)', (<dynamic>{...vendorState.vendors, ...vendorState.suppliers}.length)),
             ]),
 
             _buildSection('Accounting Summary', [

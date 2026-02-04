@@ -731,8 +731,9 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
       
       final days = now.difference(date).inDays;
       String bucket;
-      if (days <= 30) bucket = '1 - 30';
-      else if (days <= 60) bucket = '31 - 60';
+      if (days <= 30) {
+        bucket = '1 - 30';
+      } else if (days <= 60) bucket = '31 - 60';
       else if (days <= 90) bucket = '61 - 90';
       else if (days <= 120) bucket = '91 - 120';
       else bucket = '> 120';

@@ -28,7 +28,7 @@ dependencies:
   google_fonts: ^6.3.3
   hive: ^2.2.0
   hive_flutter: ^1.1.0
-  intl: any
+  intl: ^0.20.2
   intl_phone_field: ^3.2.0
   json_annotation: ^4.9.0
   logger: ^2.0.0
@@ -75,6 +75,8 @@ dependencies:
   screenshot: ^3.0.0
   flutter_email_sender: ^8.0.0
 
+  flutter_web_plugins:
+    sdk: flutter
 flutter_launcher_icons:
   android: true
   ios: true

@@ -15,7 +15,6 @@ import 'package:ordermate/features/vendors/presentation/providers/vendor_provide
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
 import 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart';
-import 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart' show AccountCategory;
 
 class ProductFormScreen extends ConsumerStatefulWidget {
   const ProductFormScreen({super.key, this.productId});
@@ -103,10 +102,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       debugPrint('ProductForm: Data Load Complete. Accounts: ${accState.accounts.length}');
 
       if (accState.accounts.isEmpty) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Warning: No Accounting Data loaded. Check internet or permissions.'),
             backgroundColor: Colors.orange,
         ));
+        }
       }
 
       // Handle extra from navigation
@@ -174,9 +175,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         }
 
         // If sales discount account is missing, try to get from GLSetup
-        if (_selectedSalesDiscountGlId == null) {
-           _selectedSalesDiscountGlId = ref.read(accountingProvider).glSetup?.salesDiscountAccountId;
-        }
+        _selectedSalesDiscountGlId ??= ref.read(accountingProvider).glSetup?.salesDiscountAccountId;
       } else {
         // New Product - default GL accounts from GLSetup
         final setup = ref.read(accountingProvider).glSetup;
@@ -590,9 +589,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                               children: [
                                 _buildSectionHeader('Accounting (GL Accounts)', Icons.account_balance_outlined),
                                 if (accountingState.accounts.isEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: const Text('⚠️ No accounts loaded. Please refresh.', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 8.0),
+                                    child: Text('⚠️ No accounts loaded. Please refresh.', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                                   )
                                 else 
                                   Padding(

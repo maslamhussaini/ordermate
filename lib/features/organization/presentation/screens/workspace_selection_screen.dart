@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/localization/app_localizations.dart';
-import 'package:ordermate/core/providers/auth_provider.dart';
-import 'package:ordermate/core/enums/user_role.dart';
 import 'package:ordermate/features/organization/domain/entities/organization.dart';
 import 'package:ordermate/features/organization/domain/entities/store.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
@@ -15,7 +12,6 @@ import 'package:ordermate/features/accounting/presentation/providers/accounting_
 import 'package:ordermate/features/organization/data/repositories/organization_repository_impl.dart';
 import 'package:ordermate/features/accounting/data/repositories/accounting_repository_impl.dart';
 import 'package:ordermate/features/accounting/data/repositories/local_accounting_repository.dart';
-import 'package:ordermate/features/accounting/data/models/accounting_models.dart';
 
 class WorkspaceSelectionScreen extends ConsumerStatefulWidget {
   const WorkspaceSelectionScreen({super.key});
@@ -145,7 +141,7 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Workspace selected: ${_selectedOrganization!.name}${_selectedStore != null ? " - " + _selectedStore!.name : ""}'),
+        content: Text('Workspace selected: ${_selectedOrganization!.name}${_selectedStore != null ? " - ${_selectedStore!.name}" : ""}'),
         backgroundColor: Colors.green,
       ),
     );
@@ -191,7 +187,7 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Icon(Icons.business_center_rounded, 
+                      const Icon(Icons.business_center_rounded, 
                         size: 80, 
                         color: AppColors.loginGradientStart),
                       const SizedBox(height: 24),
@@ -302,7 +298,7 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
-          value: value,
+          initialValue: value,
           isExpanded: true,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: AppColors.loginGradientStart),

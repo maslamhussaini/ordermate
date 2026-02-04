@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ordermate/core/enums/user_role.dart';
 import 'package:ordermate/core/router/app_router.dart';
 import 'package:ordermate/core/services/auth_service.dart';
@@ -26,7 +25,7 @@ void main() {
     final context = tester.element(find.byType(MaterialAppWithRouter));
     final container = ProviderScope.containerOf(context);
     // Explicit cast to avoid type inference issues in test environment
-    final router = container.read(routerProvider) as GoRouter;
+    final router = container.read(routerProvider);
 
     router.go('/accounting');
     await tester.pumpAndSettle();
@@ -46,7 +45,7 @@ void main() {
     final context = tester.element(find.byType(MaterialAppWithRouter));
     final container = ProviderScope.containerOf(context);
     // Explicit cast
-    final router = container.read(routerProvider) as GoRouter;
+    final router = container.read(routerProvider);
 
     router.go('/accounting');
     await tester.pumpAndSettle();

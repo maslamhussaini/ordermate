@@ -4,7 +4,6 @@ import 'package:ordermate/features/business_partners/presentation/providers/busi
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/features/business_partners/domain/entities/app_user.dart';
 import 'package:ordermate/core/services/email_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 
 class PrivilegeManagementScreen extends ConsumerStatefulWidget {
@@ -626,15 +625,15 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                                   children: [
                                     TableRow(
                                       decoration: BoxDecoration(color: Colors.grey.shade50),
-                                      children: [
-                                        TableCell(child: Padding(padding: const EdgeInsets.all(12), child: Text('Form Name', style: const TextStyle(fontWeight: FontWeight.bold)))),
-                                        TableCell(child: Padding(padding: const EdgeInsets.all(12), child: Center(child: Text('All', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue))))),
-                                        TableCell(child: Padding(padding: const EdgeInsets.all(12), child: Center(child: Text('View', style: const TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: const EdgeInsets.all(12), child: Center(child: Text('Add', style: const TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: const EdgeInsets.all(12), child: Center(child: Text('Edit', style: const TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: const EdgeInsets.all(12), child: Center(child: Text('Delete', style: const TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: const EdgeInsets.all(12), child: Center(child: Text('Read', style: const TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: const EdgeInsets.all(12), child: Center(child: Text('Print', style: const TextStyle(fontWeight: FontWeight.bold))))),
+                                      children: const [
+                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Text('Form Name', style: TextStyle(fontWeight: FontWeight.bold)))),
+                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('All', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue))))),
+                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('View', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Add', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Edit', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Delete', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Read', style: TextStyle(fontWeight: FontWeight.bold))))),
+                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Print', style: TextStyle(fontWeight: FontWeight.bold))))),
                                       ],
                                     ),
                                       ...entry.value.map((form) {
@@ -665,7 +664,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                                           _buildToggleCell(formId, 'can_print', canPrint),
                                         ],
                                       );
-                                    }).toList(),
+                                    }),
                                   ],
                                     ),
                                   ),
@@ -676,7 +675,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
   ];
 }
 
@@ -730,7 +729,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
       child: Center(
         child: Switch(
           value: value,
-          activeColor: activeColor ?? Colors.blue.shade700,
+          activeThumbColor: activeColor ?? Colors.blue.shade700,
           onChanged: (val) => _togglePrivilege(formId, flag, val),
         ),
       ),

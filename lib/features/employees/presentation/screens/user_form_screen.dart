@@ -169,7 +169,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                       const Text('Select Employee', style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<BusinessPartner>(
-                        value: _selectedPartner,
+                        initialValue: _selectedPartner,
                         decoration: const InputDecoration(
                           hintText: 'Choose an employee',
                           prefixIcon: Icon(Icons.badge_outlined),
@@ -221,7 +221,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                     const Text('Application Role', style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<int>(
-                      value: bpState.roles.any((r) => r['id'] == _selectedRoleId) ? _selectedRoleId : null,
+                      initialValue: bpState.roles.any((r) => r['id'] == _selectedRoleId) ? _selectedRoleId : null,
                       decoration: const InputDecoration(
                         hintText: 'Select role',
                         prefixIcon: Icon(Icons.security),
@@ -254,7 +254,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                               icon: const Icon(Icons.refresh),
                               tooltip: 'Generate Random Password',
                               onPressed: () {
-                                  final randomPass = Uuid().v4().substring(0, 8);
+                                  final randomPass = const Uuid().v4().substring(0, 8);
                                 setState(() {
                                   _passwordController.text = randomPass;
                                   _obscurePassword = false;

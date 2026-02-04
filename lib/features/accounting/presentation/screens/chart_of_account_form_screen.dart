@@ -168,7 +168,7 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
                     ),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<String>(
-                      value: possibleParents.any((p) => p.id == _selectedParentId) ? _selectedParentId : null,
+                      initialValue: possibleParents.any((p) => p.id == _selectedParentId) ? _selectedParentId : null,
                       decoration: const InputDecoration(
                         labelText: 'Parent Account',
                         border: OutlineInputBorder(),

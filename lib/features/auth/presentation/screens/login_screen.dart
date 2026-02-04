@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -733,7 +732,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                          labelText: AppLocalizations.of(context)?.get('financial_year') ?? 'Financial Year',
                          prefixIcon: const Icon(Icons.calendar_today),
                        ),
-                        value: _selectedSession,
+                        initialValue: _selectedSession,
                        items: _financialSessions.map((session) {
                          return DropdownMenuItem(
                            value: session,

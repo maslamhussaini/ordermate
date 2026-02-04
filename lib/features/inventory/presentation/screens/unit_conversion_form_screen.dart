@@ -109,7 +109,7 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
           child: Column(
             children: [
               DropdownButtonFormField<int>(
-                value: _fromUnitId,
+                initialValue: _fromUnitId,
                 decoration: const InputDecoration(
                   labelText: 'From Unit',
                   border: OutlineInputBorder(),
@@ -126,7 +126,7 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
               ),
               const SizedBox(height: 16),
                DropdownButtonFormField<int>(
-                value: _toUnitId,
+                initialValue: _toUnitId,
                 decoration: const InputDecoration(
                   labelText: 'To Unit',
                   border: OutlineInputBorder(),

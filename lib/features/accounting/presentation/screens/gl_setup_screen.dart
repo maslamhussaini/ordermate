@@ -272,7 +272,7 @@ class _GLSetupScreenState extends ConsumerState<GLSetupScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: DropdownButtonFormField<String>(
-        value: accounts.any((a) => a.id == selectedValue) ? selectedValue : null, // Safer initialization
+        initialValue: accounts.any((a) => a.id == selectedValue) ? selectedValue : null, // Safer initialization
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,

@@ -206,8 +206,9 @@ class LedgerPrinter {
       
       final days = now.difference(date).inDays;
       String bucket;
-      if (days <= 30) bucket = '1 - 30';
-      else if (days <= 60) bucket = '31 - 60';
+      if (days <= 30) {
+        bucket = '1 - 30';
+      } else if (days <= 60) bucket = '31 - 60';
       else if (days <= 90) bucket = '61 - 90';
       else if (days <= 120) bucket = '91 - 120';
       else bucket = '> 120';
@@ -229,7 +230,7 @@ class LedgerPrinter {
            
            return pw.Expanded(
              child: pw.Container(
-               decoration: pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.grey300))),
+               decoration: const pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.grey300))),
                padding: const pw.EdgeInsets.all(8),
                child: pw.Column(
                  crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -251,7 +252,7 @@ class LedgerPrinter {
                                  pw.Text("${DateFormat('MMM dd').format(date)} ($days d)", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600)),
                                ]
                              ),
-                             pw.Text(amtFormat.format(inv['outstanding_amount']), style: pw.TextStyle(fontSize: 8, color: PdfColors.grey800)),
+                             pw.Text(amtFormat.format(inv['outstanding_amount']), style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey800)),
                           ]
                         )
                       );
