@@ -422,6 +422,15 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                         context.push('/inventory/unit-conversions');
                       },
                     ),
+                    if (auth.can('stock_transfer', Permission.read))
+                    _buildSubMenuItem(
+                      title: AppLocalizations.of(context)?.get('stock_transfers') ?? 'Stock Transfers',
+                      icon: Icons.swap_horiz,
+                      onTap: () {
+                        _closeDrawerIfOpen(context);
+                        context.push('/inventory/transfers');
+                      },
+                    ),
                   ],
                 ),
 
