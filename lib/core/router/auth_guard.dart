@@ -29,9 +29,9 @@ String? authGuard(BuildContext context, GoRouterState state, String landingPage,
     return '/login'; 
   }
 
-  // Redirect to landing page if authenticated and going to login or register
+  // Redirect to workspace selection if authenticated and going to login or register
   if (isAuthenticated && (isGoingToLogin || isGoingToRegister)) {
-    return landingPage;
+    return '/workspace-selection';
   }
 
   return null;

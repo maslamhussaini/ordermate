@@ -12,6 +12,7 @@ import 'package:ordermate/features/accounting/presentation/providers/accounting_
 import 'package:ordermate/features/organization/data/repositories/organization_repository_impl.dart';
 import 'package:ordermate/features/accounting/data/repositories/accounting_repository_impl.dart';
 import 'package:ordermate/features/accounting/data/repositories/local_accounting_repository.dart';
+import 'package:ordermate/features/settings/presentation/providers/settings_provider.dart';
 
 class WorkspaceSelectionScreen extends ConsumerStatefulWidget {
   const WorkspaceSelectionScreen({super.key});
@@ -137,7 +138,8 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
     }
 
     if (!mounted) return;
-    context.goNamed('dashboard');
+    final landingPage = ref.read(settingsProvider).landingPage;
+    context.go(landingPage);
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

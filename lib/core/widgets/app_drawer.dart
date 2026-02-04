@@ -137,6 +137,8 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                   onTap: () {
                     _closeDrawerIfOpen(context);
                     context.go('/dashboard');
+                    // Start sync as requested
+                    ref.read(syncServiceProvider).syncAll();
                   },
                 ),
                 

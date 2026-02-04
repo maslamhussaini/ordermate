@@ -140,7 +140,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (route != null) {
          // A. Role Check 
-         if (!route.roles.contains(auth.role)) {
+         if (auth.role != UserRole.superUser && !route.roles.contains(auth.role)) {
              debugPrint('RBAC: Role ${auth.role} denied for $location');
              return '/dashboard';
          }

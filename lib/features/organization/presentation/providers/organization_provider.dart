@@ -185,6 +185,12 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
 
   void reset() {
     state = const OrganizationState();
+    // Clear persisted selection on logout
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.remove('selected_organization_id');
+      prefs.remove('selected_store_id');
+      prefs.remove('selected_financial_year');
+    });
   }
 
   void selectFinancialYear(int? year) {
