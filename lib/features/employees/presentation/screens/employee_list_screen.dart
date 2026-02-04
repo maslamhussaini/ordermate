@@ -690,12 +690,12 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                         showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
                         await ref.read(businessPartnerProvider.notifier).sendCredentials(employee, 'Welcome@123');
                         if (context.mounted) {
-                           Navigator.pop(context); // Close loading
+                           Navigator.of(context, rootNavigator: true).pop(); // Close loading
                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credentials sent successfully'), backgroundColor: Colors.green));
                         }
                       } catch (e) {
                         if (context.mounted) {
-                          Navigator.pop(context); // Close loading
+                          Navigator.of(context, rootNavigator: true).pop(); // Close loading
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red));
                         }
                       }
