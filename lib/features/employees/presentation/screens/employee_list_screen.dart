@@ -673,14 +673,30 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                       return;
                     }
                     
+                    final passwordController = TextEditingController(text: 'Welcome@123');
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
                         title: const Text('Send Credentials?'),
-                        content: Text('This will set the employee password to "Welcome@123" and send them an email at ${employee.email}.\n\nContinue?'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('This will create/update the account for ${employee.name} in Supabase Auth and send them their login details.'),
+                            const SizedBox(height: 20),
+                            TextField(
+                              controller: passwordController,
+                              decoration: const InputDecoration(
+                                labelText: 'Password',
+                                border: OutlineInputBorder(),
+                                helperText: 'Default: Welcome@123',
+                              ),
+                            ),
+                          ],
+                        ),
                         actions: [
                           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Send Email')),
+                          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Send Invite')),
                         ],
                       ),
                     );
@@ -688,7 +704,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                     if (confirm == true) {
                       try {
                         showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
-                        await ref.read(businessPartnerProvider.notifier).sendCredentials(employee, 'Welcome@123');
+                        await ref.read(businessPartnerProvider.notifier).sendCredentials(employee, passwordController.text.trim());
                         if (context.mounted) {
                            Navigator.of(context, rootNavigator: true).pop(); // Close loading
                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credentials sent successfully'), backgroundColor: Colors.green));

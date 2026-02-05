@@ -483,8 +483,30 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
           'role_id': roleId,
           'organization_id': organizationId,
           'store_id': storeId,
-          'generate_link': true, // We must generate link to create the user in Auth
+          'password': password,
+          'generate_link': true,
           'redirect_to': SupabaseConfig.frontendUrl,
+          'smtp_settings': {
+             'username': EmailService().smtpUsername,
+             'password': EmailService().smtpPassword,
+          },
+          'email_subject': 'Welcome to OrderMate!',
+          'email_html': """
+            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px;">
+              <h2 style="color: #2196F3;">Welcome to OrderMate, ${fullName ?? 'Employee'}!</h2>
+              <p>An account has been created for you. You can log in using your email:</p>
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6;">
+                <p style="margin: 0 0 10px 0;"><strong>Username:</strong> $email</p>
+                ${password != null ? '<p style="margin: 0;"><strong>Password:</strong> <code style="background: #eee; padding: 2px 5px; border-radius: 4px;">$password</code></p>' : ''}
+              </div>
+              <p>Please click the link below to access the application:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ACTION_URL}}" style="background-color: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Access OrderMate</a>
+              </div>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+              <p style="font-size: 12px; color: #999;">Sent safely via OrderMate App</p>
+            </div>
+          """
         },
       );
 
