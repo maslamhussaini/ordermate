@@ -125,15 +125,15 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
     if (_selectedOrganization == null) return;
 
     final orgNotifier = ref.read(organizationProvider.notifier);
-    await orgNotifier.selectOrganization(_selectedOrganization!);
     
-    if (_selectedStore != null) {
-      await orgNotifier.selectStore(_selectedStore!);
-    }
+    await orgNotifier.setWorkspace(
+      organization: _selectedOrganization!,
+      store: _selectedStore,
+      financialYear: _selectedSession?.sYear,
+    );
     
+    // Also update accounting provider for consistency across app
     if (_selectedSession != null) {
-      orgNotifier.selectFinancialYear(_selectedSession!.sYear);
-      // Also update accounting provider for consistency across app
       ref.read(accountingProvider.notifier).selectFinancialSession(_selectedSession);
     }
 

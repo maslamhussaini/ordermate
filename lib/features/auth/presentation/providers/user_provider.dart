@@ -3,9 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordermate/core/database/database_helper.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
+import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/features/auth/domain/entities/user.dart';
 
 final userProfileProvider = FutureProvider<User?>((ref) async {
+  // Watching authProvider ensures this refreshes on login/logout
+  final authState = ref.watch(authProvider);
+  if (!authState.isLoggedIn) return null;
+
   final sessionUser = SupabaseConfig.client.auth.currentUser;
   final userId = sessionUser?.id;
   if (userId == null) return null;
@@ -14,8 +19,10 @@ final userProfileProvider = FutureProvider<User?>((ref) async {
     final response = await SupabaseConfig.client
         .from('omtbl_users')
         .select()
-        .eq('id', userId)
-        .single();
+        .or('id.eq.$userId,auth_id.eq.$userId,email.eq.${sessionUser!.email!}')
+        .maybeSingle();
+    
+    if (response == null) return null;
     final data = response;
     var user = User(
       id: data['id'] as String,

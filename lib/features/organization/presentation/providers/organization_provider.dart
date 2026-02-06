@@ -21,10 +21,12 @@ class OrganizationState {
     this.selectedStore,
     this.selectedFinancialYear,
     this.stores = const [],
+    this.isInitialized = false,
     this.error,
   });
 
   final bool isLoading;
+  final bool isInitialized;
   final List<Organization> organizations;
   final Organization? selectedOrganization;
   final Store? selectedStore;
@@ -42,10 +44,12 @@ class OrganizationState {
     Store? selectedStore,
     int? selectedFinancialYear,
     List<Store>? stores,
+    bool? isInitialized,
     String? error,
   }) {
     return OrganizationState(
       isLoading: isLoading ?? this.isLoading,
+      isInitialized: isInitialized ?? this.isInitialized,
       organizations: organizations ?? this.organizations,
       selectedOrganization: selectedOrganization ?? this.selectedOrganization,
       selectedStore: selectedStore ?? this.selectedStore,
@@ -64,10 +68,12 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   OrganizationNotifier(this._repository, this.ref) : super(const OrganizationState()) {
     _init();
     
-    // Listen for logout events to reset state
+    // Listen for auth events to manage state
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (previous?.isLoggedIn == true && !next.isLoggedIn) {
         reset();
+      } else if ((previous == null || !previous.isLoggedIn) && next.isLoggedIn) {
+        _init();
       }
     });
   }
@@ -75,6 +81,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   Future<void> _init() async {
     await loadOrganizations();
     await _loadPersistedSelection();
+    state = state.copyWith(isInitialized: true);
   }
 
   Future<void> _loadPersistedSelection() async {
@@ -112,12 +119,20 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
       final prefs = await SharedPreferences.getInstance();
       if (state.selectedOrganization != null) {
         await prefs.setInt('selected_organization_id', state.selectedOrganization!.id);
+      } else {
+        await prefs.remove('selected_organization_id');
       }
+      
       if (state.selectedStore != null) {
         await prefs.setInt('selected_store_id', state.selectedStore!.id);
+      } else {
+        await prefs.remove('selected_store_id');
       }
+      
       if (state.selectedFinancialYear != null) {
         await prefs.setInt('selected_financial_year', state.selectedFinancialYear!);
+      } else {
+        await prefs.remove('selected_financial_year');
       }
     } catch (e) {
       debugPrint('Error persisting selection: $e');
@@ -129,15 +144,17 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
     try {
       final orgs = await _repository.getOrganizations();
       
-      // Auto-select first org if available and none selected, or if selected is no longer in list
+      // Only clear/auto-select if we have a non-empty results list
       var selected = state.selectedOrganization;
-      if (selected != null && !orgs.any((o) => o.id == selected!.id)) {
-        selected = null;
-      }
-      
-      if (selected == null && orgs.isNotEmpty) {
-        if (orgs.length == 1) {
-          selected = orgs.first;
+      if (orgs.isNotEmpty) {
+        if (selected != null && !orgs.any((o) => o.id == selected!.id)) {
+          selected = null;
+        }
+        
+        if (selected == null) {
+          if (orgs.length == 1) {
+            selected = orgs.first;
+          }
         }
       }
 
@@ -177,6 +194,25 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   Future<void> selectStore(Store? store) async {
      state = state.copyWith(selectedStore: store);
      await _persistSelection();
+  }
+
+  Future<void> setWorkspace({
+    required Organization organization,
+    Store? store,
+    int? financialYear,
+  }) async {
+    state = state.copyWith(
+      selectedOrganization: organization,
+      selectedStore: store,
+      selectedFinancialYear: financialYear,
+    );
+    // Ensure stores are loaded for the new organization
+    await loadStores(organization.id);
+    // Explicitly set store again in case loadStores auto-selected something else
+    if (store != null) {
+      state = state.copyWith(selectedStore: store);
+    }
+    await _persistSelection();
   }
 
   void clearSelection() {
@@ -276,22 +312,23 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         print('DEBUG_LOG: Filter Results - All: ${allStores.length}, Allowed: ${allowedStores.length}');
       }
 
-      // Auto select first store logic
+      // Only clear/auto-select if we have a non-empty results list
       var selected = state.selectedStore;
-      
-      // If currently selected store is not in the allowed list, clear it
-      if (selected != null) {
-        final fresh = allowedStores.where((s) => s.id == selected!.id).firstOrNull;
-        if (fresh != null) {
-          selected = fresh;
-        } else {
-          selected = null;
+      if (allowedStores.isNotEmpty) {
+        // If currently selected store is not in the allowed list, clear it
+        if (selected != null) {
+          final fresh = allowedStores.where((s) => s.id == selected!.id).firstOrNull;
+          if (fresh != null) {
+            selected = fresh;
+          } else {
+            selected = null;
+          }
         }
-      }
 
-      // If nothing selected, pick first if stores are available
-      if (selected == null && allowedStores.isNotEmpty) {
-          selected = allowedStores.first;
+        // If nothing selected, pick first
+        if (selected == null) {
+            selected = allowedStores.first;
+        }
       }
       
       if (!mounted) return;

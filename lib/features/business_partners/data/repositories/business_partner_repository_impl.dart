@@ -530,6 +530,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
         
         final data = {
           'id': userId, 
+          'auth_id': userId, // Ensure Auth link is established
           'business_partner_id': partnerId,
           'email': email,
           'full_name': fullName,
@@ -542,7 +543,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
           'updated_at': DateTime.now().toIso8601String(),
         };
 
-        // Upsert to be safe
+        // Upsert based on email to handle duplicates gracefully
         await SupabaseConfig.client.from('omtbl_users').upsert(data, onConflict: 'email');
         debugPrint('AppUser upserted to omtbl_users with ID: $userId');
 
@@ -924,19 +925,17 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     }
 
     try {
-      // omtbl_role_form_privileges only supports role_id, not employee_id
-      // If employeeId is provided, we need to get their role first or use local data
-      if (employeeId != null && roleId == null) {
-        debugPrint('Employee-level privileges requested, using local data only');
-        return await _localRepository.getFormPrivileges(roleId: roleId, employeeId: employeeId);
-      }
-      
-      if (roleId == null) {
-        return [];
-      }
-      
       var query = SupabaseConfig.client.from('omtbl_role_form_privileges').select();
+    
+    if (roleId != null && employeeId != null) {
+      query = query.or('role_id.eq.$roleId,employee_id.eq."$employeeId"');
+    } else if (roleId != null) {
       query = query.eq('role_id', roleId);
+    } else if (employeeId != null) {
+      query = query.eq('employee_id', employeeId);
+    } else {
+      return [];
+    }
 
       final response = await query;
       final list = List<Map<String, dynamic>>.from(response);
@@ -985,9 +984,26 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       }).toList();
 
       debugPrint('Saving ${supabaseData.length} privileges to Supabase');
-      debugPrint('First privilege data: ${supabaseData.isNotEmpty ? supabaseData.first : "empty"}');
       
-      await SupabaseConfig.client.from('omtbl_role_form_privileges').upsert(supabaseData);
+      // We try to upsert. If ID is present, it uses ID. 
+      // If not, we rely on our unique constraints (organization_id, role_id/employee_id, form_id).
+      // Since we can't easily specify multiple complex onConflict targets in one call,
+      // we'll rely on the fact that if ID is present it works, and if not, the unique constraints 
+      // we added to the DB will handle the conflict if we specify them.
+      // However, we'll split them to be safe.
+      
+      final rolePrivs = supabaseData.where((p) => p['role_id'] != null).toList();
+      final empPrivs = supabaseData.where((p) => p['employee_id'] != null).toList();
+      
+      if (rolePrivs.isNotEmpty) {
+        await SupabaseConfig.client.from('omtbl_role_form_privileges')
+          .upsert(rolePrivs, onConflict: 'organization_id,role_id,form_id');
+      }
+      
+      if (empPrivs.isNotEmpty) {
+        await SupabaseConfig.client.from('omtbl_role_form_privileges')
+          .upsert(empPrivs, onConflict: 'organization_id,employee_id,form_id');
+      }
       
       // Also update local - Ensure integer values
       final localData = privileges.map((p) => {

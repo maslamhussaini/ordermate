@@ -385,68 +385,80 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // ---------------------------------------------------------
         
         // 1. User Self-Healing & Local Cache
-        unawaited(() async {
-           try {
-             final userCheck = await SupabaseConfig.client
+        unawaited((() async {
+          try {
+            final userCheck = await SupabaseConfig.client
                 .from('omtbl_users')
-                .select('id, full_name, role')
-                .eq('id', userId)
+                .select('id, auth_id, full_name, role')
+                .or('id.eq.$userId,auth_id.eq.$userId,email.eq.$userEmail')
                 .maybeSingle();
 
-             String fullName = response.user!.userMetadata?['full_name'] ?? 'Unknown User';
-             String role = 'admin';
+            String fullName = response.user!.userMetadata?['full_name'] ?? 'Unknown User';
+            String role = 'admin';
 
-             if (userCheck != null) {
-                fullName = userCheck['full_name'] ?? fullName;
-                role = userCheck['role'] ?? role;
-             } else {
-                // Background insert if missing
-                await SupabaseConfig.client.from('omtbl_users').insert({
-                  'id': userId,
-                  'email': userEmail,
-                  'full_name': fullName,
-                  'role': role,
-                  'created_at': DateTime.now().toIso8601String(),
-                }).catchError((e) => debugPrint('Bg User Insert failed: $e'));
-             }
+            if (userCheck != null) {
+              fullName = userCheck['full_name'] ?? fullName;
+              role = userCheck['role'] ?? role;
 
-             final db = await DatabaseHelper.instance.database;
-             await db.insert(
-                'local_users',
-                {
-                  'email': email,
-                  'password': password,
-                  'id': userId,
-                  'full_name': fullName,
-                  'table_prefix': response.user!.userMetadata?['table_prefix'] ?? 'omtbl_',
-                },
-                conflictAlgorithm: ConflictAlgorithm.replace,
-             );
-           } catch (e) {
-             debugPrint('Background user sync failed: $e');
-           }
-        }());
+              if (userCheck['id'] != userId || userCheck['auth_id'] != userId) {
+                debugPrint('LoginScreen: Linking existing user $userEmail to Auth ID $userId');
+                await SupabaseConfig.client.from('omtbl_users').update({
+                  'auth_id': userId,
+                  'is_active': true,
+                  'updated_at': DateTime.now().toIso8601String(),
+                }).eq('email', userEmail);
+              }
+            } else {
+              debugPrint('LoginScreen: Creating new profile record for $userEmail');
+              await SupabaseConfig.client.from('omtbl_users').insert({
+                'id': userId,
+                'auth_id': userId,
+                'email': userEmail,
+                'full_name': fullName,
+                'role': role,
+                'is_active': true,
+                'created_at': DateTime.now().toIso8601String(),
+                'updated_at': DateTime.now().toIso8601String(),
+              });
+            }
+
+            final db = await DatabaseHelper.instance.database;
+            await db.insert(
+              'local_users',
+              {
+                'email': email,
+                'password': password,
+                'id': userId,
+                'full_name': fullName,
+                'table_prefix': response.user!.userMetadata?['table_prefix'] ?? 'omtbl_',
+              },
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            debugPrint('Background user sync failed: $e');
+          }
+        })());
 
         // 2. BACKGROUND LOCATION CAPTURE 
-        unawaited(() async {
+        unawaited((() async {
           try {
-             final sessionNotifier = ref.read(sessionProvider.notifier);
-             LocationPermission permission = await Geolocator.checkPermission();
-             if (permission == LocationPermission.denied) {
-                permission = await Geolocator.requestPermission();
-             }
-             if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
-               final position = await Geolocator.getCurrentPosition(
-                 desiredAccuracy: LocationAccuracy.low,
-                 timeLimit: const Duration(seconds: 5),
-               );
-               sessionNotifier.setLoginLocation(position.latitude, position.longitude);
-               debugPrint('Login Location captured in background: ${position.latitude}, ${position.longitude}');
-             }
+            final sessionNotifier = ref.read(sessionProvider.notifier);
+            LocationPermission permission = await Geolocator.checkPermission();
+            if (permission == LocationPermission.denied) {
+              permission = await Geolocator.requestPermission();
+            }
+            if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+              final position = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.low,
+                timeLimit: const Duration(seconds: 5),
+              );
+              sessionNotifier.setLoginLocation(position.latitude, position.longitude);
+              debugPrint('Login Location captured in background: ${position.latitude}, ${position.longitude}');
+            }
           } catch (e) {
             debugPrint('Background location capture failed: $e');
           }
-        }());
+        })());
 
         // ---------------------------------------------------------
         // CRITICAL UI PATH (Blocking) 

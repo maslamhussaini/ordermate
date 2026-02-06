@@ -112,23 +112,32 @@ final routerProvider = Provider<GoRouter>((ref) {
       // 4. Workspace Selection check (Org, Store, Year) 
       // Mandatory before dashboard access
       final orgState = ref.read(organizationProvider);
-      final isWorkspaceSelected = orgState.selectedOrganization != null && 
-                                  orgState.selectedStore != null && 
-                                  orgState.selectedFinancialYear != null;
-
-      final location = state.matchedLocation;
       
-      // Exempt onboarding and workspace-selection itself
-      final isExempt = location.startsWith('/onboarding') || 
-                       location == '/workspace-selection' || 
-                       location.startsWith('/organizations-list') || 
-                       location == '/splash' ||
-                       location == '/login';
+      if (orgState.isInitialized) {
+        final isWorkspaceSelected = orgState.selectedOrganization != null && 
+                                    orgState.selectedStore != null && 
+                                    orgState.selectedFinancialYear != null;
 
-      if (!isWorkspaceSelected && !isExempt) {
-          debugPrint('Router: Workspace not fully configured (Org: ${orgState.selectedOrganizationId}, Store: ${orgState.selectedStoreId}, Year: ${orgState.selectedFinancialYear}). Redirecting to workspace-selection.');
-          return '/workspace-selection';
+        final location = state.matchedLocation;
+        
+        // Exempt onboarding and workspace-selection itself
+        final isExempt = location.startsWith('/onboarding') || 
+                         location == '/workspace-selection' || 
+                         location.startsWith('/organizations-list') || 
+                         location == '/splash' ||
+                         location == '/login';
+
+        if (!isWorkspaceSelected && !isExempt) {
+            debugPrint('Router: Workspace not fully configured (Org: ${orgState.selectedOrganizationId}, Store: ${orgState.selectedStoreId}, Year: ${orgState.selectedFinancialYear}). Redirecting to workspace-selection.');
+            return '/workspace-selection';
+        }
+      } else {
+        // While initializing, if we're logged in, we stay on splash or whatever non-auth page we're at
+        debugPrint('Router: Workspace initializing...');
+        return null;
       }
+      
+      final location = state.matchedLocation;
       
       // 4. Permission & Role Guard
       // If permissions are still loading from the DB, don't redirect yet

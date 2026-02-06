@@ -58,6 +58,9 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
   }
 
   void _onEmployeeSelected(String employeeId) {
+    final state = ref.read(businessPartnerProvider);
+    final int? roleId = state.appUsers.where((u) => u.id == employeeId).firstOrNull?.roleId;
+
     setState(() {
       _selectedEmployeeId = employeeId;
       _selectedRoleId = null;
@@ -65,7 +68,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
       _pendingStoreChanges.clear();
       _storeChangesDirty = false;
     });
-    ref.read(businessPartnerProvider.notifier).loadFormPrivileges(employeeId: employeeId);
+    ref.read(businessPartnerProvider.notifier).loadFormPrivileges(employeeId: employeeId, roleId: roleId);
     ref.read(businessPartnerProvider.notifier).loadStoreAccess(employeeId: employeeId).then((_) {
       setState(() {
          _pendingStoreChanges.addAll(ref.read(businessPartnerProvider).storeAccess);
@@ -117,7 +120,14 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
         for (var entry in _pendingChanges.entries) {
           final formId = entry.key;
           final flags = entry.value;
-          final existing = existingPrivs.where((p) => p['form_id'] == formId).firstOrNull;
+          final existing = existingPrivs.where((p) {
+             final matchForm = p['form_id'] == formId;
+             if (_selectedRoleId != null) {
+               return matchForm && p['role_id'] == _selectedRoleId;
+             } else {
+               return matchForm && p['employee_id'] == _selectedEmployeeId;
+             }
+          }).firstOrNull;
 
           toSave.add({
             if (existing != null) 'id': existing['id'],
@@ -148,7 +158,9 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
       if (_selectedRoleId != null) {
         await ref.read(businessPartnerProvider.notifier).loadFormPrivileges(roleId: _selectedRoleId);
       } else if (_selectedEmployeeId != null) {
-        await ref.read(businessPartnerProvider.notifier).loadFormPrivileges(employeeId: _selectedEmployeeId);
+        final state = ref.read(businessPartnerProvider);
+        final int? roleId = state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull?.roleId;
+        await ref.read(businessPartnerProvider.notifier).loadFormPrivileges(employeeId: _selectedEmployeeId, roleId: roleId);
       }
 
       if (mounted) {

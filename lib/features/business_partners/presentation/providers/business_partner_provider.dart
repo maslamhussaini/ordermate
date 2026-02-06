@@ -514,6 +514,14 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     Future.microtask(() => state = state.copyWith(isLoading: true));
     try {
       final privileges = await repository.getFormPrivileges(roleId: roleId, employeeId: employeeId);
+      
+      // Sort: Employee-specific rows first, then role-based rows
+      privileges.sort((a, b) {
+        if (a['employee_id'] != null && b['employee_id'] == null) return -1;
+        if (a['employee_id'] == null && b['employee_id'] != null) return 1;
+        return 0;
+      });
+      
       state = state.copyWith(formPrivileges: privileges, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);

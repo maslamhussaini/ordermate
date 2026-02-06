@@ -107,19 +107,30 @@ class AuthNotifier extends Notifier<AuthState> {
            isLoggedIn: true,
            isPasswordRecovery: true,
          );
-      } else if (event == supabase.AuthChangeEvent.signedIn) {
-        final fullName = session?.user.userMetadata?['full_name'] ?? '';
-        state = state.copyWith(
-          isLoggedIn: true,
-          userFullName: fullName,
-          isPasswordRecovery: false, 
-          isPermissionLoading: true, // Start loading
-        );
-        loadDynamicPermissions();
+      } else if (event == supabase.AuthChangeEvent.signedIn || event == supabase.AuthChangeEvent.tokenRefreshed) {
+        // Only trigger load if session is present and state is not logged in or email changed
+        if (session != null) {
+          final fullName = session.user.userMetadata?['full_name'] ?? '';
+          if (!state.isLoggedIn || state.userId != session.user.id) {
+            state = state.copyWith(
+              isLoggedIn: true,
+              userId: session.user.id,
+              userFullName: fullName,
+              isPasswordRecovery: false, 
+              isPermissionLoading: true,
+            );
+            loadDynamicPermissions();
+          }
+        }
       } else if (event == supabase.AuthChangeEvent.signedOut) {
-         logout();
+          _clearAuthState();
       }
     });
+  }
+
+  void _clearAuthState() {
+    state = const AuthState();
+    AuthService.testRole = null;
   }
   
   // Fetch Permissions from the RolePermissions Configuration (Static Defaults)
@@ -154,16 +165,28 @@ class AuthNotifier extends Notifier<AuthState> {
     }
 
     try {
-      // 1. Get User Profile
+      // 1. Get User Profile - Robust lookup
       final userResponse = await SupabaseConfig.client
           .from('omtbl_users')
-          .select('id, role_id, role, full_name, organization_id') // Added organization_id
-          .eq('auth_id', sessionUser.id)
+          .select('id, auth_id, role_id, role, full_name, organization_id')
+          .or('id.eq."${sessionUser.id}",auth_id.eq."${sessionUser.id}",email.eq."${sessionUser.email!}"')
           .maybeSingle();
 
       if (userResponse == null) {
+        debugPrint('AuthNotifier: No user profile found in omtbl_users for ${sessionUser.email}');
         state = state.copyWith(isPermissionLoading: false);
         return;
+      }
+      
+      debugPrint('AuthNotifier: Found profile for ${sessionUser.email}: Role=${userResponse['role']}, OrgId=${userResponse['organization_id']}');
+      
+      // Auto-link if needed (if found by email but auth_id is missing or wrong)
+      if (userResponse['auth_id'] != sessionUser.id || userResponse['id'] != sessionUser.id) {
+         unawaited(SupabaseConfig.client
+            .from('omtbl_users')
+            .update({'auth_id': sessionUser.id})
+            .eq('email', sessionUser.email!)
+            .then((_) => debugPrint('AuthNotifier: Linked existing user ${sessionUser.email} to Auth ID ${sessionUser.id}')));
       }
 
       final roleId = userResponse['role_id'] as int?;
@@ -196,37 +219,48 @@ class AuthNotifier extends Notifier<AuthState> {
       // 2. Fetch Privileges
       // Note: Privileges are currently Role-Based (Global), not Org-Specific.
       // However, Multi-Tenancy is enforced via RLS on Data Tables.
-      final privsResponse = await SupabaseConfig.client
-          .from('omtbl_role_form_privileges')
-          .select('*, omtbl_app_forms(form_code, module_name)')
-          .or('role_id.eq.$roleId,employee_id.eq.$employeeId');
+      final filters = [];
+      if (roleId != null) filters.add('role_id.eq.$roleId');
+      if (employeeId != null) filters.add('employee_id.eq."$employeeId"');
+      
+      final dynamic privsResponse = filters.isEmpty 
+          ? [] 
+          : await SupabaseConfig.client
+              .from('omtbl_role_form_privileges')
+              .select('*, omtbl_app_forms(form_code, module_name)')
+              .or(filters.join(','));
+
+      debugPrint('AuthNotifier: Loaded ${privsResponse.length} dynamic privileges from DB');
 
       if (privsResponse.isEmpty) {
+        debugPrint('AuthNotifier: No dynamic privileges found for RoleId=$roleId / EmpId=$employeeId. Keeping defaults.');
         state = state.copyWith(isPermissionLoading: false);
         return;
       }
 
-      // 3. Map Privileges
-      final List<PermissionObject> dynamicPermissions = [];
+      // 3. Map & Merge Privileges
+      // We use a Set to avoid duplicates and MERGE with existing defaults
+      final Set<PermissionObject> permissionSet = Set.from(state.permissions);
       
       // Basic static permissions for staff to ensure they can at least see the dashboard
       if (determinedRole == UserRole.staff) {
-        dynamicPermissions.add(const PermissionObject('dashboard', Permission.read));
+        permissionSet.add(const PermissionObject('dashboard', Permission.read));
       }
 
       for (var p in privsResponse) {
-        final form = p['omtbl_app_forms'] as Map<String, dynamic>?;
-        if (form == null) continue;
-
-        final formCode = form['form_code'].toString().toLowerCase();
-        final module = formCode.replaceFirst('frm_', '');
+          final form = p['omtbl_app_forms'];
+          if (form == null) continue;
+          
+          final String formCode = form['form_code'] ?? '';
+          final String? module = _mapFormCodeToModule(formCode);
+          if (module == null) continue;
         
         final canRead = p['can_view'] == true || p['can_read'] == true;
         final canWrite = p['can_add'] == true || p['can_edit'] == true;
         final canDelete = p['can_delete'] == true;
 
         if (canRead) {
-          dynamicPermissions.add(PermissionObject(module, Permission.read));
+          permissionSet.add(PermissionObject(module, Permission.read));
           
           // MAP TO PARENT MODULES IF NECESSARY
           // If any accounting form is allowed, allow the 'accounting' module
@@ -236,32 +270,32 @@ class AuthNotifier extends Notifier<AuthState> {
             'transactions', 'cash_flow', 'account_types', 'account_categories'
           ];
           if (accountingForms.contains(module)) {
-            dynamicPermissions.add(const PermissionObject('accounting', Permission.read));
+            permissionSet.add(const PermissionObject('accounting', Permission.read));
           }
         }
         
         if (canWrite) {
-          dynamicPermissions.add(PermissionObject(module, Permission.write));
+          permissionSet.add(PermissionObject(module, Permission.write));
           final accountingForms = [
             'chart_of_accounts', 'coa', 'payment_terms', 'bank_cash', 
             'voucher_prefixes', 'financial_sessions', 'gl_setup', 
             'transactions', 'cash_flow'
           ];
           if (accountingForms.contains(module)) {
-            dynamicPermissions.add(const PermissionObject('accounting', Permission.write));
+            permissionSet.add(const PermissionObject('accounting', Permission.write));
           }
         }
         
         if (canDelete) {
-          dynamicPermissions.add(PermissionObject(module, Permission.delete));
+          permissionSet.add(PermissionObject(module, Permission.delete));
           if (module == 'chart_of_accounts' || module == 'coa' || module == 'transactions') {
-             dynamicPermissions.add(const PermissionObject('accounting', Permission.delete));
+             permissionSet.add(const PermissionObject('accounting', Permission.delete));
           }
         }
       }
 
       state = state.copyWith(
-        permissions: dynamicPermissions,
+        permissions: permissionSet.toList(),
         isPermissionLoading: false,
       );
       
@@ -288,11 +322,46 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isPasswordRecovery: false);
   }
 
-  /// FIXED: Reset all auth state fields to their defaults on logout
-  void logout() {
-    state = const AuthState();  // ✅ Reset everything
-    AuthService.testRole = null;
-    _authSubscription?.cancel();
+  /// FIXED: Only initiate sign out. State cleanup is handled by the auth listener.
+  Future<void> logout() async {
+    try {
+      await SupabaseConfig.client.auth.signOut();
+    } catch (e) {
+      debugPrint('AuthNotifier: Error during Supabase sign-out: $e');
+      // In case of error, we should still clear state to allow user to try again
+      _clearAuthState();
+    }
+  }
+
+  String? _mapFormCodeToModule(String code) {
+    switch (code.toUpperCase()) {
+      case 'FRM_CUSTOMERS': return 'customers';
+      case 'FRM_ORDERS': return 'orders';
+      case 'FRM_INVOICES': return 'invoices';
+      case 'FRM_PRODUCTS': return 'products';
+      case 'FRM_VENDORS': return 'vendors';
+      case 'FRM_INVENTORY': return 'inventory';
+      case 'FRM_BRANDS': return 'inventory';
+      case 'FRM_CATEGORIES': return 'inventory';
+      case 'FRM_UOM': return 'inventory';
+      case 'FRM_EMPLOYEES': return 'employees';
+      case 'FRM_DEPARTMENTS': return 'employees';
+      case 'FRM_ROLES': return 'employees';
+      case 'FRM_USERS': return 'employees';
+      case 'FRM_STORES': return 'stores';
+      case 'FRM_SETTINGS': return 'settings';
+      case 'FRM_REPORTS': return 'reports';
+      case 'FRM_ORGANIZATION': return 'organization';
+      case 'FRM_COA': return 'accounting';
+      case 'FRM_JOURNAL': return 'accounting';
+      case 'FRM_TRANSACTIONS': return 'accounting';
+      case 'FRM_PURCHASE_ORDERS': return 'orders';
+      case 'FRM_STOCK_TRANSFER': return 'inventory';
+      default:
+        // Fallback: strip FRM_ and use as is
+        final fallback = code.toLowerCase().replaceFirst('frm_', '');
+        return fallback.isEmpty ? null : fallback;
+    }
   }
 }
 
