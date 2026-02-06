@@ -665,6 +665,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
      ref.read(authProvider.notifier).login(UserRole.admin, fullName: fullName);
   }
 
+  final _loginScrollController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     // If authenticated, show Context Selection instead of Login Form
@@ -675,100 +677,106 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
              constraints: const BoxConstraints(maxWidth: 500),
              child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Icon(Icons.business, 
-                      size: 64, 
-                      color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : AppColors.loginGradientStart),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)?.get('select_workspace') ?? 'Select Workspace',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineMedium,
+                child: Scrollbar(
+                  controller: _loginScrollController,
+                  child: SingleChildScrollView(
+                    controller: _loginScrollController,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Icon(Icons.business, 
+                          size: 64, 
+                          color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.white70 
+                              : AppColors.loginGradientStart),
+                        const SizedBox(height: 16),
+                        Text(
+                          AppLocalizations.of(context)?.get('select_workspace') ?? 'Select Workspace',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        const SizedBox(height: 32),
+                        
+                        // Organization Dropdown
+                        DropdownButtonFormField<dynamic>(
+                           decoration: InputDecoration(
+                             labelText: AppLocalizations.of(context)?.get('organization') ?? 'Organization',
+                             prefixIcon: const Icon(Icons.domain),
+                           ),
+                            initialValue: _selectedOrganization,
+                           items: _organizations.map((org) {
+                             return DropdownMenuItem(
+                               value: org,
+                               child: Text(org.name),
+                             );
+                           }).toList(),
+                           onChanged: (val) {
+                              setState(() {
+                                _selectedOrganization = val;
+                              });
+                              if (val != null) {
+                                _fetchStores(val.id);
+                                _fetchFinancialSessions(val.id);
+                              }
+                           },
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Store Dropdown
+                        DropdownButtonFormField<dynamic>(
+                           decoration: InputDecoration(
+                             labelText: AppLocalizations.of(context)?.get('store_branch') ?? 'Store / Branch',
+                             prefixIcon: const Icon(Icons.store),
+                           ),
+                            initialValue: _selectedStore,
+                           items: _stores.map((store) {
+                             return DropdownMenuItem(
+                               value: store,
+                               child: Text(store.name),
+                             );
+                           }).toList(),
+                           onChanged: (val) {
+                              setState(() {
+                                 _selectedStore = val;
+                              });
+                           },
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Financial Year Dropdown
+                        DropdownButtonFormField<FinancialSession>(
+                           decoration: InputDecoration(
+                             labelText: AppLocalizations.of(context)?.get('financial_year') ?? 'Financial Year',
+                             prefixIcon: const Icon(Icons.calendar_today),
+                           ),
+                            initialValue: _selectedSession,
+                           items: _financialSessions.map((session) {
+                             return DropdownMenuItem(
+                               value: session,
+                               child: Text('${session.sYear} (${DateFormat('MM/yy').format(session.startDate)} - ${DateFormat('MM/yy').format(session.endDate)})'),
+                             );
+                           }).toList(),
+                           onChanged: (val) {
+                              setState(() {
+                                 _selectedSession = val;
+                              });
+                           },
+                        ),
+                         
+                        const SizedBox(height: 32),
+                        ElevatedButton(
+                          onPressed: _continueToDashboard,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.loginGradientStart,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                           child: Text(AppLocalizations.of(context)?.get('continue_to_dashboard') ?? 'Continue to Dashboard'),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 32),
-                    
-                    // Organization Dropdown
-                    DropdownButtonFormField<dynamic>(
-                       decoration: InputDecoration(
-                         labelText: AppLocalizations.of(context)?.get('organization') ?? 'Organization',
-                         prefixIcon: const Icon(Icons.domain),
-                       ),
-                        initialValue: _selectedOrganization,
-                       items: _organizations.map((org) {
-                         return DropdownMenuItem(
-                           value: org,
-                           child: Text(org.name),
-                         );
-                       }).toList(),
-                       onChanged: (val) {
-                          setState(() {
-                            _selectedOrganization = val;
-                          });
-                          if (val != null) {
-                            _fetchStores(val.id);
-                            _fetchFinancialSessions(val.id);
-                          }
-                       },
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Store Dropdown
-                    DropdownButtonFormField<dynamic>(
-                       decoration: InputDecoration(
-                         labelText: AppLocalizations.of(context)?.get('store_branch') ?? 'Store / Branch',
-                         prefixIcon: const Icon(Icons.store),
-                       ),
-                        initialValue: _selectedStore,
-                       items: _stores.map((store) {
-                         return DropdownMenuItem(
-                           value: store,
-                           child: Text(store.name),
-                         );
-                       }).toList(),
-                       onChanged: (val) {
-                          setState(() {
-                             _selectedStore = val;
-                          });
-                       },
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Financial Year Dropdown
-                    DropdownButtonFormField<FinancialSession>(
-                       decoration: InputDecoration(
-                         labelText: AppLocalizations.of(context)?.get('financial_year') ?? 'Financial Year',
-                         prefixIcon: const Icon(Icons.calendar_today),
-                       ),
-                        initialValue: _selectedSession,
-                       items: _financialSessions.map((session) {
-                         return DropdownMenuItem(
-                           value: session,
-                           child: Text('${session.sYear} (${DateFormat('MM/yy').format(session.startDate)} - ${DateFormat('MM/yy').format(session.endDate)})'),
-                         );
-                       }).toList(),
-                       onChanged: (val) {
-                          setState(() {
-                             _selectedSession = val;
-                          });
-                       },
-                    ),
-                     
-                    const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: _continueToDashboard,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.loginGradientStart,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                       child: Text(AppLocalizations.of(context)?.get('continue_to_dashboard') ?? 'Continue to Dashboard'),
-                    ),
-                  ],
+                  ),
                 ),
              ),
            ),
@@ -832,7 +840,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Scrollbar(
+              controller: _loginScrollController,
               child: SingleChildScrollView(
+                controller: _loginScrollController,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 child: Center(
@@ -1006,6 +1016,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _loginScrollController.dispose();
     super.dispose();
   }
 }

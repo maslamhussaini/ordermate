@@ -67,6 +67,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _registerScrollController.dispose();
     super.dispose();
   }
 
@@ -260,6 +261,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
+  final _registerScrollController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -295,7 +298,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
             Expanded(
               child: Scrollbar(
+                controller: _registerScrollController,
                 child: SingleChildScrollView(
+                  controller: _registerScrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 0),
                   child: Column(
                     children: [

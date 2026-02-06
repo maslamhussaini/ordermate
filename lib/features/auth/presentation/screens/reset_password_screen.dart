@@ -117,12 +117,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     }
   }
 
+  final _resetScrollController = ScrollController();
+
   @override
   void dispose() {
     _emailController.dispose();
     _oldPasswordController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _resetScrollController.dispose();
     super.dispose();
   }
 
@@ -131,8 +134,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Security Setup')),
       body: Scrollbar(
+        controller: _resetScrollController,
         child: Center(
           child: SingleChildScrollView(
+            controller: _resetScrollController,
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
