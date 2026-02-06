@@ -89,55 +89,71 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     // Generate Email OTP
     _generatedEmailOtp = (1000 + Random().nextInt(9000)).toString();
 
-    // Send Email via SMTP
-    // For now we simulate success UI but try to send real email.
-    // Ideally await result.
-    
-    if (mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(content: Text('Sending Email OTP...')),
-       );
-    }
-    
-    // Call Email Service
-    // Note: This relies on valid credentials in EmailService.
-    // If invalid, we might want to fallback or show error.
-    // For this specific User Request "otp sent to email address not on push notification using smtp"
-    // I will *attempt* it. If it fails, I will log it and maybe still show simulation for dev purposes if credentials aren't set.
-    
-    bool sent = await EmailService().sendOtpEmail(email, _generatedEmailOtp);
-    
-    if (sent) {
-       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email OTP sent! Check your inbox.'), 
-            backgroundColor: Colors.green,
+    // Show Loading Dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("Sending Verification Email..."),
+              ],
+            ),
           ),
-        );
-       }
-    } else {
-       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send email. Dev OTP: $_generatedEmailOtp'), 
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 10),
-          ),
-        );
-       }
-    }
-
-    _showOtpDialog(
-      target: 'email',
-      otp: _generatedEmailOtp,
-      onVerified: () {
-        setState(() => _isEmailVerified = true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email Verified Successfully!')),
-        );
-      },
+        ),
+      ),
     );
+
+    try {
+      bool sent = await EmailService().sendOtpEmail(email, _generatedEmailOtp);
+      
+      if (mounted) Navigator.pop(context); // Close loading dialog
+
+      if (sent) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Email OTP sent! Check your inbox.'), 
+              backgroundColor: Colors.green,
+            ),
+          );
+          
+          _showOtpDialog(
+            target: 'email',
+            otp: _generatedEmailOtp,
+            onVerified: () {
+              setState(() => _isEmailVerified = true);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Email Verified Successfully!')),
+              );
+            },
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to send email. Dev OTP: $_generatedEmailOtp'), 
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 10),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   void _showOtpDialog({

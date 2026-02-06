@@ -1,7 +1,8 @@
-import 'package:mailer/mailer.dart';
+import 'package:mailer/mailer.dart' as mailer;
 import 'package:mailer/smtp_server.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:ordermate/core/network/supabase_client.dart';
 
 class EmailService {
   // Singleton pattern
@@ -11,24 +12,37 @@ class EmailService {
 
   // SMTP Credentials - Fetched via getters to ensure they are read AFTER dotenv.load()
   String get smtpUsername => (dotenv.env['SMTP_EMAIL'] ?? dotenv.env['GMAIL_USERNAME'] ?? '').trim(); 
-  String get smtpPassword => (dotenv.env['SMTP_PASSWORD'] ?? dotenv.env['GMAIL_APP_PASSWORD'] ?? '').trim(); 
+  String get smtpPassword => (dotenv.env['SMTP_PASSWORD'] ?? dotenv.env['GMAIL_APP_PASSWORD'] ?? '').replaceAll(' ', '').trim(); 
 
   String get _smtpUsername => smtpUsername;
   String get _smtpPassword => smtpPassword; 
 
+  Future<bool> _sendWebEmail({
+    required String email,
+    required String subject,
+    required String html,
+  }) async {
+    try {
+      final response = await SupabaseConfig.client.functions.invoke(
+        'send-email-v2',
+        body: {
+          'email': email,
+          'subject': subject,
+          'html': html,
+          'smtp_username': _smtpUsername,
+          'smtp_password': _smtpPassword,
+        },
+      );
+      return response.status == 200;
+    } catch (e) {
+      debugPrint('Web SMTP Error: $e');
+      return false;
+    }
+  }
+
   Future<bool> sendOtpEmail(String recipientEmail, String otp) async {
-    // 1. Configure SMTP
-    // Note: Using gmail sasl auth. 
-    // If user has a different SMTP, they need to change this.
-    final smtpServer = gmail(_smtpUsername, _smtpPassword);
-    
-    // 2. Create Message
-    final message = Message()
-      ..from = Address(_smtpUsername, 'OrderMate App')
-      ..recipients.add(recipientEmail)
-      ..subject = 'OrderMate App - Your Verification Code'
-      ..text = 'Your OrderMate App verification code is: $otp. It is valid for 10 minutes.'
-      ..html = """
+    const subject = 'OrderMate App - Your Verification Code';
+    final html = """
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #2196F3;">OrderMate App Verification</h2>
           <p>Hello,</p>
@@ -40,11 +54,23 @@ class EmailService {
         </div>
       """;
 
+    if (kIsWeb) {
+      return _sendWebEmail(email: recipientEmail, subject: subject, html: html);
+    }
+
+    final smtpServer = gmail(_smtpUsername, _smtpPassword);
+    final message = mailer.Message()
+      ..from = mailer.Address(_smtpUsername, 'OrderMate App')
+      ..recipients.add(recipientEmail)
+      ..subject = subject
+      ..text = 'Your OrderMate App verification code is: $otp. It is valid for 10 minutes.'
+      ..html = html;
+
     try {
-      final sendReport = await send(message, smtpServer);
+      final sendReport = await mailer.send(message, smtpServer);
       debugPrint('Message sent: $sendReport');
       return true;
-    } on MailerException catch (e) {
+    } on mailer.MailerException catch (e) {
       debugPrint('Message not sent.');
       for (var p in e.problems) {
         debugPrint('Problem: ${p.code}: ${p.msg}');
@@ -54,13 +80,8 @@ class EmailService {
   }
 
   Future<bool> sendWelcomeEmail(String recipientEmail, String employeeName, String role) async {
-    final smtpServer = gmail(_smtpUsername, _smtpPassword);
-    
-    final message = Message()
-      ..from = Address(_smtpUsername, 'OrderMate App')
-      ..recipients.add(recipientEmail)
-      ..subject = 'Welcome to OrderMate - Your Account is Ready'
-      ..html = """
+    const subject = 'Welcome to OrderMate - Your Account is Ready';
+    final html = """
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #4CAF50;">Welcome to OrderMate, $employeeName!</h2>
           <p>Your account has been created successfully with the role of <strong>$role</strong>.</p>
@@ -74,8 +95,19 @@ class EmailService {
         </div>
       """;
 
+    if (kIsWeb) {
+      return _sendWebEmail(email: recipientEmail, subject: subject, html: html);
+    }
+
+    final smtpServer = gmail(_smtpUsername, _smtpPassword);
+    final message = mailer.Message()
+      ..from = mailer.Address(_smtpUsername, 'OrderMate App')
+      ..recipients.add(recipientEmail)
+      ..subject = subject
+      ..html = html;
+
     try {
-      await send(message, smtpServer);
+      await mailer.send(message, smtpServer);
       return true;
     } catch (e) {
       debugPrint('Error sending welcome email: $e');
@@ -84,13 +116,8 @@ class EmailService {
   }
 
   Future<bool> sendCredentialsEmail(String recipientEmail, String employeeName, String password, String loginUrl) async {
-    final smtpServer = gmail(_smtpUsername, _smtpPassword);
-    
-    final message = Message()
-      ..from = Address(_smtpUsername, 'OrderMate App')
-      ..recipients.add(recipientEmail)
-      ..subject = 'OrderMate App - Your Login Credentials'
-      ..html = """
+    const subject = 'OrderMate App - Your Login Credentials';
+    final html = """
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px; margin: auto;">
           <h2 style="color: #2196F3;">Welcome to OrderMate, $employeeName!</h2>
           <p>Your account has been set up. Please use the following credentials to log in and then set your permanent password.</p>
@@ -114,8 +141,19 @@ class EmailService {
         </div>
       """;
 
+    if (kIsWeb) {
+      return _sendWebEmail(email: recipientEmail, subject: subject, html: html);
+    }
+
+    final smtpServer = gmail(_smtpUsername, _smtpPassword);
+    final message = mailer.Message()
+      ..from = mailer.Address(_smtpUsername, 'OrderMate App')
+      ..recipients.add(recipientEmail)
+      ..subject = subject
+      ..html = html;
+
     try {
-      final sendReport = await send(message, smtpServer);
+      final sendReport = await mailer.send(message, smtpServer);
       debugPrint('Credentials email sent: $sendReport');
       return true;
     } catch (e) {
