@@ -170,6 +170,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', name: RouteNames.splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: '/login', name: RouteNames.login, builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', name: RouteNames.register, builder: (_, __) => const RegisterScreen()),
+      GoRoute(path: '/signup', redirect: (_, __) => '/register'),
       GoRoute(path: '/reset-password', name: RouteNames.resetPassword, builder: (_, __) => const ResetPasswordScreen()),
       GoRoute(path: '/organizations', redirect: (context, state) => '/organizations-list'),
       GoRoute(path: '/onboarding', redirect: (context, state) => state.fullPath == '/onboarding' ? '/onboarding/organization' : null, routes: [

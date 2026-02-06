@@ -962,16 +962,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("Don't have an account? ", 
-                                    style: TextStyle(color: isDark ? Colors.grey : Colors.black),
+                                  Text(
+                                    AppLocalizations.of(context)?.get('no_account') ?? "Don't have an account?",
+                                    style: TextStyle(
+                                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                  GestureDetector(
+                                  const SizedBox(width: 4),
+                                  InkWell(
                                     onTap: () => context.push('/register'),
-                                    child: const Text(
-                                      'Sign Up',
-                                      style: TextStyle(
-                                        color: AppColors.loginGradientStart,
-                                        fontWeight: FontWeight.bold,
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      child: Text(
+                                        AppLocalizations.of(context)?.get('sign_up') ?? 'Sign Up',
+                                        style: const TextStyle(
+                                          color: AppColors.loginGradientStart,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
                                       ),
                                     ),
                                   ),
