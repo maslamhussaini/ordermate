@@ -106,8 +106,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final authRedirect = authGuard(context, state, settings.landingPage, auth);
       if (authRedirect != null) return authRedirect;
 
-      // 3. Logic for Logged In Users
-      if (!auth.isLoggedIn) return '/login';
+      // 3. Logic for Logged In Users (Redirect to login covered by authGuard)
+      if (!auth.isLoggedIn) return null;
 
       // 4. Workspace Selection check (Org, Store, Year) 
       // Mandatory before dashboard access

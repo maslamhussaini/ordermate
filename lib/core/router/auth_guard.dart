@@ -7,7 +7,7 @@ String? authGuard(BuildContext context, GoRouterState state, String landingPage,
   final isAuthenticated = auth.isLoggedIn;
   final isGoingToLogin = state.matchedLocation == '/login';
   final isGoingToSplash = state.matchedLocation == '/splash';
-  final isGoingToRegister = state.matchedLocation == '/register';
+  final isGoingToRegister = state.matchedLocation == '/register' || state.matchedLocation == '/signup';
   final isGoingToOnboarding = state.matchedLocation.startsWith('/onboarding');
   final isGoingToResetPassword = state.matchedLocation == '/reset-password';
 
