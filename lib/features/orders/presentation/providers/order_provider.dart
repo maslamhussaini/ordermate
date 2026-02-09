@@ -214,8 +214,9 @@ class OrderNotifier extends StateNotifier<OrderState> {
         rethrow;
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         state = state.copyWith(isLoading: false, error: e.toString());
+      }
       rethrow;
     }
   }
@@ -404,8 +405,9 @@ class OrderNotifier extends StateNotifier<OrderState> {
           rethrow;
         }
       }
-      if (mounted)
+      if (mounted) {
         state = state.copyWith(isLoading: false, error: e.toString());
+      }
       rethrow;
     }
   }

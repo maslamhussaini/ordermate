@@ -58,9 +58,10 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
   Future<void> _removeDuplicates() async {
     final customers = ref.read(businessPartnerProvider).customers;
     if (customers.isEmpty) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No customers to check.')));
+      }
       return;
     }
 
@@ -292,8 +293,9 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
     if (mounted) {
       if (!isCancelled) {
         await Future.delayed(const Duration(milliseconds: 800));
-        if (mounted)
+        if (mounted) {
           Navigator.of(context, rootNavigator: true).pop(); // Close progress
+        }
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -147,8 +147,9 @@ class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) return 'Required';
-                        if (int.tryParse(value) == null)
+                        if (int.tryParse(value) == null) {
                           return 'Enter a valid number';
+                        }
                         return null;
                       },
                     ),

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:ordermate/features/inventory/domain/entities/stock_transfer.dart';
 import 'package:ordermate/features/inventory/presentation/providers/stock_transfer_provider.dart';
-import 'package:ordermate/features/orders/domain/entities/order.dart';
 import 'package:ordermate/features/orders/presentation/providers/order_provider.dart';
 import 'package:ordermate/features/products/presentation/providers/product_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
@@ -55,8 +53,9 @@ class _InventoryGeneralJournalReportScreenState
     // 2. Process Stock Transfers
     for (final t in transfers) {
       if (t.transferDate.isBefore(_startDate) ||
-          t.transferDate.isAfter(_endDate.add(const Duration(days: 1))))
+          t.transferDate.isAfter(_endDate.add(const Duration(days: 1)))) {
         continue;
+      }
 
       // Filter by Store if selected
       // A transfer involves two stores: Source (Out) and Destination (In)
@@ -67,8 +66,9 @@ class _InventoryGeneralJournalReportScreenState
       if (!involvesSelectedStore) continue;
 
       for (final item in t.items) {
-        if (_selectedProductId != null && item.productId != _selectedProductId)
+        if (_selectedProductId != null && item.productId != _selectedProductId) {
           continue;
+        }
 
         // Out from Source
         if (_selectedStoreId == null || t.sourceStoreId == _selectedStoreId) {
@@ -106,14 +106,17 @@ class _InventoryGeneralJournalReportScreenState
     for (final o in orders) {
       // Filter Date
       if (o.orderDate.isBefore(_startDate) ||
-          o.orderDate.isAfter(_endDate.add(const Duration(days: 1)))) continue;
+          o.orderDate.isAfter(_endDate.add(const Duration(days: 1)))) {
+        continue;
+      }
 
       // Filter Store (Orders usually belong to one store)
       if (_selectedStoreId != null && o.storeId != _selectedStoreId) continue;
 
       for (final line in o.items) {
-        if (_selectedProductId != null && line.productId != _selectedProductId)
+        if (_selectedProductId != null && line.productId != _selectedProductId) {
           continue;
+        }
 
         double qtyIn = 0;
         double qtyOut = 0;
@@ -166,10 +169,11 @@ class _InventoryGeneralJournalReportScreenState
     );
     if (picked != null) {
       setState(() {
-        if (isStart)
+        if (isStart) {
           _startDate = picked;
-        else
+        } else {
           _endDate = picked;
+        }
       });
     }
   }
@@ -194,7 +198,7 @@ class _InventoryGeneralJournalReportScreenState
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
-                          value: _selectedStoreId,
+                          initialValue: _selectedStoreId,
                           decoration: const InputDecoration(
                               labelText: 'Store',
                               isDense: true,
@@ -212,7 +216,7 @@ class _InventoryGeneralJournalReportScreenState
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _selectedProductId,
+                          initialValue: _selectedProductId,
                           decoration: const InputDecoration(
                               labelText: 'Product',
                               isDense: true,

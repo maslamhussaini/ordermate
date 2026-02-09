@@ -13,13 +13,30 @@ class AppMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
 
-    // Filter by Role AND DB-Driven Permission (Read Access)
-    final menuItems = appRoutes
-        .where((r) =>
-            r.roles.contains(auth.role) &&
-            r.showInMenu &&
-            auth.can(r.module, Permission.read))
-        .toList();
+    final orgState = ref.watch(organizationProvider);
+    final selectedOrg = orgState.selectedOrganization;
+ 
+    // Filter by Role AND DB-Driven Permission (Read Access) AND Org Module Settings
+    final menuItems = appRoutes.where((r) {
+      // 1. Basic role/visibility/permission checks
+      final isBasicAllowed = r.roles.contains(auth.role) &&
+          r.showInMenu &&
+          auth.can(r.module, Permission.read);
+      if (!isBasicAllowed) return false;
+ 
+      // 2. Org Module Level filtering
+      if (selectedOrg == null) return true; // Show all if no org yet (e.g. superuser)
+ 
+      if (r.module == 'accounting' && !selectedOrg.isGL) return false;
+      if (r.module == 'orders' && !selectedOrg.isSales) return false;
+      if (r.module == 'invoices' && !selectedOrg.isSales) return false;
+      if (r.module == 'products' && !selectedOrg.isInventory) return false;
+      if (r.module == 'inventory' && !selectedOrg.isInventory) return false;
+      if (r.module == 'vendors' && !selectedOrg.isInventory) return false;
+      if (r.module == 'employees' && !selectedOrg.isHR) return false;
+ 
+      return true;
+    }).toList();
 
     return Drawer(
       child: Column(

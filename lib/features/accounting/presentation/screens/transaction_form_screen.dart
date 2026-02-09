@@ -211,9 +211,10 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                   resolveModuleId(values['offset_account_id']);
             }
 
-            if (accountId.isEmpty)
+            if (accountId.isEmpty) {
               throw Exception(
                   "Selected entity does not have a linked GL Account");
+            }
 
             final transaction = Transaction(
               id: widget.transaction?.id ?? const Uuid().v4(),

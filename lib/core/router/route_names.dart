@@ -65,6 +65,7 @@ class RouteNames {
   static const workspaceSelection = 'workspace-selection';
   static const organizationCreate = 'organization-create';
   static const organizationEdit = 'organization-edit';
+  static const moduleAccess = 'module-access';
 
   // Stores
   static const stores = 'stores';

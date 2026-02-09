@@ -58,9 +58,10 @@ class AppLocalizations {
       'forgot_password': 'Mot de passe oublié?',
       'login_with_biometrics': 'Connexion biométrique',
       'tap_to_authenticate': 'Appuyez pour authentifier',
-      'select_workspace': 'Sélectionner l\'espace de travail',
+      'workspace_configuration': 'Configuration de l\'espace de travail',
       'organization': 'Organisation',
       'store_branch': 'Magasin / Succursale',
+      'financial_year': 'Année financière',
       'continue_to_dashboard': 'Continuer vers le tableau de bord',
 
       // Settings
@@ -114,6 +115,8 @@ class AppLocalizations {
       'recent_changes': 'Changements récents',
       'day_summary': 'Résumé de la journée',
       'sales_manager': 'Directeur des ventes',
+      'no_account': 'Vous n\'avez pas de compte ?',
+      'sign_up': 'S\'inscrire',
     },
     'es': {
       'title': 'OrderMate',
@@ -160,9 +163,10 @@ class AppLocalizations {
       'forgot_password': '¿Olvidó su contraseña?',
       'login_with_biometrics': 'Iniciar sesión con biometría',
       'tap_to_authenticate': 'Toque para autenticar',
-      'select_workspace': 'Seleccionar espacio de trabajo',
+      'workspace_configuration': 'Configuración del espacio de trabajo',
       'organization': 'Organización',
       'store_branch': 'Tienda / Rama',
+      'financial_year': 'Año financiero',
       'continue_to_dashboard': 'Continuar al tablero',
 
       // Settings
@@ -216,6 +220,8 @@ class AppLocalizations {
       'recent_changes': 'Cambios recientes',
       'day_summary': 'Resumen del día',
       'sales_manager': 'Gerente de ventas',
+      'no_account': '¿No tienes una cuenta?',
+      'sign_up': 'Regístrate',
     },
     'en': {
       'title': 'OrderMate',
@@ -263,10 +269,10 @@ class AppLocalizations {
       'login_with_biometrics': 'Login with Biometrics',
       'tap_to_authenticate': 'Tap to Authenticate',
       'select_workspace': 'Select Workspace',
-      'workspace_configuration': 'workspace_configuration',
+      'workspace_configuration': 'Workspace Configuration',
       'organization': 'Organization',
       'store_branch': 'Store / Branch',
-      'financial_year': 'financial_year',
+      'financial_year': 'Financial Year',
       'continue_to_dashboard': 'Continue to Dashboard',
 
       // Settings
@@ -320,6 +326,8 @@ class AppLocalizations {
       'recent_changes': 'Recent Changes',
       'day_summary': 'Day Summary',
       'sales_manager': 'Sales Manager',
+      'no_account': "Don't have an account?",
+      'sign_up': 'Sign Up',
     },
   };
 

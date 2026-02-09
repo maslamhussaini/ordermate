@@ -288,8 +288,9 @@ class _PrivilegeManagementScreenState
   void _toggleStoreAccess(int storeId, bool value) {
     setState(() {
       if (value) {
-        if (!_pendingStoreChanges.contains(storeId))
+        if (!_pendingStoreChanges.contains(storeId)) {
           _pendingStoreChanges.add(storeId);
+        }
       } else {
         _pendingStoreChanges.remove(storeId);
       }
@@ -404,9 +405,27 @@ class _PrivilegeManagementScreenState
       isImmutable = roleName == 'SUPER USER' || roleName == 'OWNER';
     }
 
+    final orgState = ref.watch(organizationProvider);
+    final selectedOrg = orgState.selectedOrganization;
+ 
     final formsByModule = <String, List<Map<String, dynamic>>>{};
     for (var form in state.appForms) {
       final module = form['module_name'] ?? 'Other';
+ 
+      // Filter by Org Module settings
+      if (selectedOrg != null) {
+        final lowerModule = module.toLowerCase();
+        if (lowerModule == 'accounting' && !selectedOrg.isGL) continue;
+        if (lowerModule == 'sales' && !selectedOrg.isSales) continue;
+        if (lowerModule == 'orders' && !selectedOrg.isSales) continue;
+        if (lowerModule == 'invoices' && !selectedOrg.isSales) continue;
+        if (lowerModule == 'products' && !selectedOrg.isInventory) continue;
+        if (lowerModule == 'inventory' && !selectedOrg.isInventory) continue;
+        if (lowerModule == 'vendors' && !selectedOrg.isInventory) continue;
+        if (lowerModule == 'suppliers' && !selectedOrg.isInventory) continue;
+        if (lowerModule == 'employees' && !selectedOrg.isHR) continue;
+      }
+ 
       formsByModule.putIfAbsent(module, () => []).add(form);
     }
 
@@ -686,23 +705,7 @@ class _PrivilegeManagementScreenState
       bool isImmutable) {
     return [
       Text(
-        'Form Privileges for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ' +
-            (_viewMode == 'role'
-                ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId,
-                    orElse: () => {'role_name': 'Unknown'})['role_name'])
-                : (state.appUsers
-                        .cast<AppUser>()
-                        .firstWhere((u) => u.id == _selectedEmployeeId,
-                            orElse: () => AppUser(
-                                id: '',
-                                businessPartnerId: '',
-                                email: 'Unknown',
-                                roleId: 0,
-                                organizationId: 0,
-                                storeId: 0,
-                                updatedAt: DateTime.now()))
-                        .fullName ??
-                    'Unknown')),
+        'Form Privileges for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ${_viewMode == 'role' ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId, orElse: () => {'role_name': 'Unknown'})['role_name']) : (state.appUsers.cast<AppUser>().firstWhere((u) => u.id == _selectedEmployeeId, orElse: () => AppUser(id: '', businessPartnerId: '', email: 'Unknown', roleId: 0, organizationId: 0, storeId: 0, updatedAt: DateTime.now())).fullName ?? 'Unknown')}',
         style: (isMobile
                 ? Theme.of(context).textTheme.titleMedium
                 : Theme.of(context).textTheme.headlineSmall)
@@ -782,7 +785,7 @@ class _PrivilegeManagementScreenState
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(

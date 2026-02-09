@@ -69,6 +69,7 @@ class StepIndicator extends StatelessWidget {
                       Text(
                         stepLabels[stepIndex],
                         textAlign: TextAlign.center,
+                        softWrap: false,
                         style: TextStyle(
                           fontSize: 10,
                           color:

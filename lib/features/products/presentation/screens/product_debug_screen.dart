@@ -255,13 +255,17 @@ class _ProductDebugScreenState extends ConsumerState<ProductDebugScreen> {
 
                     await ref.read(productProvider.notifier).addProduct(p);
                     _addLog('SUCCESS: Product saved!');
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content:
-                            Text('Saved successfully! Check Product List.')));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content:
+                              Text('Saved successfully! Check Product List.')));
+                    }
                   } catch (e) {
                     _addLog('FAILURE: Save failed: $e');
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text('Failed: $e')));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text('Failed: $e')));
+                    }
                   }
                 },
               ),

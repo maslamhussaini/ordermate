@@ -170,4 +170,51 @@ class EmailService {
       return false;
     }
   }
+ 
+  Future<bool> sendModuleConfigurationEmail({
+    required String recipientEmail,
+    required String orgName,
+    required String businessType,
+    required String moduleConfigUrl,
+  }) async {
+    const subject = 'OrderMate - Module Configuration';
+    final html = """
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px; margin: auto;">
+          <h2 style="color: #2196F3;">Module Configuration</h2>
+          <p>Hello,</p>
+          <p>Your organization <strong>$orgName</strong> has been successfully initiated in OrderMate.</p>
+          <p><strong>Business Type:</strong> $businessType</p>
+          
+          <p style="margin-top: 25px;">You can configuration your modules and permissions using the link below:</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="$moduleConfigUrl" style="background-color: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Configure Modules & More</a>
+          </div>
+          
+          <p style="color: #666; font-size: 14px;">If you have any questions, please contact your administrator or OrderMate support.</p>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="font-size: 12px; color: #999; text-align: center;">Sent safely via OrderMate App</p>
+        </div>
+      """;
+ 
+    if (kIsWeb) {
+      return _sendWebEmail(email: recipientEmail, subject: subject, html: html);
+    }
+ 
+    final smtpServer = gmail(_smtpUsername, _smtpPassword);
+    final message = mailer.Message()
+      ..from = mailer.Address(_smtpUsername, 'OrderMate App')
+      ..recipients.add(recipientEmail)
+      ..subject = subject
+      ..html = html;
+ 
+    try {
+      await mailer.send(message, smtpServer);
+      return true;
+    } catch (e) {
+      debugPrint('Error sending module config email: $e');
+      return false;
+    }
+  }
 }

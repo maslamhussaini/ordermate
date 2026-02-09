@@ -344,8 +344,9 @@ class OrderRepositoryImpl implements OrderRepository {
           .gte('order_date', start.toIso8601String())
           .lte('order_date', end.toIso8601String());
 
-      if (organizationId != null)
+      if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
+      }
       if (storeId != null) query = query.eq('store_id', storeId);
 
       final response = await query

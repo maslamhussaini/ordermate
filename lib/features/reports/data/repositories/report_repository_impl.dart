@@ -799,8 +799,9 @@ class ReportRepositoryImpl implements ReportRepository {
   Future<List<int>> _getInvoiceTypeIds(String prefix,
       {int? organizationId}) async {
     var query = _supabase.from('omtbl_invoice_types').select('id_invoice_type');
-    if (organizationId != null)
+    if (organizationId != null) {
       query = query.eq('organization_id', organizationId);
+    }
     final res = await query.eq('for_used', prefix);
     return (res as List).map((e) => e['id_invoice_type'] as int).toList();
   }

@@ -42,6 +42,7 @@ import 'package:ordermate/features/organization/presentation/screens/organizatio
 import 'package:ordermate/features/organization/presentation/screens/workspace_selection_screen.dart';
 import 'package:ordermate/features/settings/presentation/screens/settings_screen.dart';
 import 'package:ordermate/features/settings/presentation/screens/printer_setup_screen.dart';
+import 'package:ordermate/features/organization/presentation/screens/module_access_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/brand_form_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/category_form_screen.dart';
 import 'package:ordermate/features/inventory/presentation/screens/product_type_form_screen.dart';
@@ -581,6 +582,21 @@ final List<AppRoute> organizationRoutes = [
     roles: [UserRole.admin, UserRole.staff],
     showInMenu: false,
     builder: (_, __) => const WorkspaceSelectionScreen(),
+  ),
+  AppRoute(
+    path: '/module-access',
+    title: 'Module Access',
+    routeName: RouteNames.moduleAccess,
+    module: 'dashboard',
+    showInMenu: false,
+    roles: [UserRole.superUser, UserRole.admin], // Restricted
+    builder: (_, state) {
+      final orzid = state.uri.queryParameters['orzid'] ?? '';
+      if (orzid.isEmpty) {
+        return const Scaffold(body: Center(child: Text('Organization ID required')));
+      }
+      return ModuleAccessScreen(orgId: orzid);
+    },
   ),
 ];
 

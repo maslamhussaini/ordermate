@@ -90,8 +90,9 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen>
         final orgId = ref.read(organizationProvider).selectedOrganizationId;
         final storeId = ref.read(organizationProvider).selectedStore?.id;
 
-        if (orgId == null || storeId == null)
+        if (orgId == null || storeId == null) {
           throw Exception('Organization or Store not selected');
+        }
 
         // 1. Get Voucher Prefix for Receipt
         final prefix = state.voucherPrefixes.firstWhere(
@@ -113,8 +114,9 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen>
 
         // 3. Get Sub-Ledger (Offset Account) - The Customer
         final customerCOAId = _customer?.chartOfAccountId;
-        if (customerCOAId == null)
+        if (customerCOAId == null) {
           throw Exception('Customer has no linked Chart of Account');
+        }
 
         // 4. Create Transaction
         // Dr Bank/Cash Account (accountId)

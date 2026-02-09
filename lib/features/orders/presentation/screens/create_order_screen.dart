@@ -1111,8 +1111,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                                       WidgetStateProperty.resolveWith<Color?>(
                                           (Set<WidgetState> states) {
                                     // Highlight row if currently being edited
-                                    if (_editingItemIndex == index)
+                                    if (_editingItemIndex == index) {
                                       return Colors.indigo.withAlpha(26);
+                                    }
                                     return null;
                                   }),
                                   cells: [

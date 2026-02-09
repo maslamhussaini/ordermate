@@ -672,9 +672,10 @@ class _InvoiceEntryScreenState extends ConsumerState<InvoiceEntryScreen> {
                                     (BusinessPartner option) => option.name,
                                 optionsBuilder:
                                     (TextEditingValue textEditingValue) {
-                                  if (textEditingValue.text.isEmpty)
+                                  if (textEditingValue.text.isEmpty) {
                                     return const Iterable<
                                         BusinessPartner>.empty();
+                                  }
                                   return partnerState.customers
                                       .where((BusinessPartner option) {
                                     return option.name.toLowerCase().contains(
@@ -843,8 +844,9 @@ class _InvoiceEntryScreenState extends ConsumerState<InvoiceEntryScreen> {
                                     option.name,
                                 optionsBuilder:
                                     (TextEditingValue textEditingValue) {
-                                  if (textEditingValue.text.isEmpty)
+                                  if (textEditingValue.text.isEmpty) {
                                     return const Iterable<Product>.empty();
+                                  }
                                   return productState.products
                                       .where((Product option) {
                                     return option.name.toLowerCase().contains(
@@ -1068,8 +1070,9 @@ class _InvoiceEntryScreenState extends ConsumerState<InvoiceEntryScreen> {
                                       return DataRow(
                                         color: WidgetStateProperty.resolveWith<
                                             Color?>((states) {
-                                          if (_editingItemIndex == index)
+                                          if (_editingItemIndex == index) {
                                             return Colors.indigo.withAlpha(26);
+                                          }
                                           return null;
                                         }),
                                         cells: [

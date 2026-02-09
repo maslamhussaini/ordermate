@@ -406,8 +406,9 @@ Future<Uint8List> _generatePdf(InvoiceData data) async {
 
     List<pw.Widget> addressChildren = [];
     if (addressWidget != null) addressChildren.add(addressWidget);
-    if (data.settings.phonePosition == 'below_address' && phoneWidget != null)
+    if (data.settings.phonePosition == 'below_address' && phoneWidget != null) {
       addressChildren.add(phoneWidget);
+    }
     final pw.Widget? addressBlock = addressChildren.isNotEmpty
         ? pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -416,8 +417,9 @@ Future<Uint8List> _generatePdf(InvoiceData data) async {
 
     List<pw.Widget> storeChildren = [];
     if (storeWidget != null) storeChildren.add(storeWidget);
-    if (data.settings.addressPosition == 'below_store' && addressBlock != null)
+    if (data.settings.addressPosition == 'below_store' && addressBlock != null) {
       storeChildren.add(addressBlock);
+    }
     final pw.Widget? storeBlock = storeChildren.isNotEmpty
         ? pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -426,8 +428,9 @@ Future<Uint8List> _generatePdf(InvoiceData data) async {
 
     List<pw.Widget> orgChildren = [];
     if (orgWidget != null) orgChildren.add(orgWidget);
-    if (data.settings.storeNamePosition == 'below_org' && storeBlock != null)
+    if (data.settings.storeNamePosition == 'below_org' && storeBlock != null) {
       orgChildren.add(storeBlock);
+    }
     final pw.Widget? orgBlock = orgChildren.isNotEmpty
         ? pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -474,8 +477,9 @@ Future<Uint8List> _generatePdf(InvoiceData data) async {
 
     if (data.settings.storeNamePosition == 'right_invoice') {
       addToKey('right', storeWidget);
-      if (data.settings.addressPosition == 'below_store')
+      if (data.settings.addressPosition == 'below_store') {
         addToKey('right', addressBlock);
+      }
     }
 
     if (data.settings.addressPosition == 'top_right') {

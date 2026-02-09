@@ -51,10 +51,12 @@ class StockTransferRepositoryImpl implements StockTransferRepository {
               .eq('transfer_id', t.id);
 
           final items = (itemsResponse as List).map((i) {
-            if (i['omtbl_products'] != null)
+            if (i['omtbl_products'] != null) {
               i['product_name'] = i['omtbl_products']['name'];
-            if (i['omtbl_units_of_measure'] != null)
+            }
+            if (i['omtbl_units_of_measure'] != null) {
               i['uom_symbol'] = i['omtbl_units_of_measure']['unit_symbol'];
+            }
             return StockTransferItem.fromJson(i);
           }).toList();
 

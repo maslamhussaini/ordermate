@@ -7,6 +7,8 @@ import 'package:ordermate/features/organization/presentation/providers/organizat
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/widgets/step_indicator.dart';
+import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
+import 'package:ordermate/core/services/email_service.dart';
 
 class OrganizationSetupScreen extends ConsumerStatefulWidget {
   final Map<String, String> userData;
@@ -32,10 +34,25 @@ class _OrganizationSetupScreenState
   final _contactPersonController = TextEditingController();
 
   bool _hasMultipleBranch = false;
+  int? _selectedBusinessTypeId;
+  bool _isGL = true;
+  bool _isSales = true;
+  bool _isInventory = true;
+  bool _isHR = true;
+  final bool _isSettings = true;
   bool _isLoading = false;
   XFile? _pickedFile;
   Uint8List? _previewBytes;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _orgNameController.text = widget.userData['organization_name'] ?? '';
+    // Load business types
+    Future.microtask(() =>
+        ref.read(businessPartnerProvider.notifier).loadBusinessTypes());
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -66,9 +83,17 @@ class _OrganizationSetupScreenState
 
   void _onNext() async {
     if (!_formKey.currentState!.validate()) return;
-
+ 
     final orgName = _orgNameController.text.trim();
+    final bpState = ref.read(businessPartnerProvider);
+    final businessType = bpState.businessTypes.firstWhere(
+        (t) => t['id'] == _selectedBusinessTypeId,
+        orElse: () => {'business_type': 'Unknown'})['business_type'];
+ 
+    final email = widget.userData['email'] ?? '';
+ 
 
+ 
     if (_hasMultipleBranch) {
       context.push('/onboarding/store', extra: {
         'userData': widget.userData,
@@ -77,6 +102,12 @@ class _OrganizationSetupScreenState
           'hasMultipleBranch': 'true',
           'logoBytes': _previewBytes,
           'logoName': _pickedFile?.name,
+          'businessTypeId': _selectedBusinessTypeId,
+          'isGL': _isGL,
+          'isSales': _isSales,
+          'isInventory': _isInventory,
+          'isHR': _isHR,
+          'isSettings': _isSettings,
         }
       });
     } else {
@@ -145,6 +176,12 @@ class _OrganizationSetupScreenState
           .insert({
             'name': orgName,
             'logo_url': logoUrl,
+            'business_type_id': _selectedBusinessTypeId,
+            'is_gl': _isGL,
+            'is_sales': _isSales,
+            'is_inventory': _isInventory,
+            'is_hr': _isHR,
+            'is_settings': _isSettings,
           })
           .select()
           .single();
@@ -169,6 +206,23 @@ class _OrganizationSetupScreenState
         'organization_id': orgId,
         'role': 'owner',
       }).eq('auth_id', authResponse.user!.id);
+
+      // Send Module Configuration Email with Deep Link
+      try {
+        final link = 'https://ordermate-v619.vercel.app/module-access?orzid=$orgId';
+        final businessTypeName = ref.read(businessPartnerProvider).businessTypes.firstWhere(
+            (t) => t['id'] == _selectedBusinessTypeId,
+            orElse: () => {'business_type': 'Unknown'})['business_type'];
+            
+        EmailService().sendModuleConfigurationEmail(
+          recipientEmail: 'maslamhussaini@gmail.com',
+          orgName: orgName,
+          businessType: businessTypeName ?? 'Unknown',
+          moduleConfigUrl: link,
+        );
+      } catch (e) {
+        debugPrint('Email sending failed: $e');
+      }
 
       if (mounted) {
         context.push('/onboarding/team', extra: {
@@ -271,14 +325,58 @@ class _OrganizationSetupScreenState
                           ),
                         ),
                         const SizedBox(height: 20),
-                        _buildLabel('Organization Name'),
-                        const SizedBox(height: 8),
+                        _buildLabel('Business Information'),
+                        const SizedBox(height: 16),
                         _buildTextField(
-                          controller: _orgNameController,
-                          hint: 'Enter organization name',
-                          icon: Icons.business,
+                            controller: _orgNameController,
+                            hint: 'Organization Name',
+                            icon: Icons.business),
+                        const SizedBox(height: 12),
+                        // Business Type Dropdown
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final bpState = ref.watch(businessPartnerProvider);
+                            final businessTypes = bpState.businessTypes;
+ 
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: Colors.grey.shade300, width: 1.5),
+                              ),
+                              child: DropdownButtonFormField<int>(
+                                initialValue: _selectedBusinessTypeId,
+                                decoration: const InputDecoration(
+                                  prefixIcon: Icon(Icons.category,
+                                      color: AppColors.loginGradientStart),
+                                  border: InputBorder.none,
+                                  hintText: 'Select Business Type',
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                ),
+                                items: businessTypes.map((type) {
+                                  return DropdownMenuItem<int>(
+                                    value: type['id'] as int,
+                                    child: Text(
+                                        type['business_type']?.toString() ??
+                                            'Unknown'),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedBusinessTypeId = val;
+                                  });
+                                },
+                                validator: (val) =>
+                                    val == null ? 'Required' : null,
+                              ),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
+
+                        const SizedBox(height: 16),
                         Theme(
                           data: Theme.of(context).copyWith(
                             switchTheme: SwitchThemeData(
@@ -390,6 +488,8 @@ class _OrganizationSetupScreenState
     );
   }
 
+
+ 
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),

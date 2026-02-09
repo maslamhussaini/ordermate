@@ -119,7 +119,9 @@ class _GLSetupScreenState extends ConsumerState<GLSetupScreen> {
 
       if (!cat.categoryName
           .toLowerCase()
-          .contains(categoryKeyword.toLowerCase())) return false;
+          .contains(categoryKeyword.toLowerCase())) {
+        return false;
+      }
 
       // Check Group/Ledger (Assuming Level 4 is Ledger as per previous comments)
       // Or if 'level' isn't sufficient, maybe I check if others have parentId == account.id? Too expensive.

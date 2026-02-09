@@ -306,10 +306,11 @@ class _CustomerInvoicesScreenState
         await accountingRepo.getGLSetup(customer.organizationId ?? 0);
 
     if (glSetup == null) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text(
                 'GL Setup not found. Please configure accounting settings.')));
+      }
       return;
     }
 

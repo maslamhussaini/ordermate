@@ -239,14 +239,15 @@ class LedgerPrinter {
       String bucket;
       if (days <= 30) {
         bucket = '1 - 30';
-      } else if (days <= 60)
+      } else if (days <= 60) {
         bucket = '31 - 60';
-      else if (days <= 90)
+      } else if (days <= 90) {
         bucket = '61 - 90';
-      else if (days <= 120)
+      } else if (days <= 120) {
         bucket = '91 - 120';
-      else
+      } else {
         bucket = '> 120';
+      }
 
       agingTotals[bucket] = (agingTotals[bucket] ?? 0) + amount;
       agingBreakdown[bucket]!.add({...inv, 'overdue_days': days, 'date': date});

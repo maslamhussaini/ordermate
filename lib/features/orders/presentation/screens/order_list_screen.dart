@@ -148,12 +148,15 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
       statusMessage.value = 'Formatting address...';
 
       // Ensure address metadata is loaded (lightweight check usually)
-      if (bpState.cities.isEmpty)
+      if (bpState.cities.isEmpty) {
         await ref.read(businessPartnerProvider.notifier).loadCities();
-      if (bpState.states.isEmpty)
+      }
+      if (bpState.states.isEmpty) {
         await ref.read(businessPartnerProvider.notifier).loadStates();
-      if (bpState.countries.isEmpty)
+      }
+      if (bpState.countries.isEmpty) {
         await ref.read(businessPartnerProvider.notifier).loadCountries();
+      }
 
       String getCityName(int? id) =>
           ref.read(businessPartnerProvider).cities.firstWhere(

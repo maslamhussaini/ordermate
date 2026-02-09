@@ -128,14 +128,16 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
     String name,
     String? taxId,
     bool hasMultipleBranches,
-    String? logoUrl,
-  ) async {
+    String? logoUrl, {
+    int? businessTypeId,
+  }) async {
     try {
       final response = await SupabaseConfig.client
           .from('omtbl_organizations')
           .insert({
             'name': name,
             'logo_url': logoUrl,
+            'business_type_id': businessTypeId,
           })
           .select()
           .single();
@@ -187,8 +189,7 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
           .eq('organization_id', organizationId)
           .order('name', ascending: true);
 
-      print(
-          'DEBUG_LOG: Fetched ${response.length} stores from Supabase: ${response.map((e) => "${e['id']}:${e['name']}").toList()}');
+
 
       final remoteStores = (response as List)
           .map((json) => StoreModel.fromJson(json as Map<String, dynamic>))

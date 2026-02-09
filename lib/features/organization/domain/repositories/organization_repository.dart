@@ -12,8 +12,9 @@ abstract class OrganizationRepository {
     String name,
     String? taxId,
     bool hasMultipleBranches,
-    String? logoUrl,
-  );
+    String? logoUrl, {
+    int? businessTypeId,
+  });
   Future<void> deleteOrganization(int id);
 
   // Logo caching

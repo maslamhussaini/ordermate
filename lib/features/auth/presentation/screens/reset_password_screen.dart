@@ -88,7 +88,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         UserAttributes(password: _passwordController.text.trim()),
       );
 
-      if (mounted) {
+      if (context.mounted) {
         // 3. Clear recovery status and logout to force fresh login with new password
         ref.read(authProvider.notifier).clearRecoveryStatus();
         await SupabaseConfig.client.auth.signOut();
@@ -202,10 +202,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       ),
                       validator: (val) {
                         if (val == null || val.isEmpty) return 'Required';
-                        if (val.length < 6)
+                        if (val.length < 6) {
                           return 'Password must be at least 6 characters';
-                        if (val == _oldPasswordController.text)
+                        }
+                        if (val == _oldPasswordController.text) {
                           return 'New password must be different';
+                        }
                         return null;
                       },
                     ),

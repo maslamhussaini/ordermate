@@ -554,8 +554,9 @@ class AccountingRepositoryImpl implements AccountingRepository {
       {int? organizationId, int? storeId, int? sYear}) async {
     try {
       var query = _supabase.from('omtbl_transactions').select();
-      if (organizationId != null)
+      if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
+      }
       if (storeId != null) query = query.eq('store_id', storeId);
       if (sYear != null) query = query.eq('syear', sYear);
       final response = await query.order('voucher_date', ascending: false);
@@ -980,8 +981,9 @@ class AccountingRepositoryImpl implements AccountingRepository {
       {int? organizationId, int? storeId, int? sYear}) async {
     try {
       var query = _supabase.from('omtbl_invoices').select();
-      if (organizationId != null)
+      if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
+      }
       if (storeId != null) query = query.eq('store_id', storeId);
       if (sYear != null) query = query.eq('syear', sYear);
       final response = await query.order('invoice_date', ascending: false);

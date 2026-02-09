@@ -108,9 +108,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   Future<void> _removeDuplicates() async {
     final products = ref.read(productProvider).products;
     if (products.isEmpty) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No products to check.')));
+      }
       return;
     }
 
@@ -214,17 +215,19 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         if (mounted) Navigator.of(context, rootNavigator: true).pop();
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isCancelled
-                ? 'Deletion Cancelled'
-                : 'Removed $successCount duplicates. ($failCount failed)',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCancelled
+                  ? 'Deletion Cancelled'
+                  : 'Removed $successCount duplicates. ($failCount failed)',
+            ),
+            backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
           ),
-          backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
-        ),
-      );
-      ref.read(productProvider.notifier).loadProducts();
+        );
+        ref.read(productProvider.notifier).loadProducts();
+      }
     }
   }
 
@@ -483,23 +486,26 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         if (mounted) {
           if (!isCancelled) {
             await Future.delayed(const Duration(milliseconds: 800));
-            if (mounted)
+            if (mounted) {
               Navigator.of(context, rootNavigator: true).pop(); // Close dialog
+            }
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                isCancelled
-                    ? 'Import Cancelled'
-                    : 'Import Complete: $success added, $duplicates duplicates, $failed failed',
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  isCancelled
+                      ? 'Import Cancelled'
+                      : 'Import Complete: $success added, $duplicates duplicates, $failed failed',
+                ),
+                backgroundColor: success > 0
+                    ? Colors.green
+                    : (duplicates > 0 ? Colors.orange : Colors.red),
               ),
-              backgroundColor: success > 0
-                  ? Colors.green
-                  : (duplicates > 0 ? Colors.orange : Colors.red),
-            ),
-          );
-          ref.read(productProvider.notifier).loadProducts();
+            );
+            ref.read(productProvider.notifier).loadProducts();
+          }
         }
       });
 

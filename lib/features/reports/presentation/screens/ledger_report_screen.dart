@@ -96,7 +96,7 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
                 const SnackBar(content: Text('Syncing server data...')),
               );
               await ref.read(syncServiceProvider).syncAll();
-              if (mounted) {
+              if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Sync complete! Refreshing...')),
                 );
@@ -134,7 +134,7 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4))
         ],
@@ -323,12 +323,12 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.indigo.withOpacity(0.15)),
+            border: Border.all(color: Colors.indigo.withValues(alpha: 0.15)),
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 4,
                   offset: const Offset(0, 2))
             ],
@@ -359,7 +359,7 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
         decoration: BoxDecoration(
           color: Colors.indigo.shade50,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.indigo.withOpacity(0.1)),
+          border: Border.all(color: Colors.indigo.withValues(alpha: 0.1)),
         ),
         child: Text(label,
             style: TextStyle(
@@ -373,61 +373,26 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
   String _getEntityCode() {
     if (_selectedEntity is BusinessPartner) return "BP";
     if (_selectedEntity is BankCash) return "BC";
-    if (_selectedEntity is ChartOfAccount)
+    if (_selectedEntity is ChartOfAccount) {
       return (_selectedEntity as ChartOfAccount).accountCode;
+    }
     return "ACC";
   }
 
   String _getEntityName() {
-    if (_selectedEntity is BusinessPartner)
+    if (_selectedEntity is BusinessPartner) {
       return (_selectedEntity as BusinessPartner).name;
+    }
     if (_selectedEntity is BankCash) return (_selectedEntity as BankCash).name;
-    if (_selectedEntity is ChartOfAccount)
+    if (_selectedEntity is ChartOfAccount) {
       return (_selectedEntity as ChartOfAccount).accountTitle;
+    }
     return "Unknown";
   }
 
-  String? _getEntityAccountId() {
-    if (_selectedEntity is BusinessPartner)
-      return (_selectedEntity as BusinessPartner).chartOfAccountId;
-    if (_selectedEntity is BankCash)
-      return (_selectedEntity as BankCash).chartOfAccountId;
-    if (_selectedEntity is ChartOfAccount)
-      return (_selectedEntity as ChartOfAccount).id;
-    return null;
-  }
 
-  Widget _buildDatePicker(
-      {required String label,
-      required DateTime value,
-      required ValueChanged<DateTime> onChanged}) {
-    return InkWell(
-      onTap: () async {
-        final date = await showDatePicker(
-          context: context,
-          initialDate: value,
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
-        );
-        if (date != null) onChanged(date);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
-            Text(DateFormat('MMM dd, yyyy').format(value)),
-          ],
-        ),
-      ),
-    );
-  }
+
+
 
   Widget _buildEntitySelector() {
     if (widget.type == 'customer' || widget.type == 'vendor') {
@@ -701,7 +666,7 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.indigo.withOpacity(0.08)),
+          side: BorderSide(color: Colors.indigo.withValues(alpha: 0.08)),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -715,7 +680,7 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
                 columnSpacing: 24,
                 horizontalMargin: 20,
                 headingRowColor: WidgetStateProperty.all(
-                    Colors.indigo.shade50.withOpacity(0.5)),
+                    Colors.indigo.shade50.withValues(alpha: 0.5)),
                 columns: const [
                   DataColumn(
                       label: Text('Date',
@@ -906,14 +871,15 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
       String bucket;
       if (days <= 30) {
         bucket = '1 - 30';
-      } else if (days <= 60)
+      } else if (days <= 60) {
         bucket = '31 - 60';
-      else if (days <= 90)
+      } else if (days <= 90) {
         bucket = '61 - 90';
-      else if (days <= 120)
+      } else if (days <= 120) {
         bucket = '91 - 120';
-      else
+      } else {
         bucket = '> 120';
+      }
 
       agingTotals[bucket] = (agingTotals[bucket] ?? 0) + amount;
       agingBreakdown[bucket]!.add(inv);
@@ -925,11 +891,11 @@ class _LedgerReportScreenState extends ConsumerState<LedgerReportScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: Colors.indigo.withOpacity(0.1)),
+        border: Border.all(color: Colors.indigo.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.indigo.withOpacity(0.04),
+              color: Colors.indigo.withValues(alpha: 0.04),
               blurRadius: 20,
               offset: const Offset(0, 8))
         ],

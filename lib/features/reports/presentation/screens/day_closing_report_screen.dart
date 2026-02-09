@@ -59,7 +59,7 @@ class _DayClosingReportScreenState
                     // Organization (Read Only if not Super Admin, but let's show it)
                     if (orgState.organizations.isNotEmpty)
                       DropdownButtonFormField<int>(
-                        value: _selectedOrganizationId,
+                        initialValue: _selectedOrganizationId,
                         decoration:
                             const InputDecoration(labelText: 'Organization'),
                         items: orgState.organizations.map((org) {
@@ -75,7 +75,7 @@ class _DayClosingReportScreenState
                     const SizedBox(height: 16),
                     // Store
                     DropdownButtonFormField<int>(
-                      value: _selectedStoreId,
+                      initialValue: _selectedStoreId,
                       decoration: const InputDecoration(labelText: 'Store'),
                       items: orgState.stores.map((store) {
                         return DropdownMenuItem<int>(
@@ -527,9 +527,10 @@ class _DayClosingReportScreenState
 
   Widget _buildDataTable(List<Map<String, dynamic>> data,
       {bool hideHeader = false}) {
-    if (data.isEmpty)
+    if (data.isEmpty) {
       return const Padding(
           padding: EdgeInsets.all(16), child: Text('No records.'));
+    }
 
     return DataTable(
       headingRowHeight: hideHeader ? 0 : 48,

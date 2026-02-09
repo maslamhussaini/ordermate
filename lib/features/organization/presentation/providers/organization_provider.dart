@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordermate/features/organization/data/repositories/organization_repository_impl.dart';
@@ -241,7 +240,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
 
   Future<Organization> createOrganization(
       String name, String? taxId, bool hasMultipleBranches,
-      {Uint8List? logoBytes, String? logoName}) async {
+      {Uint8List? logoBytes, String? logoName, int? businessTypeId}) async {
     state = state.copyWith(isLoading: true);
     try {
       String? logoUrl;
@@ -254,6 +253,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         taxId,
         hasMultipleBranches,
         logoUrl,
+        businessTypeId: businessTypeId,
       );
 
       // Trigger Accounting Setup in background
@@ -316,8 +316,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         // Corporate Admins see all stores.
         // Others (ADMIN, EMPLOYEE) might be restricted to one store.
         final role = userProfile.role.toUpperCase();
-        print(
-            'DEBUG_LOG: Check Access - Role: $role, Assigned StoreID: ${userProfile.storeId}');
+
 
         if (role != 'CORPORATE_ADMIN' &&
             role != 'ADMIN' &&
@@ -327,8 +326,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
           allowedStores =
               allStores.where((s) => s.id == userProfile.storeId).toList();
         }
-        print(
-            'DEBUG_LOG: Filter Results - All: ${allStores.length}, Allowed: ${allowedStores.length}');
+
       }
 
       // Only clear/auto-select if we have a non-empty results list
@@ -346,9 +344,7 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         }
 
         // If nothing selected, pick first
-        if (selected == null) {
-          selected = allowedStores.first;
-        }
+        selected ??= allowedStores.first;
       }
 
       if (!mounted) return;

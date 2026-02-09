@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:ordermate/features/inventory/data/models/stock_transfer_model.dart';
 import 'package:ordermate/features/inventory/domain/entities/stock_transfer.dart';
 import 'package:ordermate/features/inventory/presentation/providers/stock_transfer_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
@@ -63,10 +62,12 @@ class _StockTransferFormScreenState
       } else {
         // Fetch specific if needed (future improvement: add getTransferById to provider)
         // For now, assume state is loaded or we might fail.
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                'Error: Transfer not found locally. Please refresh list.')));
-        if (mounted) context.pop();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text(
+                  'Error: Transfer not found locally. Please refresh list.')));
+          context.pop();
+        }
         return;
       }
     } else {
@@ -175,7 +176,7 @@ class _StockTransferFormScreenState
                                                   fontWeight: FontWeight.bold)),
                                         )
                                       : DropdownButtonFormField<int>(
-                                          value: _sourceStoreId,
+                                          initialValue: _sourceStoreId,
                                           decoration: const InputDecoration(
                                               labelText: 'Source Store',
                                               prefixIcon: Icon(Icons
@@ -187,9 +188,10 @@ class _StockTransferFormScreenState
                                               .toList(),
                                           onChanged: (val) => setState(() {
                                             _sourceStoreId = val;
-                                            if (_destinationStoreId == val)
+                                            if (_destinationStoreId == val) {
                                               _destinationStoreId =
                                                   null; // Reset dest if same
+                                            }
                                           }),
                                           validator: (val) =>
                                               val == null ? 'Required' : null,
@@ -198,7 +200,7 @@ class _StockTransferFormScreenState
                                 const SizedBox(width: 16),
                                 Expanded(
                                     child: DropdownButtonFormField<int>(
-                                  value: _destinationStoreId,
+                                  initialValue: _destinationStoreId,
                                   decoration: const InputDecoration(
                                       labelText: 'Destination Store',
                                       prefixIcon: Icon(Icons.store)),
@@ -218,7 +220,7 @@ class _StockTransferFormScreenState
                               children: [
                                 Expanded(
                                   child: DropdownButtonFormField<String>(
-                                    value: _driverController.text.isNotEmpty &&
+                                    initialValue: _driverController.text.isNotEmpty &&
                                             partnerState.employees.any((e) =>
                                                 e.name ==
                                                 _driverController.text)
@@ -397,7 +399,7 @@ class _StockTransferFormScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedProductId,
+                initialValue: selectedProductId,
                 isExpanded: true,
                 hint: const Text('Select Product'),
                 items: productState.products

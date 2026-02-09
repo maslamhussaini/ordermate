@@ -271,7 +271,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       // Use tighter contains check
       if (!cat.categoryName
           .toLowerCase()
-          .contains(categoryKeyword.toLowerCase())) return false;
+          .contains(categoryKeyword.toLowerCase())) {
+        return false;
+      }
       if (account.level != 3 && account.level != 4) return false;
       return true;
     }).toList();
@@ -649,10 +651,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                         keyboardType: const TextInputType
                                             .numberWithOptions(decimal: true),
                                         validator: (v) {
-                                          if (v == null || v.isEmpty)
+                                          if (v == null || v.isEmpty) {
                                             return 'Required';
-                                          if (double.tryParse(v) == null)
+                                          }
+                                          if (double.tryParse(v) == null) {
                                             return 'Invalid';
+                                          }
                                           return null;
                                         },
                                       ),
@@ -944,7 +948,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Divider(color: Colors.indigo.withOpacity(0.2), thickness: 1),
+          Divider(color: Colors.indigo.withValues(alpha: 0.2), thickness: 1),
         ],
       ),
     );

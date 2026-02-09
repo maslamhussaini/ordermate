@@ -94,6 +94,12 @@ class _StoreSetupScreenState extends ConsumerState<StoreSetupScreen> {
           .insert({
             'name': orgName,
             'logo_url': logoUrl,
+            'business_type_id': widget.orgData['businessTypeId'],
+            'is_gl': widget.orgData['isGL'] ?? true,
+            'is_sales': widget.orgData['isSales'] ?? true,
+            'is_inventory': widget.orgData['isInventory'] ?? true,
+            'is_hr': widget.orgData['isHR'] ?? true,
+            'is_settings': widget.orgData['isSettings'] ?? true,
           })
           .select()
           .single();

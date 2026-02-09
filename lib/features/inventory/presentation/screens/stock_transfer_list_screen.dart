@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:ordermate/features/inventory/domain/entities/stock_transfer.dart';
 import 'package:ordermate/features/inventory/presentation/providers/stock_transfer_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
-import 'package:ordermate/core/router/route_names.dart';
 
 class StockTransferListScreen extends ConsumerStatefulWidget {
   const StockTransferListScreen({super.key});

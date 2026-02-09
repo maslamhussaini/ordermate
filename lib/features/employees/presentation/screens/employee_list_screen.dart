@@ -46,9 +46,10 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
     // Assuming yes based on previous code.
 
     if (employees.isEmpty) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No employees to check.')));
+      }
       return;
     }
 

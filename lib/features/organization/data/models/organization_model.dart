@@ -10,6 +10,12 @@ class OrganizationModel extends Organization {
     super.isActive,
     super.logoUrl,
     super.storeCount,
+    super.businessTypeId,
+    super.isGL,
+    super.isSales,
+    super.isInventory,
+    super.isHR,
+    super.isSettings,
   });
 
   factory OrganizationModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +43,12 @@ class OrganizationModel extends Organization {
           DateTime.now(),
       logoUrl: json['logo_url']?.toString(),
       storeCount: count,
+      businessTypeId: json['business_type_id'] as int?,
+      isGL: json['is_gl'] as bool? ?? false,
+      isSales: json['is_sales'] as bool? ?? false,
+      isInventory: json['is_inventory'] as bool? ?? false,
+      isHR: json['is_hr'] as bool? ?? false,
+      isSettings: json['is_settings'] as bool? ?? true,
     );
   }
 
@@ -50,6 +62,12 @@ class OrganizationModel extends Organization {
       'updated_at': updatedAt.toIso8601String(),
       'logo_url': logoUrl,
       'store_count': storeCount,
+      'business_type_id': businessTypeId,
+      'is_gl': isGL,
+      'is_sales': isSales,
+      'is_inventory': isInventory,
+      'is_hr': isHR,
+      'is_settings': isSettings,
     };
   }
 }

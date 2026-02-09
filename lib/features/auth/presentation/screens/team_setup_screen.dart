@@ -285,9 +285,9 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
                                     borderRadius: BorderRadius.circular(12)),
                                 elevation: 0,
                               ),
-                              child: Text(
+                              child: const Text(
                                 'Proceed to Verification',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                             ),

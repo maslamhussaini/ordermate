@@ -306,7 +306,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(accountingProvider);
     final partnerState = ref.watch(businessPartnerProvider);
-    final orgState = ref.watch(organizationProvider);
+    ref.watch(organizationProvider);
     final invoices = state.invoices;
     final isLoading = state.isLoading;
 
@@ -567,7 +567,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                                           decoration: BoxDecoration(
                                             color:
                                                 _getStatusColor(invoice.status)
-                                                    .withOpacity(0.1),
+                                                    .withValues(alpha: 0.1),
                                             borderRadius:
                                                 BorderRadius.circular(4),
                                           ),

@@ -74,96 +74,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   // Mobile verification logic removed
 
-  Future<void> _verifyEmail() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter email first')),
-      );
-      return;
-    }
-
-    // Generate Email OTP
-    _generatedEmailOtp = (1000 + Random().nextInt(9000)).toString();
-
-    // Show Loading Dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text("Sending Verification Email..."),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    try {
-      // Add a 30 second timeout to prevent infinite spinner
-      bool sent = await EmailService()
-          .sendOtpEmail(email, _generatedEmailOtp)
-          .timeout(const Duration(seconds: 30), onTimeout: () {
-        debugPrint('Email sending timed out after 30s');
-        return false;
-      });
-
-      if (mounted) Navigator.pop(context); // Close loading dialog
-
-      if (sent) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Email OTP sent! Check your inbox.'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Small delay to let snackbar be seen before dialog covers it
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              _showOtpDialog(
-                target: 'email',
-                otp: _generatedEmailOtp,
-                onVerified: () {
-                  setState(() => _isEmailVerified = true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Email Verified Successfully!')),
-                  );
-                },
-              );
-            }
-          });
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content:
-                  Text('Failed to send verification email. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Close loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
 
   void _showOtpDialog({
     required String target,
@@ -523,8 +433,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   icon: Icons.lock_outline,
                                   isPassword: true,
                                   validator: (val) {
-                                    if (val != _passwordController.text)
+                                    if (val != _passwordController.text) {
                                       return 'Passwords do not match';
+                                    }
                                     return null;
                                   },
                                 ),

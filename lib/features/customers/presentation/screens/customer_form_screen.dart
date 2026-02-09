@@ -248,12 +248,15 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         _streetController.text = placemark.street ?? '';
         _zipController.text = placemark.postalCode ?? '';
 
-        if (placemark.locality != null)
+        if (placemark.locality != null) {
           await _setCityByName(placemark.locality!);
-        if (placemark.country != null)
+        }
+        if (placemark.country != null) {
           await _setCountryByName(placemark.country!);
-        if (placemark.administrativeArea != null)
+        }
+        if (placemark.administrativeArea != null) {
           await _setStateByName(placemark.administrativeArea!);
+        }
 
         addressText = [
           placemark.street,
@@ -596,9 +599,10 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                         Autocomplete<Map<String, dynamic>>(
                           optionsBuilder:
                               (TextEditingValue textEditingValue) async {
-                            if (textEditingValue.text.length < 3)
+                            if (textEditingValue.text.length < 3) {
                               return const Iterable<
                                   Map<String, dynamic>>.empty();
+                            }
                             return _searchAddressWithOSM(textEditingValue.text);
                           },
                           displayStringForOption: (option) =>
@@ -758,28 +762,35 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                                                 parts.where((part) {
                                               for (final t in removeTokens) {
                                                 if (part.toLowerCase() ==
-                                                    t.toString().toLowerCase())
+                                                    t.toString().toLowerCase()) {
                                                   return false;
+                                                }
                                               }
                                               // Specific check for Postal Code (numeric 5 digits)
-                                              if (part == postcode.toString())
+                                              if (part == postcode.toString()) {
                                                 return false;
+                                              }
 
                                               // Check exact matches for city/state/country
                                               if (part.toLowerCase() ==
-                                                  city.toLowerCase())
+                                                  city.toLowerCase()) {
                                                 return false;
+                                              }
                                               if (part.toLowerCase() ==
-                                                  state.toLowerCase())
+                                                  state.toLowerCase()) {
                                                 return false;
+                                              }
                                               if (part.toLowerCase() ==
-                                                  'pakistan') return false;
+                                                  'pakistan') {
+                                                return false;
+                                              }
                                               if (address['county'] != null &&
                                                   part.toLowerCase() ==
                                                       address['county']
                                                           .toString()
-                                                          .toLowerCase())
+                                                          .toLowerCase()) {
                                                 return false;
+                                              }
 
                                               return true;
                                             }).toList();
@@ -796,13 +807,16 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                                           _zipController.text =
                                               postcode.toString();
 
-                                          if (city.isNotEmpty)
+                                          if (city.isNotEmpty) {
                                             await _setCityByName(city);
-                                          if (state.toString().isNotEmpty)
+                                          }
+                                          if (state.toString().isNotEmpty) {
                                             await _setStateByName(
                                                 state.toString());
-                                          if (country.toString().isNotEmpty)
+                                          }
+                                          if (country.toString().isNotEmpty) {
                                             await _setCountryByName(country);
+                                          }
 
                                           if (mounted) {
                                             setState(() {

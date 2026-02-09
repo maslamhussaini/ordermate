@@ -293,10 +293,12 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                         ),
                       ),
                       validator: (v) {
-                        if (widget.userId == null && (v == null || v.isEmpty))
+                        if (widget.userId == null && (v == null || v.isEmpty)) {
                           return 'Required';
-                        if (v != null && v.isNotEmpty && v.length < 6)
+                        }
+                        if (v != null && v.isNotEmpty && v.length < 6) {
                           return 'Minimum 6 characters';
+                        }
                         return null;
                       },
                     ),

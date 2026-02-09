@@ -107,9 +107,10 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
   Future<void> _removeDuplicates() async {
     final vendors = ref.read(vendorProvider).vendors;
     if (vendors.isEmpty) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No vendors to check.')));
+      }
       return;
     }
 

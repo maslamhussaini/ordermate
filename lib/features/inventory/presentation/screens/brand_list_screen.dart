@@ -69,9 +69,10 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
   Future<void> _removeDuplicates() async {
     final brands = ref.read(inventoryProvider).brands;
     if (brands.isEmpty) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('No brands to check.')));
+      }
       return;
     }
 
@@ -174,17 +175,19 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
         if (mounted) Navigator.of(context, rootNavigator: true).pop();
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isCancelled
-                ? 'Deletion Cancelled'
-                : 'Removed $successCount duplicates. ($failCount failed)',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCancelled
+                  ? 'Deletion Cancelled'
+                  : 'Removed $successCount duplicates. ($failCount failed)',
+            ),
+            backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
           ),
-          backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
-        ),
-      );
-      ref.read(inventoryProvider.notifier).loadBrands();
+        );
+        ref.read(inventoryProvider.notifier).loadBrands();
+      }
     }
   }
 
@@ -355,17 +358,20 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
             if (mounted) Navigator.of(context, rootNavigator: true).pop();
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                isCancelled
-                    ? 'Import Cancelled'
-                    : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  isCancelled
+                      ? 'Import Cancelled'
+                      : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',
+                ),
+                backgroundColor:
+                    successCount > 0 ? Colors.green : Colors.orange,
               ),
-              backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
-            ),
-          );
-          ref.read(inventoryProvider.notifier).loadBrands();
+            );
+            ref.read(inventoryProvider.notifier).loadBrands();
+          }
         }
       });
     } catch (e) {

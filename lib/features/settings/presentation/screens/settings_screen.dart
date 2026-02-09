@@ -327,17 +327,21 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _getLandingPageName(BuildContext context, String route) {
-    if (route == '/dashboard')
+    if (route == '/dashboard') {
       return AppLocalizations.of(context)?.get('dashboard') ?? 'Dashboard';
-    if (route == '/orders')
+    }
+    if (route == '/orders') {
       return AppLocalizations.of(context)?.get('customer_list') ??
           'Order List'; // Wait, orders or customer list? List says Order List. It routes to /orders. AppDrawer says 'Orders'. Let's use 'orders'
+    }
     // Actually /orders filters. Let's stick to what we have in AppLocalizations. 'orders' -> 'Orders'.
-    if (route == '/orders')
+    if (route == '/orders') {
       return AppLocalizations.of(context)?.get('orders') ?? 'Order List';
-    if (route == '/orders/create')
+    }
+    if (route == '/orders/create') {
       return AppLocalizations.of(context)?.get('new_order') ??
           'New Order'; // Missing new_order key
+    }
     return AppLocalizations.of(context)?.get('dashboard') ?? 'Dashboard';
   }
 
@@ -354,10 +358,12 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _getFontScaleName(BuildContext context, double scale) {
-    if (scale <= 0.85)
+    if (scale <= 0.85) {
       return AppLocalizations.of(context)?.get('small') ?? 'Small';
-    if (scale >= 1.15)
+    }
+    if (scale >= 1.15) {
       return AppLocalizations.of(context)?.get('large') ?? 'Large';
+    }
     return AppLocalizations.of(context)?.get('normal') ?? 'Normal';
   }
 

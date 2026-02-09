@@ -136,7 +136,7 @@ class _LocationHistoryScreenState extends ConsumerState<LocationHistoryScreen> {
                             leading: CircleAvatar(
                               backgroundColor: Theme.of(context)
                                   .primaryColor
-                                  .withOpacity(0.1),
+                                  .withValues(alpha: 0.1),
                               child: Text('${index + 1}'),
                             ),
                             title: Text(DateFormat('hh:mm a')
