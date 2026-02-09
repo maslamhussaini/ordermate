@@ -9,6 +9,7 @@ import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/widgets/step_indicator.dart';
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 import 'package:ordermate/core/services/email_service.dart';
+import 'package:ordermate/core/services/accounting_seed_service.dart';
 
 class OrganizationSetupScreen extends ConsumerStatefulWidget {
   final Map<String, String> userData;
@@ -40,6 +41,7 @@ class _OrganizationSetupScreenState
   bool _isInventory = true;
   bool _isHR = true;
   final bool _isSettings = true;
+  bool _importDefaultAccounting = true;
   bool _isLoading = false;
   XFile? _pickedFile;
   Uint8List? _previewBytes;
@@ -108,6 +110,7 @@ class _OrganizationSetupScreenState
           'isInventory': _isInventory,
           'isHR': _isHR,
           'isSettings': _isSettings,
+          'importDefaultAccounting': _importDefaultAccounting,
         }
       });
     } else {
@@ -170,7 +173,7 @@ class _OrganizationSetupScreenState
         }
       }
 
-      // 3. Create Organization
+      // 2. Create Organization
       final orgResponse = await SupabaseConfig.client
           .from('omtbl_organizations')
           .insert({
@@ -207,6 +210,17 @@ class _OrganizationSetupScreenState
         'organization_id': orgId,
         'role': 'owner',
       }).eq('auth_id', authResponse.user!.id);
+
+      // 5. Seed Accounting Data
+      if (_importDefaultAccounting) {
+        debugPrint('Seeding default accounting data for Org ID: $orgId');
+        try {
+          await AccountingSeedService().seedOrganization(orgId);
+        } catch (e) {
+           debugPrint('Error seeding accounting data: $e');
+           // Non-fatal, continue
+        }
+      }
 
       // Send Module Configuration Email with Deep Link
       try {
@@ -406,6 +420,28 @@ class _OrganizationSetupScreenState
                             onChanged: (v) =>
                                 setState(() => _hasMultipleBranch = v),
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        CheckboxListTile(
+                          title: const Text(
+                            'Import Default Chart of Accounts',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: const Text(
+                            'Recommended for new businesses',
+                            style: TextStyle(
+                                color: Colors.white70, fontSize: 12),
+                          ),
+                          value: _importDefaultAccounting,
+                          onChanged: (v) => setState(
+                              () => _importDefaultAccounting = v ?? true),
+                          activeColor: Colors.white,
+                          checkColor: AppColors.loginGradientStart,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                          side: const BorderSide(color: Colors.white),
                         ),
                         const SizedBox(height: 16),
                         if (!_hasMultipleBranch) ...[

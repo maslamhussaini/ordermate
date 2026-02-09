@@ -6,6 +6,7 @@ import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/widgets/step_indicator.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
+import 'package:ordermate/core/services/accounting_seed_service.dart';
 
 class StoreSetupScreen extends ConsumerStatefulWidget {
   final Map<String, String> userData;
@@ -133,6 +134,16 @@ class _StoreSetupScreenState extends ConsumerState<StoreSetupScreen> {
         'organization_id': orgId,
         'role': 'owner',
       }).eq('auth_id', authResponse.user!.id);
+
+      // 5. Seed Accounting Data
+      if (widget.orgData['importDefaultAccounting'] == true) {
+        debugPrint('Seeding default accounting data for Org ID: $orgId');
+        try {
+          await AccountingSeedService().seedOrganization(orgId);
+        } catch (e) {
+          debugPrint('Error seeding accounting data: $e');
+        }
+      }
 
       if (mounted) {
         context.push('/onboarding/team', extra: {
