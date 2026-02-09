@@ -36,8 +36,8 @@ class StepIndicator extends StatelessWidget {
                           color: isCompleted
                               ? Colors.green
                               : isActive
-                                  ? AppColors.primary
-                                  : Colors.grey[300],
+                                  ? AppColors.primaryLight
+                                  : Colors.white24,
                           shape: BoxShape.circle,
                           boxShadow: isActive
                               ? [
@@ -59,7 +59,7 @@ class StepIndicator extends StatelessWidget {
                                   style: TextStyle(
                                     color: isActive
                                         ? Colors.white
-                                        : Colors.grey[600],
+                                        : Colors.white70,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -72,7 +72,7 @@ class StepIndicator extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 10,
                           color:
-                              isActive ? AppColors.primary : Colors.grey[600],
+                              isActive ? Colors.white : Colors.white70,
                           fontWeight:
                               isActive ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -88,7 +88,7 @@ class StepIndicator extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 24),
                     child: Container(
                       height: 2,
-                      color: isCompleted ? Colors.green : Colors.grey[300],
+                      color: isCompleted ? Colors.green : Colors.white24,
                     ),
                   ),
                 );
