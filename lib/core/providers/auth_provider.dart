@@ -168,12 +168,21 @@ class AuthNotifier extends Notifier<AuthState> {
     }
 
     try {
-      // 1. Get User Profile - Robust lookup
-      final userResponse = await SupabaseConfig.client
+      // 1. Get User Profile - Try by Auth ID first
+      var userResponse = await SupabaseConfig.client
           .from('omtbl_users')
           .select('id, auth_id, role_id, role, full_name, organization_id')
-          .or('id.eq."${sessionUser.id}",auth_id.eq."${sessionUser.id}",email.eq."${sessionUser.email!}"')
+          .eq('auth_id', sessionUser.id)
           .maybeSingle();
+
+      // Fallback: Try by Email
+      if (userResponse == null && sessionUser.email != null) {
+        userResponse = await SupabaseConfig.client
+            .from('omtbl_users')
+            .select('id, auth_id, role_id, role, full_name, organization_id')
+            .eq('email', sessionUser.email!)
+            .maybeSingle();
+      }
 
       if (userResponse == null) {
         debugPrint(
@@ -182,18 +191,39 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
+      // Check for Organization Ownership if assigned ID is null
+      if (userResponse['organization_id'] == null) {
+        try {
+          final ownedOrg = await SupabaseConfig.client
+              .from('omtbl_organizations')
+              .select('id')
+              .eq('auth_user_id', sessionUser.id)
+              .maybeSingle();
+              
+          if (ownedOrg != null) {
+            userResponse['organization_id'] = ownedOrg['id'];
+            debugPrint('AuthNotifier: Found owned organization ${ownedOrg['id']} for user');
+            
+            // Self-heal: Update user profile
+             unawaited(SupabaseConfig.client
+                .from('omtbl_users')
+                .update({'organization_id': ownedOrg['id']})
+                .eq('id', userResponse['id']));
+          }
+        } catch (e) {
+          debugPrint('AuthNotifier: Error checking org ownership: $e');
+        }
+      }
+
       debugPrint(
           'AuthNotifier: Found profile for ${sessionUser.email}: Role=${userResponse['role']}, OrgId=${userResponse['organization_id']}');
 
-      // Auto-link if needed (if found by email but auth_id is missing or wrong)
-      if (userResponse['auth_id'] != sessionUser.id ||
-          userResponse['id'] != sessionUser.id) {
+      // Auto-link if needed
+      if (userResponse['auth_id'] != sessionUser.id) {
         unawaited(SupabaseConfig.client
             .from('omtbl_users')
             .update({'auth_id': sessionUser.id})
-            .eq('email', sessionUser.email!)
-            .then((_) => debugPrint(
-                'AuthNotifier: Linked existing user ${sessionUser.email} to Auth ID ${sessionUser.id}')));
+            .eq('id', userResponse['id'])); // Use ID as we found it via email
       }
 
       final roleId = userResponse['role_id'] as int?;
