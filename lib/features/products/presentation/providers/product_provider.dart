@@ -47,13 +47,15 @@ class ProductNotifier extends StateNotifier<ProductState> {
     // Check Connectivity usually or just Try-Catch
     try {
       if (!mounted) return;
-      final products = await repository.getProducts(storeId: storeId, organizationId: orgId);
+      final products =
+          await repository.getProducts(storeId: storeId, organizationId: orgId);
       if (!mounted) return;
       state = state.copyWith(isLoading: false, products: products);
     } catch (e) {
       // Fallback to local
       try {
-        final localProducts = await localRepository.getLocalProducts(organizationId: orgId, storeId: storeId);
+        final localProducts = await localRepository.getLocalProducts(
+            organizationId: orgId, storeId: storeId);
         if (!mounted) return;
         if (localProducts.isNotEmpty) {
           state = state.copyWith(
@@ -86,7 +88,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
           if (!mounted) return;
           // Manually update state or reload local
           final storeId = ref.read(organizationProvider).selectedStore?.id;
-          final localProducts = await localRepository.getLocalProducts(organizationId: orgId, storeId: storeId);
+          final localProducts = await localRepository.getLocalProducts(
+              organizationId: orgId, storeId: storeId);
           if (!mounted) return;
           state = state.copyWith(isLoading: false, products: localProducts);
           ref.read(dashboardProvider.notifier).refresh();
@@ -121,7 +124,8 @@ class ProductNotifier extends StateNotifier<ProductState> {
           if (!mounted) return;
           // Manually update state or reload local
           final storeId = ref.read(organizationProvider).selectedStore?.id;
-          final localProducts = await localRepository.getLocalProducts(organizationId: orgId, storeId: storeId);
+          final localProducts = await localRepository.getLocalProducts(
+              organizationId: orgId, storeId: storeId);
           if (!mounted) return;
           state = state.copyWith(isLoading: false, products: localProducts);
           ref.read(dashboardProvider.notifier).refresh();
@@ -167,13 +171,14 @@ final productProvider =
     StateNotifierProvider<ProductNotifier, ProductState>((ref) {
   final repository = ref.watch(productRepositoryProvider);
   final localRepository = ref.watch(productLocalRepositoryProvider);
-  
+
   // Watch organization to trigger refresh
-  final storeId = ref.watch(organizationProvider.select((s) => s.selectedStore?.id));
-  
+  final storeId =
+      ref.watch(organizationProvider.select((s) => s.selectedStore?.id));
+
   final notifier = ProductNotifier(ref, repository, localRepository);
   // Trigger load with storeId
   Future.microtask(() => notifier.loadProducts(storeId: storeId));
-  
+
   return notifier;
 });

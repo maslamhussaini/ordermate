@@ -68,7 +68,8 @@ class _StoreFormScreenState extends ConsumerState<StoreFormScreen> {
     if (selectedOrg == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('No Organization selected. Cannot save store.'),),
+          content: Text('No Organization selected. Cannot save store.'),
+        ),
       );
       return;
     }
@@ -85,8 +86,12 @@ class _StoreFormScreenState extends ConsumerState<StoreFormScreen> {
           city: _cityController.text.trim(),
           country: _countryController.text.trim(),
           postalCode: _postalController.text.trim(),
-          phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-          storeDefaultCurrency: _currencyController.text.trim().isEmpty ? 'USD' : _currencyController.text.trim(),
+          phone: _phoneController.text.trim().isEmpty
+              ? null
+              : _phoneController.text.trim(),
+          storeDefaultCurrency: _currencyController.text.trim().isEmpty
+              ? 'USD'
+              : _currencyController.text.trim(),
           organizationId: selectedOrg.id,
           isActive: _isActive,
           createdAt: DateTime.now(),
@@ -96,10 +101,8 @@ class _StoreFormScreenState extends ConsumerState<StoreFormScreen> {
       } else {
         // Update
         final id = int.parse(widget.storeId!);
-        final currentStore = ref
-            .read(organizationProvider)
-            .stores
-            .firstWhere((s) => s.id == id);
+        final currentStore =
+            ref.read(organizationProvider).stores.firstWhere((s) => s.id == id);
 
         final updated = Store(
           id: id,
@@ -108,8 +111,12 @@ class _StoreFormScreenState extends ConsumerState<StoreFormScreen> {
           city: _cityController.text.trim(),
           country: _countryController.text.trim(),
           postalCode: _postalController.text.trim(),
-          phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-          storeDefaultCurrency: _currencyController.text.trim().isEmpty ? 'USD' : _currencyController.text.trim(),
+          phone: _phoneController.text.trim().isEmpty
+              ? null
+              : _phoneController.text.trim(),
+          storeDefaultCurrency: _currencyController.text.trim().isEmpty
+              ? 'USD'
+              : _currencyController.text.trim(),
           organizationId: selectedOrg.id,
           isActive: _isActive,
           createdAt: currentStore.createdAt,
@@ -139,8 +146,7 @@ class _StoreFormScreenState extends ConsumerState<StoreFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.storeId == null ? 'Create Branch' : 'Edit Branch'),
+        title: Text(widget.storeId == null ? 'Create Branch' : 'Edit Branch'),
         actions: [
           IconButton(
             onPressed: _isLoading ? null : _save,
@@ -154,89 +160,90 @@ class _StoreFormScreenState extends ConsumerState<StoreFormScreen> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                 child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Branch Name',
-                        border: OutlineInputBorder(),
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Branch Name',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Required' : null,
                       ),
-                      validator: (v) =>
-                          v == null || v.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _addressController,
-                      decoration: const InputDecoration(
-                        labelText: 'Address',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _cityController,
-                          decoration: const InputDecoration(
-                            labelText: 'City',
-                            border: OutlineInputBorder(),
-                          ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _addressController,
+                        decoration: const InputDecoration(
+                          labelText: 'Address',
+                          border: OutlineInputBorder(),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _postalController,
-                          decoration: const InputDecoration(
-                            labelText: 'Postal Code',
-                            border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      Row(children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _cityController,
+                            decoration: const InputDecoration(
+                              labelText: 'City',
+                              border: OutlineInputBorder(),
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _postalController,
+                            decoration: const InputDecoration(
+                              labelText: 'Postal Code',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ]),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.phone),
+                        ),
+                        keyboardType: TextInputType.phone,
                       ),
-                    ]),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.phone),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _countryController,
+                        decoration: const InputDecoration(
+                          labelText: 'Country',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _countryController,
-                      decoration: const InputDecoration(
-                        labelText: 'Country',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _currencyController,
+                        decoration: const InputDecoration(
+                          labelText: 'Default Currency (e.g. USD, KRW, PKR)',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Required' : null,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _currencyController,
-                      decoration: const InputDecoration(
-                        labelText: 'Default Currency (e.g. USD, KRW, PKR)',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      SwitchListTile(
+                        title: const Text('Active'),
+                        subtitle:
+                            const Text('Is this branch currently active?'),
+                        value: _isActive,
+                        onChanged: (v) => setState(() => _isActive = v),
                       ),
-                      validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: const Text('Active'),
-                      subtitle: const Text('Is this branch currently active?'),
-                      value: _isActive,
-                      onChanged: (v) => setState(() => _isActive = v),
-                    ),
-                    const SizedBox(height: 24),
-
-                  ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
     );
   }
 }

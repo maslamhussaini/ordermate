@@ -12,7 +12,8 @@ class AccountTypeFormScreen extends ConsumerStatefulWidget {
   const AccountTypeFormScreen({super.key, this.accountTypeId});
 
   @override
-  ConsumerState<AccountTypeFormScreen> createState() => _AccountTypeFormScreenState();
+  ConsumerState<AccountTypeFormScreen> createState() =>
+      _AccountTypeFormScreenState();
 }
 
 class _AccountTypeFormScreenState extends ConsumerState<AccountTypeFormScreen> {
@@ -30,7 +31,10 @@ class _AccountTypeFormScreenState extends ConsumerState<AccountTypeFormScreen> {
     _nameController = TextEditingController();
 
     if (widget.accountTypeId != null) {
-      final type = ref.read(accountingProvider).types.firstWhere((t) => t.id == widget.accountTypeId);
+      final type = ref
+          .read(accountingProvider)
+          .types
+          .firstWhere((t) => t.id == widget.accountTypeId);
       _idController.text = type.id.toString();
       _nameController.text = type.typeName;
       _isActive = type.status;
@@ -59,7 +63,7 @@ class _AccountTypeFormScreenState extends ConsumerState<AccountTypeFormScreen> {
         organizationId: orgId ?? 0,
       );
       final notifier = ref.read(accountingProvider.notifier);
-      
+
       if (widget.accountTypeId == null) {
         await notifier.addAccountType(type, organizationId: orgId);
       } else {
@@ -87,7 +91,9 @@ class _AccountTypeFormScreenState extends ConsumerState<AccountTypeFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.accountTypeId == null ? 'Add Account Type' : 'Edit Account Type'),
+        title: Text(widget.accountTypeId == null
+            ? 'Add Account Type'
+            : 'Edit Account Type'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -106,7 +112,10 @@ class _AccountTypeFormScreenState extends ConsumerState<AccountTypeFormScreen> {
                       ),
                       keyboardType: TextInputType.number,
                       enabled: widget.accountTypeId == null,
-                      validator: (value) => (value == null || int.tryParse(value) == null) ? 'Invalid ID' : null,
+                      validator: (value) =>
+                          (value == null || int.tryParse(value) == null)
+                              ? 'Invalid ID'
+                              : null,
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -116,7 +125,8 @@ class _AccountTypeFormScreenState extends ConsumerState<AccountTypeFormScreen> {
                         border: OutlineInputBorder(),
                         hintText: 'e.g. Asset, Liability, Income...',
                       ),
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     SwitchListTile(
@@ -124,10 +134,11 @@ class _AccountTypeFormScreenState extends ConsumerState<AccountTypeFormScreen> {
                       value: _isActive,
                       onChanged: (val) => setState(() => _isActive = val),
                     ),
-                    if (widget.accountTypeId == null) 
+                    if (widget.accountTypeId == null)
                       SwitchListTile(
                         title: const Text('Is System'),
-                        subtitle: const Text('System accounts cannot be deleted'),
+                        subtitle:
+                            const Text('System accounts cannot be deleted'),
                         value: _isSystem,
                         onChanged: (val) => setState(() => _isSystem = val),
                       ),

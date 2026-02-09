@@ -132,8 +132,10 @@ class Product extends Equatable {
       inventoryGlId: inventoryGlId ?? this.inventoryGlId,
       cogsGlId: cogsGlId ?? this.cogsGlId,
       revenueGlId: revenueGlId ?? this.revenueGlId,
-      defaultDiscountPercent: defaultDiscountPercent ?? this.defaultDiscountPercent,
-      defaultDiscountPercentLimit: defaultDiscountPercentLimit ?? this.defaultDiscountPercentLimit,
+      defaultDiscountPercent:
+          defaultDiscountPercent ?? this.defaultDiscountPercent,
+      defaultDiscountPercentLimit:
+          defaultDiscountPercentLimit ?? this.defaultDiscountPercentLimit,
       salesDiscountGlId: salesDiscountGlId ?? this.salesDiscountGlId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

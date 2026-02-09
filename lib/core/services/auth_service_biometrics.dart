@@ -24,7 +24,7 @@ class AuthService {
           stickyAuth: true,
         ),
       );
-      
+
       return didAuthenticate;
     } catch (e) {
       // Handle error or return false
@@ -33,11 +33,11 @@ class AuthService {
   }
 
   Future<bool> isBiometricAvailable() async {
-      try {
-        return await auth.canCheckBiometrics || await auth.isDeviceSupported();
-      } catch (e) {
-        return false;
-      }
+    try {
+      return await auth.canCheckBiometrics || await auth.isDeviceSupported();
+    } catch (e) {
+      return false;
+    }
   }
 
   static const biometricPrefsKey = 'biometric_enabled_preference';

@@ -29,7 +29,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     // Check Connectivity
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-       return _localRepository.getLocalBrands(organizationId: organizationId);
+      return _localRepository.getLocalBrands(organizationId: organizationId);
     }
 
     try {
@@ -37,9 +37,10 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .from('omtbl_brands')
           .select('*')
           .eq('status', 1);
-          
+
       if (organizationId != null && organizationId != 0) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
 
       final response = await query
@@ -48,34 +49,37 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .timeout(const Duration(seconds: 15));
 
       final List<Brand> items = (response as List)
-          .map<Brand>((json) => BrandModel.fromJson(json as Map<String, dynamic>))
+          .map<Brand>(
+              (json) => BrandModel.fromJson(json as Map<String, dynamic>))
           .toList();
-      
+
       // Cache
       // Cache
       await _localRepository.cacheBrands(items);
-      
+
       // Merge Unsynced
-      final unsynced = await _localRepository.getUnsyncedBrands(organizationId: organizationId);
+      final unsynced = await _localRepository.getUnsyncedBrands(
+          organizationId: organizationId);
       if (unsynced.isNotEmpty) {
         final existingIds = items.map((e) => e.id).toSet();
         for (var u in unsynced) {
           if (!existingIds.contains(u.id)) {
             items.add(u);
           } else {
-             // Replace server item with local edit
-             final index = items.indexWhere((e) => e.id == u.id);
-             if (index != -1) items[index] = u;
+            // Replace server item with local edit
+            final index = items.indexWhere((e) => e.id == u.id);
+            if (index != -1) items[index] = u;
           }
         }
       }
       return items;
     } catch (e) {
       if (!SupabaseConfig.isOfflineLoggedIn) {
-         try {
-           final localItems = await _localRepository.getLocalBrands(organizationId: organizationId);
-           if (localItems.isNotEmpty) return localItems;
-         } catch (_) {}
+        try {
+          final localItems = await _localRepository.getLocalBrands(
+              organizationId: organizationId);
+          if (localItems.isNotEmpty) return localItems;
+        } catch (_) {}
       }
       rethrow;
     }
@@ -159,15 +163,16 @@ class InventoryRepositoryImpl implements InventoryRepository {
   @override
   Future<void> deleteBrand(int id) async {
     final db = await DatabaseHelper.instance.database;
-    // Hard delete locally if we are online and success is expected, 
-    // BUT to be safe for offline sync we might need to keep it? 
+    // Hard delete locally if we are online and success is expected,
+    // BUT to be safe for offline sync we might need to keep it?
     // For now, let's just hard delete per user request.
-    
+
     if (SupabaseConfig.isOfflineLoggedIn) {
-       // Offline: Soft delete locally to mark for sync later (if we had a sync service)
-       // But since user wants hard delete verification, we might just assume online for now
-       await db.update('local_brands', {'status': 0, 'is_synced': 0}, where: 'id = ?', whereArgs: [id]);
-       return;
+      // Offline: Soft delete locally to mark for sync later (if we had a sync service)
+      // But since user wants hard delete verification, we might just assume online for now
+      await db.update('local_brands', {'status': 0, 'is_synced': 0},
+          where: 'id = ?', whereArgs: [id]);
+      return;
     }
 
     try {
@@ -176,11 +181,11 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .from('omtbl_brands')
           .delete()
           .eq('idbrand', id);
-          
+
       // Local Hard Delete on success
       await db.delete('local_brands', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
-      // If server failed, stick to soft delete locally? 
+      // If server failed, stick to soft delete locally?
       // Or rethrow. Let's rethrow to show error.
       rethrow;
     }
@@ -195,7 +200,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     // Check Connectivity
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-       return _localRepository.getLocalCategories(organizationId: organizationId);
+      return _localRepository.getLocalCategories(
+          organizationId: organizationId);
     }
 
     try {
@@ -205,7 +211,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .eq('status', 1);
 
       if (organizationId != null && organizationId != 0) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
 
       final response = await query
@@ -214,23 +221,25 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .timeout(const Duration(seconds: 15));
 
       final List<ProductCategory> items = (response as List)
-          .map<ProductCategory>((json) => ProductCategoryModel.fromJson(json as Map<String, dynamic>))
+          .map<ProductCategory>((json) =>
+              ProductCategoryModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
       // Cache
       // Cache
       await _localRepository.cacheCategories(items);
-      
+
       // Merge Unsynced
-      final unsynced = await _localRepository.getUnsyncedCategories(organizationId: organizationId);
+      final unsynced = await _localRepository.getUnsyncedCategories(
+          organizationId: organizationId);
       if (unsynced.isNotEmpty) {
         final existingIds = items.map((e) => e.id).toSet();
         for (var u in unsynced) {
           if (!existingIds.contains(u.id)) {
             items.add(u);
           } else {
-             final index = items.indexWhere((e) => e.id == u.id);
-             if (index != -1) items[index] = u;
+            final index = items.indexWhere((e) => e.id == u.id);
+            if (index != -1) items[index] = u;
           }
         }
       }
@@ -238,7 +247,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     } catch (e) {
       // Fallback
       try {
-        final localItems = await _localRepository.getLocalCategories(organizationId: organizationId);
+        final localItems = await _localRepository.getLocalCategories(
+            organizationId: organizationId);
         if (localItems.isNotEmpty) return localItems;
       } catch (_) {}
       throw Exception('Failed to fetch categories: $e');
@@ -326,8 +336,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
     final db = await DatabaseHelper.instance.database;
 
     if (SupabaseConfig.isOfflineLoggedIn) {
-       await db.update('local_categories', {'status': 0, 'is_synced': 0}, where: 'id = ?', whereArgs: [id]);
-       return;
+      await db.update('local_categories', {'status': 0, 'is_synced': 0},
+          where: 'id = ?', whereArgs: [id]);
+      return;
     }
 
     try {
@@ -336,7 +347,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .from('omtbl_categories')
           .delete()
           .eq('idcategory', id);
-      
+
       // Local Hard Delete
       await db.delete('local_categories', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
@@ -353,7 +364,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     // Check Connectivity
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-       return _localRepository.getLocalProductTypes(organizationId: organizationId);
+      return _localRepository.getLocalProductTypes(
+          organizationId: organizationId);
     }
 
     try {
@@ -363,7 +375,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .eq('status', 1);
 
       if (organizationId != null && organizationId != 0) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
 
       final response = await query
@@ -372,23 +385,25 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .timeout(const Duration(seconds: 15));
 
       final List<ProductType> items = (response as List)
-          .map<ProductType>((json) => ProductTypeModel.fromJson(json as Map<String, dynamic>))
+          .map<ProductType>(
+              (json) => ProductTypeModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
       // Cache
       // Cache
       await _localRepository.cacheProductTypes(items);
-      
+
       // Merge Unsynced
-      final unsynced = await _localRepository.getUnsyncedProductTypes(organizationId: organizationId);
+      final unsynced = await _localRepository.getUnsyncedProductTypes(
+          organizationId: organizationId);
       if (unsynced.isNotEmpty) {
         final existingIds = items.map((e) => e.id).toSet();
         for (var u in unsynced) {
-           if (!existingIds.contains(u.id)) {
+          if (!existingIds.contains(u.id)) {
             items.add(u);
           } else {
-             final index = items.indexWhere((e) => e.id == u.id);
-             if (index != -1) items[index] = u;
+            final index = items.indexWhere((e) => e.id == u.id);
+            if (index != -1) items[index] = u;
           }
         }
       }
@@ -396,7 +411,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     } catch (e) {
       // Fallback
       try {
-        final localItems = await _localRepository.getLocalProductTypes(organizationId: organizationId);
+        final localItems = await _localRepository.getLocalProductTypes(
+            organizationId: organizationId);
         if (localItems.isNotEmpty) return localItems;
       } catch (_) {}
       throw Exception('Failed to fetch product types: $e');
@@ -418,7 +434,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     }
 
     if (SupabaseConfig.isOfflineLoggedIn) {
-      final newId = await _localRepository.saveProductType(model, isSynced: false);
+      final newId =
+          await _localRepository.saveProductType(model, isSynced: false);
       return ProductTypeModel(
         id: newId,
         name: model.name,
@@ -439,7 +456,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
       await _localRepository.saveProductType(newType, isSynced: true);
       return newType;
     } catch (e) {
-      final newId = await _localRepository.saveProductType(model, isSynced: false);
+      final newId =
+          await _localRepository.saveProductType(model, isSynced: false);
       return ProductTypeModel(
         id: newId,
         name: model.name,
@@ -483,8 +501,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
     final db = await DatabaseHelper.instance.database;
 
     if (SupabaseConfig.isOfflineLoggedIn) {
-       await db.update('local_product_types', {'status': 0, 'is_synced': 0}, where: 'id = ?', whereArgs: [id]);
-       return;
+      await db.update('local_product_types', {'status': 0, 'is_synced': 0},
+          where: 'id = ?', whereArgs: [id]);
+      return;
     }
 
     try {
@@ -507,16 +526,16 @@ class InventoryRepositoryImpl implements InventoryRepository {
   Future<List<UnitOfMeasure>> getUnitsOfMeasure({int? organizationId}) async {
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-       return _localRepository.getLocalUnitsOfMeasure(organizationId: organizationId);
+      return _localRepository.getLocalUnitsOfMeasure(
+          organizationId: organizationId);
     }
 
     try {
-      var query = SupabaseConfig.client
-          .from('omtbl_units_of_measure')
-          .select();
+      var query = SupabaseConfig.client.from('omtbl_units_of_measure').select();
 
       if (organizationId != null) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
 
       final response = await query
@@ -524,28 +543,31 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .timeout(const Duration(seconds: 15));
 
       final List<UnitOfMeasure> items = (response as List)
-          .map<UnitOfMeasure>((json) => UnitOfMeasureModel.fromJson(json as Map<String, dynamic>))
+          .map<UnitOfMeasure>((json) =>
+              UnitOfMeasureModel.fromJson(json as Map<String, dynamic>))
           .toList();
-      
+
       await _localRepository.cacheUnitsOfMeasure(items);
 
       // Merge Unsynced
-      final unsynced = await _localRepository.getUnsyncedUnitsOfMeasure(organizationId: organizationId);
+      final unsynced = await _localRepository.getUnsyncedUnitsOfMeasure(
+          organizationId: organizationId);
       if (unsynced.isNotEmpty) {
         final existingIds = items.map((e) => e.id).toSet();
         for (var u in unsynced) {
           if (!existingIds.contains(u.id)) {
             items.add(u);
           } else {
-             final index = items.indexWhere((e) => e.id == u.id);
-             if (index != -1) items[index] = u;
+            final index = items.indexWhere((e) => e.id == u.id);
+            if (index != -1) items[index] = u;
           }
         }
       }
       return items;
     } catch (e) {
       try {
-        final localItems = await _localRepository.getLocalUnitsOfMeasure(organizationId: organizationId);
+        final localItems = await _localRepository.getLocalUnitsOfMeasure(
+            organizationId: organizationId);
         if (localItems.isNotEmpty) return localItems;
       } catch (_) {}
       throw Exception('Failed to fetch UOMs: $e');
@@ -568,7 +590,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     if (model.id == 0) json.remove('id');
 
     if (SupabaseConfig.isOfflineLoggedIn) {
-      final newId = await _localRepository.saveUnitOfMeasure(model, isSynced: false);
+      final newId =
+          await _localRepository.saveUnitOfMeasure(model, isSynced: false);
       return UnitOfMeasureModel(
         id: newId,
         name: model.name,
@@ -592,7 +615,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
       await _localRepository.saveUnitOfMeasure(newUom, isSynced: true);
       return newUom;
     } catch (e) {
-      final newId = await _localRepository.saveUnitOfMeasure(model, isSynced: false);
+      final newId =
+          await _localRepository.saveUnitOfMeasure(model, isSynced: false);
       return UnitOfMeasureModel(
         id: newId,
         name: model.name,
@@ -638,10 +662,11 @@ class InventoryRepositoryImpl implements InventoryRepository {
   @override
   Future<void> deleteUnitOfMeasure(int id) async {
     final db = await DatabaseHelper.instance.database;
-    
+
     if (SupabaseConfig.isOfflineLoggedIn) {
-       await db.update('local_units_of_measure', {'status': 0, 'is_synced': 0}, where: 'id = ?', whereArgs: [id]);
-       return;
+      await db.update('local_units_of_measure', {'status': 0, 'is_synced': 0},
+          where: 'id = ?', whereArgs: [id]);
+      return;
     }
 
     try {
@@ -650,10 +675,11 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .from('omtbl_units_of_measure')
           .delete()
           .eq('id', id);
-          
-      await db.delete('local_units_of_measure', where: 'id = ?', whereArgs: [id]);
+
+      await db
+          .delete('local_units_of_measure', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
-       rethrow;
+      rethrow;
     }
   }
 
@@ -665,45 +691,49 @@ class InventoryRepositoryImpl implements InventoryRepository {
   Future<List<UnitConversion>> getUnitConversions({int? organizationId}) async {
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-       return _localRepository.getLocalUnitConversions(organizationId: organizationId);
+      return _localRepository.getLocalUnitConversions(
+          organizationId: organizationId);
     }
 
     try {
-      var query = SupabaseConfig.client
-          .from('omtbl_unit_conversions')
-          .select('*, from_unit:omtbl_units_of_measure!from_unit_id(unit_name), to_unit:omtbl_units_of_measure!to_unit_id(unit_name)');
+      var query = SupabaseConfig.client.from('omtbl_unit_conversions').select(
+          '*, from_unit:omtbl_units_of_measure!from_unit_id(unit_name), to_unit:omtbl_units_of_measure!to_unit_id(unit_name)');
 
       if (organizationId != null) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
 
       final response = await query.timeout(const Duration(seconds: 15));
 
       final List<UnitConversion> items = (response as List)
-          .map<UnitConversion>((json) => UnitConversionModel.fromJson(json as Map<String, dynamic>))
+          .map<UnitConversion>((json) =>
+              UnitConversionModel.fromJson(json as Map<String, dynamic>))
           .toList();
-      
+
       // Cache
       await _localRepository.cacheUnitConversions(items);
 
       // Merge Unsynced
-      final unsynced = await _localRepository.getUnsyncedUnitConversions(organizationId: organizationId);
+      final unsynced = await _localRepository.getUnsyncedUnitConversions(
+          organizationId: organizationId);
       if (unsynced.isNotEmpty) {
         final existingIds = items.map((e) => e.id).toSet();
         for (var u in unsynced) {
           if (!existingIds.contains(u.id)) {
             items.add(u);
           } else {
-             // Replace server item with local edit if needed
-             final index = items.indexWhere((e) => e.id == u.id);
-             if (index != -1) items[index] = u; 
+            // Replace server item with local edit if needed
+            final index = items.indexWhere((e) => e.id == u.id);
+            if (index != -1) items[index] = u;
           }
         }
       }
       return items;
     } catch (e) {
       try {
-        final localItems = await _localRepository.getLocalUnitConversions(organizationId: organizationId);
+        final localItems = await _localRepository.getLocalUnitConversions(
+            organizationId: organizationId);
         if (localItems.isNotEmpty) return localItems;
       } catch (_) {}
       throw Exception('Failed to fetch unit conversions: $e');
@@ -725,7 +755,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
     if (model.id == 0) json.remove('id');
 
     if (SupabaseConfig.isOfflineLoggedIn) {
-      final newId = await _localRepository.saveUnitConversion(model, isSynced: false);
+      final newId =
+          await _localRepository.saveUnitConversion(model, isSynced: false);
       return UnitConversionModel(
         id: newId,
         fromUnitId: model.fromUnitId,
@@ -748,7 +779,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
       await _localRepository.saveUnitConversion(newConv, isSynced: true);
       return newConv;
     } catch (e) {
-      final newId = await _localRepository.saveUnitConversion(model, isSynced: false);
+      final newId =
+          await _localRepository.saveUnitConversion(model, isSynced: false);
       return UnitConversionModel(
         id: newId,
         fromUnitId: model.fromUnitId,
@@ -794,8 +826,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
     final db = await DatabaseHelper.instance.database;
 
     if (SupabaseConfig.isOfflineLoggedIn) {
-       await db.update('local_unit_conversions', {'status': 0, 'is_synced': 0}, where: 'id = ?', whereArgs: [id]);
-       return;
+      await db.update('local_unit_conversions', {'status': 0, 'is_synced': 0},
+          where: 'id = ?', whereArgs: [id]);
+      return;
     }
 
     try {
@@ -803,8 +836,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
           .from('omtbl_unit_conversions')
           .delete()
           .eq('id', id);
-          
-      await db.delete('local_unit_conversions', where: 'id = ?', whereArgs: [id]);
+
+      await db
+          .delete('local_unit_conversions', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
       rethrow;
     }

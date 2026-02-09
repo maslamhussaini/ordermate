@@ -16,8 +16,7 @@ class NotificationService {
     const initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const initializationSettingsDarwin =
-        DarwinInitializationSettings(
+    const initializationSettingsDarwin = DarwinInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
       requestAlertPermission: false,
@@ -26,12 +25,11 @@ class NotificationService {
     const initializationSettingsLinux =
         LinuxInitializationSettings(defaultActionName: 'Open notification');
 
-    const initializationSettingsWindows =
-        WindowsInitializationSettings(
-          appName: 'OrderMate',
-          appUserModelId: 'com.ordermate.ordermate_app',
-          guid: '6b703e30-67c4-4b52-9705-7f722c1e7a02',
-        );
+    const initializationSettingsWindows = WindowsInitializationSettings(
+      appName: 'OrderMate',
+      appUserModelId: 'com.ordermate.ordermate_app',
+      guid: '6b703e30-67c4-4b52-9705-7f722c1e7a02',
+    );
 
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -50,9 +48,11 @@ class NotificationService {
         },
       );
       _isInitialized = result ?? false;
-      AppLogger.info('NotificationService: Initialization complete. Result: $result');
+      AppLogger.info(
+          'NotificationService: Initialization complete. Result: $result');
     } catch (e, stackTrace) {
-      AppLogger.error('NotificationService: Initialization failed: $e', e, stackTrace);
+      AppLogger.error(
+          'NotificationService: Initialization failed: $e', e, stackTrace);
     }
   }
 
@@ -64,8 +64,7 @@ class NotificationService {
       }
     }
 
-    const androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'otp_channel',
       'OTP Notifications',
       channelDescription: 'Channel for OTP notifications',
@@ -73,11 +72,10 @@ class NotificationService {
       priority: Priority.high,
     );
 
-    const platformChannelSpecifics =
-        NotificationDetails(
-          android: androidPlatformChannelSpecifics,
-          windows: WindowsNotificationDetails(),
-        );
+    const platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      windows: WindowsNotificationDetails(),
+    );
 
     await flutterLocalNotificationsPlugin.show(
       0,

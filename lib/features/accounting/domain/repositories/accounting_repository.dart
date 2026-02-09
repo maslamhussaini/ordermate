@@ -10,11 +10,11 @@ abstract class AccountingRepository {
   Future<List<ChartOfAccount>> getChartOfAccounts({int? organizationId});
   Future<void> createChartOfAccount(ChartOfAccount account);
   Future<void> updateChartOfAccount(ChartOfAccount account);
-  
+
   Future<List<AccountType>> getAccountTypes({int? organizationId});
   Future<void> createAccountType(AccountType type);
   Future<void> updateAccountType(AccountType type);
-  
+
   Future<List<AccountCategory>> getAccountCategories({int? organizationId});
   Future<void> createAccountCategory(AccountCategory category);
   Future<void> updateAccountCategory(AccountCategory category);
@@ -30,7 +30,7 @@ abstract class AccountingRepository {
   Future<bool> isAccountUsed(String accountId);
   Future<bool> isAccountTypeUsed(int typeId);
   Future<bool> isAccountCategoryUsed(int categoryId);
-  
+
   Future<List<PaymentTerm>> getPaymentTerms({int? organizationId});
   Future<void> createPaymentTerm(PaymentTerm term);
   Future<void> updatePaymentTerm(PaymentTerm term);
@@ -39,20 +39,22 @@ abstract class AccountingRepository {
   Future<FinancialSession?> getActiveFinancialSession({int? organizationId});
   Future<void> createFinancialSession(FinancialSession session);
   Future<void> updateFinancialSession(FinancialSession session);
-  
+
   Future<void> createTransaction(Transaction transaction);
   Future<void> updateTransaction(Transaction transaction);
   Future<void> deleteTransaction(String id);
-  Future<List<Transaction>> getTransactions({int? organizationId, int? storeId, int? sYear});
-  
-  Future<List<Map<String, dynamic>>> getUnpaidInvoices(String customerId, {int? organizationId});
-  
+  Future<List<Transaction>> getTransactions(
+      {int? organizationId, int? storeId, int? sYear});
+
+  Future<List<Map<String, dynamic>>> getUnpaidInvoices(String customerId,
+      {int? organizationId});
+
   Future<List<BankCash>> getBankCashAccounts({int? organizationId});
   Future<void> createBankCashAccount(BankCash account);
   Future<void> updateBankCashAccount(BankCash account);
   Future<void> deleteBankCashAccount(String id);
   Future<bool> isBankCashUsed(String bankCashId);
-  
+
   Future<List<VoucherPrefix>> getVoucherPrefixes({int? organizationId});
   Future<void> createVoucherPrefix(VoucherPrefix prefix);
   Future<void> updateVoucherPrefix(VoucherPrefix prefix);
@@ -62,8 +64,9 @@ abstract class AccountingRepository {
   // Invoice Methods
   Future<List<InvoiceType>> getInvoiceTypes({int? organizationId});
   Future<void> createInvoiceType(InvoiceType type);
-  
-  Future<List<Invoice>> getInvoices({int? organizationId, int? storeId, int? sYear});
+
+  Future<List<Invoice>> getInvoices(
+      {int? organizationId, int? storeId, int? sYear});
   Future<void> createInvoice(Invoice invoice);
   Future<void> updateInvoice(Invoice invoice);
   Future<void> createInvoiceWithItems(Invoice invoice, List<InvoiceItem> items);
@@ -81,6 +84,7 @@ abstract class AccountingRepository {
   Future<void> saveGLSetup(GLSetup setup);
 
   // Daily Balance / Cash Flow Methods
-  Future<DailyBalance?> getLatestDailyBalance(String accountId, {int? organizationId});
+  Future<DailyBalance?> getLatestDailyBalance(String accountId,
+      {int? organizationId});
   Future<void> saveDailyBalance(DailyBalance balance);
 }

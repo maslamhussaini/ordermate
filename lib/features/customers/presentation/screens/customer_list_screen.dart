@@ -39,10 +39,12 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
           'addressdetails': 1,
           'limit': 1,
         },
-        options: Options(headers: {
-          'User-Agent': 'OrderMate_FlutterApp/1.0',
-          'Accept-Language': 'en',
-        },),
+        options: Options(
+          headers: {
+            'User-Agent': 'OrderMate_FlutterApp/1.0',
+            'Accept-Language': 'en',
+          },
+        ),
       );
       if (response.statusCode == 200) {
         return List<Map<String, dynamic>>.from(response.data);
@@ -56,7 +58,9 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
   Future<void> _removeDuplicates() async {
     final customers = ref.read(businessPartnerProvider).customers;
     if (customers.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No customers to check.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No customers to check.')));
       return;
     }
 
@@ -65,7 +69,8 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
 
     // Identify duplicates (Name + Address)
     for (final c in customers) {
-      final key = '${c.name.trim().toLowerCase()}|${c.address.trim().toLowerCase()}';
+      final key =
+          '${c.name.trim().toLowerCase()}|${c.address.trim().toLowerCase()}';
       if (seenKeys.contains(key)) {
         duplicates.add(c);
       } else {
@@ -87,14 +92,16 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Duplicates?'),
-        content: Text('Found ${duplicates.length} duplicate entries based on Name and Address.\n\nAre you sure you want to delete them?'),
+        content: Text(
+            'Found ${duplicates.length} duplicate entries based on Name and Address.\n\nAre you sure you want to delete them?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Delete Duplicates'),
           ),
@@ -132,20 +139,22 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       if (isCancelled) break;
 
       try {
-        await ref.read(businessPartnerProvider.notifier).deletePartner(duplicates[i].id);
+        await ref
+            .read(businessPartnerProvider.notifier)
+            .deletePartner(duplicates[i].id);
         successCount++;
       } catch (e) {
         debugPrint('Failed to delete duplicate ${duplicates[i].name}: $e');
         failCount++;
       }
-      
+
       progressNotifier.value = ImportProgress(
         total: duplicates.length,
         processed: i + 1,
         success: successCount,
         failed: failCount,
       );
-      
+
       // Yield to UI
       await Future.delayed(Duration.zero);
     }
@@ -155,12 +164,14 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) Navigator.of(context, rootNavigator: true).pop();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isCancelled 
-            ? 'Deletion Cancelled' 
-            : 'Removed $successCount duplicates. ($failCount failed)',),
+          content: Text(
+            isCancelled
+                ? 'Deletion Cancelled'
+                : 'Removed $successCount duplicates. ($failCount failed)',
+          ),
           backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
         ),
       );
@@ -197,11 +208,11 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
     // 2. Setup
     final customers = ref.read(businessPartnerProvider).customers;
     final total = customers.length;
-    
+
     final progressNotifier = ValueNotifier<ImportProgress>(
       ImportProgress(total: total),
     );
-    
+
     var successCount = 0;
     var failCount = 0;
     var skippedCount = 0; // No address
@@ -217,79 +228,84 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
         title: 'Updating Locations',
         progressNotifier: progressNotifier,
         onStop: () {
-            isCancelled = true;
-            Navigator.of(context).pop();
+          isCancelled = true;
+          Navigator.of(context).pop();
         },
       ),
     );
 
     // 3. Process Loop
     for (var i = 0; i < customers.length; i++) {
-        if (isCancelled) break;
+      if (isCancelled) break;
 
-        final c = customers[i];
-        
-        if (c.address.trim().isEmpty) {
-             skippedCount++; // Count skipped as failed or just ignore? 
-             // Dialog shows Success/Failed. Maybe we treat skipped as Failed or just don't count them in success?
-             // Let's treat them as skipped (neither success nor fail in strict sense, but for UI maybe fail?)
-             // Or we can add skipped to failed count for simplicity in this context.
-             // Let's just track them separately for the final snackbar, but maybe not update progress success.
-        } else {
-             try {
-                // 1s delay for OSM Nominatim policy
-                await Future.delayed(const Duration(milliseconds: 1100));
-                
-                if (isCancelled) break;
+      final c = customers[i];
 
-                final results = await _searchAddressWithOSM(c.address);
-                if (results.isNotEmpty) {
-                    final lat = double.tryParse(results.first['lat'].toString());
-                    final lon = double.tryParse(results.first['lon'].toString());
-                    
-                    if (lat != null && lon != null) {
-                        final updated = c.copyWith(
-                            latitude: lat,
-                            longitude: lon,
-                        );
-                        // Silent update (true to avoid full reload on every item)
-                        await ref.read(businessPartnerProvider.notifier).updatePartner(updated);
-                        successCount++;
-                    } else {
-                        failCount++;
-                    }
-                } else {
-                    failCount++;
-                }
-             } catch (e) {
-                 failCount++;
-                 debugPrint('GPS Update Fail for ${c.name}: $e');
-             }
+      if (c.address.trim().isEmpty) {
+        skippedCount++; // Count skipped as failed or just ignore?
+        // Dialog shows Success/Failed. Maybe we treat skipped as Failed or just don't count them in success?
+        // Let's treat them as skipped (neither success nor fail in strict sense, but for UI maybe fail?)
+        // Or we can add skipped to failed count for simplicity in this context.
+        // Let's just track them separately for the final snackbar, but maybe not update progress success.
+      } else {
+        try {
+          // 1s delay for OSM Nominatim policy
+          await Future.delayed(const Duration(milliseconds: 1100));
+
+          if (isCancelled) break;
+
+          final results = await _searchAddressWithOSM(c.address);
+          if (results.isNotEmpty) {
+            final lat = double.tryParse(results.first['lat'].toString());
+            final lon = double.tryParse(results.first['lon'].toString());
+
+            if (lat != null && lon != null) {
+              final updated = c.copyWith(
+                latitude: lat,
+                longitude: lon,
+              );
+              // Silent update (true to avoid full reload on every item)
+              await ref
+                  .read(businessPartnerProvider.notifier)
+                  .updatePartner(updated);
+              successCount++;
+            } else {
+              failCount++;
+            }
+          } else {
+            failCount++;
+          }
+        } catch (e) {
+          failCount++;
+          debugPrint('GPS Update Fail for ${c.name}: $e');
         }
-        
-        progressNotifier.value = ImportProgress(
-            total: total,
-            processed: i + 1,
-            success: successCount,
-            failed: failCount + skippedCount,
-        );
+      }
+
+      progressNotifier.value = ImportProgress(
+        total: total,
+        processed: i + 1,
+        success: successCount,
+        failed: failCount + skippedCount,
+      );
     }
 
     // 4. Finish
     if (mounted) {
-        if (!isCancelled) {
-          await Future.delayed(const Duration(milliseconds: 800));
-          if (mounted) Navigator.of(context, rootNavigator: true).pop(); // Close progress
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(isCancelled 
-                    ? 'Update Cancelled'
-                    : 'Update Complete: $successCount updated, $failCount failed, $skippedCount skipped (no address)',),
-            ),
-        );
-        // Refresh list to show new data
-        ref.read(businessPartnerProvider.notifier).loadCustomers();
+      if (!isCancelled) {
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted)
+          Navigator.of(context, rootNavigator: true).pop(); // Close progress
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isCancelled
+                ? 'Update Cancelled'
+                : 'Update Complete: $successCount updated, $failCount failed, $skippedCount skipped (no address)',
+          ),
+        ),
+      );
+      // Refresh list to show new data
+      ref.read(businessPartnerProvider.notifier).loadCustomers();
     }
   }
 
@@ -297,7 +313,8 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
   void initState() {
     super.initState();
     Future.microtask(
-        () => ref.read(businessPartnerProvider.notifier).loadCustomers(),);
+      () => ref.read(businessPartnerProvider.notifier).loadCustomers(),
+    );
   }
 
   final TextEditingController _searchController = TextEditingController();
@@ -312,44 +329,46 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
   }
 
   Future<void> _fetchLocationAndSort() async {
-      bool serviceEnabled;
-      LocationPermission permission;
+    bool serviceEnabled;
+    LocationPermission permission;
 
-      // Test if location services are enabled.
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        if (mounted) {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location services are disabled.')));
-        }
-        return;
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location services are disabled.')));
       }
+      return;
+    }
 
-      permission = await Geolocator.checkPermission();
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are denied')));
-          }
-          return;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Location permissions are denied')));
         }
-      }
-      
-      if (permission == LocationPermission.deniedForever) {
-         if (mounted) {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are permanently denied.')));
-          }
         return;
-      } 
+      }
+    }
 
-      // Get location
-      final position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _currentPosition = position;
-        _filterMode = CustomerFilterMode.nearby;
-      });
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Location permissions are permanently denied.')));
+      }
+      return;
+    }
+
+    // Get location
+    final position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _currentPosition = position;
+      _filterMode = CustomerFilterMode.nearby;
+    });
   }
-
 
   void _showImportDialog() {
     showDialog(
@@ -403,9 +422,18 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
   Future<void> _downloadTemplate() async {
     try {
       final headers = [
-        ['Name', 'Contact Person', 'Phone', 'Email', 'Address', 'Latitude', 'Longitude'],
+        [
+          'Name',
+          'Contact Person',
+          'Phone',
+          'Email',
+          'Address',
+          'Latitude',
+          'Longitude'
+        ],
       ];
-      final path = await CsvService().saveCsvFile('customer_template.csv', headers);
+      final path =
+          await CsvService().saveCsvFile('customer_template.csv', headers);
       if (path != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Template saved to $path')),
@@ -424,12 +452,14 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
     try {
       final rows = await CsvService().pickAndParseCsv();
       if (rows == null || rows.isEmpty) return;
-      
+
       var startIndex = 0;
-      if (rows.isNotEmpty && rows[0].isNotEmpty && rows[0][0].toString().toLowerCase() == 'name') {
+      if (rows.isNotEmpty &&
+          rows[0].isNotEmpty &&
+          rows[0][0].toString().toLowerCase() == 'name') {
         startIndex = 1;
       }
-      
+
       final totalRecords = rows.length - startIndex;
       if (totalRecords <= 0) return;
 
@@ -437,13 +467,13 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       final progressNotifier = ValueNotifier<ImportProgress>(
         ImportProgress(total: totalRecords),
       );
-      
+
       var isCancelled = false;
 
       // Duplicate Check key: Name|Address -> Partner
       final existingState = ref.read(businessPartnerProvider).customers;
       final existingMap = {
-        for (final c in existingState) 
+        for (final c in existingState)
           '${c.name.toLowerCase().trim()}|${c.address.toLowerCase().trim()}': c,
       };
 
@@ -457,8 +487,8 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
           title: 'Importing Customers',
           progressNotifier: progressNotifier,
           onStop: () {
-             isCancelled = true;
-             Navigator.of(context).pop(); 
+            isCancelled = true;
+            Navigator.of(context).pop();
           },
         ),
       );
@@ -466,7 +496,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       await Future(() async {
         final currentBatch = <BusinessPartner>[];
         const batchSize = 50;
-        
+
         var successCount = 0;
         var failCount = 0;
         var duplicateCount = 0; // or skipped
@@ -478,52 +508,60 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
 
           final row = rows[i];
           if (row.isEmpty) {
-              processedCount++;
-              progressNotifier.value = ImportProgress(
-                 total: totalRecords,
-                 processed: processedCount,
-                 success: successCount + updatedCount,
-                 failed: failCount + duplicateCount,
-              );
-              continue;
+            processedCount++;
+            progressNotifier.value = ImportProgress(
+              total: totalRecords,
+              processed: processedCount,
+              success: successCount + updatedCount,
+              failed: failCount + duplicateCount,
+            );
+            continue;
           }
-          
+
           try {
             // Parsing Logic
-             final name = row.isNotEmpty ? row[0].toString().trim() : '';
-            if (name.isEmpty) { failCount++; processedCount++; continue; }
+            final name = row.isNotEmpty ? row[0].toString().trim() : '';
+            if (name.isEmpty) {
+              failCount++;
+              processedCount++;
+              continue;
+            }
 
-            final contactPerson = row.length > 1 ? row[1].toString().trim() : '';
+            final contactPerson =
+                row.length > 1 ? row[1].toString().trim() : '';
             final phone = row.length > 2 ? row[2].toString().trim() : '';
             final email = row.length > 3 ? row[3].toString().trim() : '';
             final address = row.length > 4 ? row[4].toString().trim() : '';
-            
+
             double? lat;
             double? lon;
             if (row.length > 6) {
-               lat = double.tryParse(row[5].toString().trim());
-               lon = double.tryParse(row[6].toString().trim());
+              lat = double.tryParse(row[5].toString().trim());
+              lon = double.tryParse(row[6].toString().trim());
             }
 
             // Key: Name + Address
             final key = '${name.toLowerCase()}|${address.toLowerCase()}';
-            
+
             if (existingMap.containsKey(key)) {
-                // UPDATE LOGIC
+              // UPDATE LOGIC
               final existingPartner = existingMap[key]!;
               if (lat != null && lon != null && (lat != 0 || lon != 0)) {
-                 final updated = existingPartner.copyWith(latitude: lat, longitude: lon);
-                 await ref.read(businessPartnerProvider.notifier).updatePartner(updated);
-                 updatedCount++;
+                final updated =
+                    existingPartner.copyWith(latitude: lat, longitude: lon);
+                await ref
+                    .read(businessPartnerProvider.notifier)
+                    .updatePartner(updated);
+                updatedCount++;
               } else {
-                 duplicateCount++;
+                duplicateCount++;
               }
             } else {
               // INSERT LOGIC
               final orgState = ref.read(organizationProvider);
               currentBatch.add(
                 BusinessPartner(
-                  id: '', 
+                  id: '',
                   name: name,
                   contactPerson: contactPerson.isEmpty ? null : contactPerson,
                   phone: phone,
@@ -543,86 +581,94 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
             // If we successfully processed an item (add to batch or updated directly)
             // Note: Batch items are not "success" yet until saved.
             // But for progress bar, we count them as processed step.
-            
           } catch (e) {
             debugPrint('Row $i parse failed: $e');
             failCount++;
           }
-          
+
           processedCount++;
 
           // Process batch if full
           if (currentBatch.length >= batchSize) {
             try {
-              await ref.read(businessPartnerProvider.notifier).addPartners(currentBatch, refresh: false);
+              await ref
+                  .read(businessPartnerProvider.notifier)
+                  .addPartners(currentBatch, refresh: false);
               successCount += currentBatch.length;
             } catch (e) {
               debugPrint('Batch import failed: $e');
               failCount += currentBatch.length;
             }
             currentBatch.clear();
-            
+
             // Allow UI update
             await Future.delayed(Duration.zero);
           }
-          
+
           // Update Progress UI
           progressNotifier.value = ImportProgress(
-             total: totalRecords,
-             processed: processedCount,
-             success: successCount + updatedCount, // Counting updates as success? Or separate? Image has 2 counters. Let's merge for "Success"
-             failed: failCount, // + duplicates? No, duplicates are just skipped/neutral. 
-             // Maybe failed needs to include failed batches.
+            total: totalRecords,
+            processed: processedCount,
+            success: successCount +
+                updatedCount, // Counting updates as success? Or separate? Image has 2 counters. Let's merge for "Success"
+            failed:
+                failCount, // + duplicates? No, duplicates are just skipped/neutral.
+            // Maybe failed needs to include failed batches.
           );
         }
 
         // Process remaining
         if (currentBatch.isNotEmpty && !isCancelled) {
-           try {
-              await ref.read(businessPartnerProvider.notifier).addPartners(currentBatch, refresh: false);
-              successCount += currentBatch.length;
-           } catch (e) {
-              debugPrint('Final batch failed: $e');
-              failCount += currentBatch.length;
-           }
+          try {
+            await ref
+                .read(businessPartnerProvider.notifier)
+                .addPartners(currentBatch, refresh: false);
+            successCount += currentBatch.length;
+          } catch (e) {
+            debugPrint('Final batch failed: $e');
+            failCount += currentBatch.length;
+          }
         }
-        
+
         // Final Update
         progressNotifier.value = ImportProgress(
-             total: totalRecords,
-             processed: totalRecords,
-             success: successCount + updatedCount,
-             failed: failCount,
+          total: totalRecords,
+          processed: totalRecords,
+          success: successCount + updatedCount,
+          failed: failCount,
         );
 
         if (mounted && !isCancelled) {
           // Close Dialog automatically when done
           await Future.delayed(const Duration(milliseconds: 800));
-          if (mounted) Navigator.of(context, rootNavigator: true).pop(); 
-          
+          if (mounted) Navigator.of(context, rootNavigator: true).pop();
+
           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(
-               content: Text(isCancelled 
-                   ? 'Import Stopped' 
-                   : 'Import Complete: ${successCount + updatedCount} success, $duplicateCount duplicates, $failCount failed',),
-               backgroundColor: (successCount > 0 || updatedCount > 0) ? Colors.green : Colors.orange,
-             ),
+            SnackBar(
+              content: Text(
+                isCancelled
+                    ? 'Import Stopped'
+                    : 'Import Complete: ${successCount + updatedCount} success, $duplicateCount duplicates, $failCount failed',
+              ),
+              backgroundColor: (successCount > 0 || updatedCount > 0)
+                  ? Colors.green
+                  : Colors.orange,
+            ),
           );
           // Single refresh at the end
           ref.read(businessPartnerProvider.notifier).loadCustomers();
         }
       });
-      
+
       // Wait for future? No, showDialog blocks until popped.
       // So we wait for showDialog to return (which happens on Stop or Done).
       // But if we await showDialog, the code after it runs after pop.
-      // The `importFuture` runs in parallel. 
+      // The `importFuture` runs in parallel.
       // If user clicks Stop, `isCancelled` becomes true, `importFuture` loop breaks, and it finishes.
       // If `importFuture` finishes, it pops dialog.
-      
+
       // So we just need to ensure `importFuture` is started. It is.
       // We don't strictly need to await `importFuture` here if we rely on its internal completion callback.
-
     } catch (e) {
       if (mounted) {
         // Navigator.of(context).maybePop(); // Might close wrong thing if not careful
@@ -644,18 +690,19 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       final matchesSearch = c.name.toLowerCase().contains(query) ||
           c.phone.contains(query) ||
           c.address.toLowerCase().contains(query);
-      
+
       if (!matchesSearch) return false;
 
       if (_filterMode == CustomerFilterMode.myCustomers) {
         final currentUserId = SupabaseConfig.currentUserId;
         return c.createdBy == currentUserId;
       }
-      
+
       // For nearby, we filter out those without location, OR we keep them but put them at bottom?
       // Let's filter out ones without location for now to be strict about "match location"
-      if (_filterMode == CustomerFilterMode.nearby && _currentPosition != null) {
-         return c.latitude != null && c.longitude != null;
+      if (_filterMode == CustomerFilterMode.nearby &&
+          _currentPosition != null) {
+        return c.latitude != null && c.longitude != null;
       }
 
       return true;
@@ -666,26 +713,38 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       filteredCustomers.sort((a, b) {
         if (a.latitude == null || a.longitude == null) return 1;
         if (b.latitude == null || b.longitude == null) return -1;
-        
+
         final distA = Geolocator.distanceBetween(
-            _currentPosition!.latitude, _currentPosition!.longitude, a.latitude!, a.longitude!,);
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+          a.latitude!,
+          a.longitude!,
+        );
         final distB = Geolocator.distanceBetween(
-            _currentPosition!.latitude, _currentPosition!.longitude, b.latitude!, b.longitude!,);
-            
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+          b.latitude!,
+          b.longitude!,
+        );
+
         return distA.compareTo(distB);
       });
-      
+
       // Update the distanceMeters property in a copy for display?
       // Since it's a list of existing objects, we can't easily modify them without copying.
       // But the display logic might need valid distance.
       // For now, we just sort them.
       filteredCustomers = filteredCustomers.map((c) {
-         if (c.latitude != null && c.longitude != null) {
-            final dist = Geolocator.distanceBetween(
-            _currentPosition!.latitude, _currentPosition!.longitude, c.latitude!, c.longitude!,);
-            return c.copyWith(distanceMeters: dist.toInt());
-         }
-         return c;
+        if (c.latitude != null && c.longitude != null) {
+          final dist = Geolocator.distanceBetween(
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+            c.latitude!,
+            c.longitude!,
+          );
+          return c.copyWith(distanceMeters: dist.toInt());
+        }
+        return c;
       }).toList();
     }
 
@@ -766,11 +825,12 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                     tooltip: 'Filter Customers',
                     onSelected: (mode) {
                       if (mode == CustomerFilterMode.nearby) {
-                         _fetchLocationAndSort();
+                        _fetchLocationAndSort();
                       } else {
                         setState(() {
                           _filterMode = mode;
-                          _currentPosition = null; // Reset location if switching away? Or keep it? keeping it is fine.
+                          _currentPosition =
+                              null; // Reset location if switching away? Or keep it? keeping it is fine.
                         });
                       }
                     },
@@ -783,27 +843,37 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                         ),
                         CheckedPopupMenuItem(
                           value: CustomerFilterMode.myCustomers,
-                          checked: _filterMode == CustomerFilterMode.myCustomers,
+                          checked:
+                              _filterMode == CustomerFilterMode.myCustomers,
                           child: const Text('My Customers'),
                         ),
                         PopupMenuItem(
-                           value: CustomerFilterMode.nearby,
-                           child: Row(
-                             children: [
-                               Icon(Icons.location_on, 
-                                 color: _filterMode == CustomerFilterMode.nearby ? Colors.indigo : Colors.grey,
-                                 size: 20,
-                               ),
-                               const SizedBox(width: 8),
-                               Text(
-                                 'Nearby (Current Location)',
-                                 style: TextStyle(
-                                   color: _filterMode == CustomerFilterMode.nearby ? Colors.indigo : Colors.black,
-                                   fontWeight: _filterMode == CustomerFilterMode.nearby ? FontWeight.bold : FontWeight.normal,
-                                 ),
-                               ),
-                             ],
-                           ),
+                          value: CustomerFilterMode.nearby,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                color: _filterMode == CustomerFilterMode.nearby
+                                    ? Colors.indigo
+                                    : Colors.grey,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Nearby (Current Location)',
+                                style: TextStyle(
+                                  color:
+                                      _filterMode == CustomerFilterMode.nearby
+                                          ? Colors.indigo
+                                          : Colors.black,
+                                  fontWeight:
+                                      _filterMode == CustomerFilterMode.nearby
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ];
                     },
@@ -824,16 +894,20 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.people_outline,
-                                    size: 64, color: Colors.grey.shade400,),
+                                Icon(
+                                  Icons.people_outline,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   customers.isEmpty
                                       ? 'No customers found.'
                                       : 'No results found.',
                                   style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 16,),
+                                    color: Colors.grey.shade600,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ],
                             ),
@@ -861,8 +935,9 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
         content: Text('Are you sure you want to delete ${customer.name}?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),),
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),

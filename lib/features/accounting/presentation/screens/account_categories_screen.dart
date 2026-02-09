@@ -13,11 +13,12 @@ class AccountCategoriesScreen extends ConsumerStatefulWidget {
   const AccountCategoriesScreen({super.key});
 
   @override
-  ConsumerState<AccountCategoriesScreen> createState() => _AccountCategoriesScreenState();
+  ConsumerState<AccountCategoriesScreen> createState() =>
+      _AccountCategoriesScreenState();
 }
 
-class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScreen> {
-
+class _AccountCategoriesScreenState
+    extends ConsumerState<AccountCategoriesScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -91,9 +92,16 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
   Future<void> _downloadTemplate() async {
     try {
       final headers = [
-        ['ID', 'Category Name', 'Account Type ID', 'Status (1=Active, 0=Inactive)', 'Is System (1=Yes, 0=No)'],
+        [
+          'ID',
+          'Category Name',
+          'Account Type ID',
+          'Status (1=Active, 0=Inactive)',
+          'Is System (1=Yes, 0=No)'
+        ],
       ];
-      final path = await CsvService().saveCsvFile('account_categories_template.csv', headers);
+      final path = await CsvService()
+          .saveCsvFile('account_categories_template.csv', headers);
       if (path != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Template saved to $path')),
@@ -114,7 +122,9 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
       if (rows == null || rows.isEmpty) return;
 
       var startIndex = 0;
-      if (rows.isNotEmpty && rows[0].isNotEmpty && rows[0][0].toString().toLowerCase().contains('id')) {
+      if (rows.isNotEmpty &&
+          rows[0].isNotEmpty &&
+          rows[0][0].toString().toLowerCase().contains('id')) {
         startIndex = 1;
       }
 
@@ -125,7 +135,7 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
         ImportProgress(total: totalRecords),
       );
       var isCancelled = false;
-      
+
       if (!mounted) return;
 
       showDialog(
@@ -150,9 +160,12 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
         try {
           final id = int.tryParse(row[0].toString()) ?? 0;
           final name = row.length > 1 ? row[1].toString().trim() : '';
-          final typeId = row.length > 2 ? int.tryParse(row[2].toString()) ?? 0 : 0;
-          final status = row.length > 3 ? int.tryParse(row[3].toString()) == 1 : true;
-          final isSystem = row.length > 4 ? int.tryParse(row[4].toString()) == 1 : false;
+          final typeId =
+              row.length > 2 ? int.tryParse(row[2].toString()) ?? 0 : 0;
+          final status =
+              row.length > 3 ? int.tryParse(row[3].toString()) == 1 : true;
+          final isSystem =
+              row.length > 4 ? int.tryParse(row[4].toString()) == 1 : false;
 
           if (name.isNotEmpty && typeId > 0) {
             importList.add(AccountCategory(
@@ -161,16 +174,19 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
               accountTypeId: typeId,
               status: status,
               isSystem: isSystem,
-              organizationId: ref.read(organizationProvider).selectedOrganizationId ?? 0,
+              organizationId:
+                  ref.read(organizationProvider).selectedOrganizationId ?? 0,
             ));
           }
         } catch (e) {
-           debugPrint('Row $i error: $e');
+          debugPrint('Row $i error: $e');
         }
       }
 
       if (importList.isNotEmpty) {
-        await ref.read(accountingProvider.notifier).bulkAddAccountCategories(importList);
+        await ref
+            .read(accountingProvider.notifier)
+            .bulkAddAccountCategories(importList);
       }
 
       if (mounted && !isCancelled) {
@@ -178,13 +194,16 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
         if (mounted) {
           Navigator.of(context, rootNavigator: true).pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Import Complete: ${importList.length} categories imported')),
+            SnackBar(
+                content: Text(
+                    'Import Complete: ${importList.length} categories imported')),
           );
         }
       }
     } catch (e) {
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Import Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Import Error: $e')));
       }
     }
   }
@@ -221,10 +240,13 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
                         decoration: InputDecoration(
                           hintText: 'Search categories...',
                           prefixIcon: const Icon(Icons.search),
-                          suffixIcon: _searchQuery.isNotEmpty 
-                            ? IconButton(icon: const Icon(Icons.clear), onPressed: () => _searchController.clear())
-                            : null,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () => _searchController.clear())
+                              : null,
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -240,7 +262,8 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
     );
   }
 
-  Widget _buildList(List<AccountCategory> allCategories, List<AccountType> allTypes) {
+  Widget _buildList(
+      List<AccountCategory> allCategories, List<AccountType> allTypes) {
     final filtered = allCategories.where((c) {
       return c.categoryName.toLowerCase().contains(_searchQuery);
     }).toList();
@@ -250,9 +273,11 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
       itemCount: filtered.length,
       itemBuilder: (context, index) {
         final category = filtered[index];
-        final type = allTypes.any((t) => t.id == category.accountTypeId) 
-          ? allTypes.firstWhere((t) => t.id == category.accountTypeId).typeName
-          : 'Unknown Type';
+        final type = allTypes.any((t) => t.id == category.accountTypeId)
+            ? allTypes
+                .firstWhere((t) => t.id == category.accountTypeId)
+                .typeName
+            : 'Unknown Type';
 
         return Card(
           child: ListTile(
@@ -261,7 +286,8 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
               child: Text('${category.id}'),
             ),
             title: Text(category.categoryName),
-            subtitle: Text('$type | ${category.status ? 'Active' : 'Inactive'}'),
+            subtitle:
+                Text('$type | ${category.status ? 'Active' : 'Inactive'}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -273,23 +299,27 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
                 const SizedBox(width: 8),
                 if (!category.isSystem)
                   FutureBuilder<bool>(
-                    future: ref.read(accountingRepositoryProvider).isAccountCategoryUsed(category.id),
-                    builder: (context, snapshot) {
-                      final isUsed = snapshot.data ?? true;
-                      if (isUsed) return const SizedBox.shrink();
-                      return IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () => _confirmDelete(category),
-                      );
-                    }
-                  ),
+                      future: ref
+                          .read(accountingRepositoryProvider)
+                          .isAccountCategoryUsed(category.id),
+                      builder: (context, snapshot) {
+                        final isUsed = snapshot.data ?? true;
+                        if (isUsed) return const SizedBox.shrink();
+                        return IconButton(
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.red),
+                          onPressed: () => _confirmDelete(category),
+                        );
+                      }),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
-                  onPressed: () => context.push('/accounting/account-categories/edit/${category.id}'),
+                  onPressed: () => context.push(
+                      '/accounting/account-categories/edit/${category.id}'),
                 ),
               ],
             ),
-            onTap: () => context.push('/accounting/account-categories/edit/${category.id}'),
+            onTap: () => context
+                .push('/accounting/account-categories/edit/${category.id}'),
           ),
         );
       },
@@ -303,9 +333,11 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
         title: const Text('Confirm Delete'),
         content: Text('Delete Account Category "${category.categoryName}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
-            onPressed: () => Navigator.pop(context, true), 
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
@@ -315,13 +347,17 @@ class _AccountCategoriesScreenState extends ConsumerState<AccountCategoriesScree
 
     if (confirm == true) {
       try {
-        await ref.read(accountingProvider.notifier).deleteAccountCategory(category.id);
+        await ref
+            .read(accountingProvider.notifier)
+            .deleteAccountCategory(category.id);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account category deleted')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Account category deleted')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       }
     }

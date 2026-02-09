@@ -22,7 +22,7 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreen> {
     Future.microtask(() {
       final org = ref.read(organizationProvider).selectedOrganization;
       ref.read(accountingProvider.notifier).loadAll(organizationId: org?.id);
-      
+
       // Try to select the default cash account if GL setup is available
       final glSetup = ref.read(accountingProvider).glSetup;
       if (glSetup?.cashAccountId != null) {
@@ -35,31 +35,35 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreen> {
   void _refreshBalance() {
     if (_selectedAccountId == null) return;
     final org = ref.read(organizationProvider).selectedOrganization;
-    ref.read(accountingProvider.notifier).loadDailyBalance(_selectedAccountId!, organizationId: org?.id);
+    ref
+        .read(accountingProvider.notifier)
+        .loadDailyBalance(_selectedAccountId!, organizationId: org?.id);
   }
 
   Future<void> _closeDay() async {
     final state = ref.read(accountingProvider);
     final org = ref.read(organizationProvider).selectedOrganization;
-    
+
     if (_selectedAccountId == null || org == null) return;
 
     final currentBalance = state.currentDailyBalance;
-    final transactions = state.transactions.where((t) => 
-      t.accountId == _selectedAccountId && 
-      t.voucherDate.year == _selectedDate.year &&
-      t.voucherDate.month == _selectedDate.month &&
-      t.voucherDate.day == _selectedDate.day
-    ).toList();
+    final transactions = state.transactions
+        .where((t) =>
+            t.accountId == _selectedAccountId &&
+            t.voucherDate.year == _selectedDate.year &&
+            t.voucherDate.month == _selectedDate.month &&
+            t.voucherDate.day == _selectedDate.day)
+        .toList();
 
     double dr = 0;
     double cr = 0;
     for (var tx in transactions) {
-      dr += tx.amount; // In simplified terms, we'd need to check Dr/Cr side properly
+      dr += tx
+          .amount; // In simplified terms, we'd need to check Dr/Cr side properly
       // If we assume Transaction accountId is the primary, we'd need logic to know if it's Dr or Cr
       // For now, let's assume we sum all transactions for that account
     }
-    
+
     // Calculate final closing
     double opening = currentBalance?.closingBalance ?? 0.0;
     // In a real system, you'd calculate dr/cr based on transaction type
@@ -79,7 +83,7 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreen> {
     );
 
     await ref.read(accountingProvider.notifier).saveDailyBalance(newBalance);
-    
+
     // Create opening balance for next day
     final nextDay = _selectedDate.add(const Duration(days: 1));
     final nextDayOpening = DailyBalance(
@@ -93,12 +97,16 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreen> {
       isClosed: false,
       organizationId: org.id,
     );
-    
-    await ref.read(accountingProvider.notifier).saveDailyBalance(nextDayOpening);
+
+    await ref
+        .read(accountingProvider.notifier)
+        .saveDailyBalance(nextDayOpening);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Day closed successfully and next day record created.')),
+        const SnackBar(
+            content:
+                Text('Day closed successfully and next day record created.')),
       );
     }
   }
@@ -106,7 +114,9 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(accountingProvider);
-    final cashAccounts = state.accounts.where((a) => a.accountTypeId == 1).toList(); // Assets (Cash/Bank usually)
+    final cashAccounts = state.accounts
+        .where((a) => a.accountTypeId == 1)
+        .toList(); // Assets (Cash/Bank usually)
     final dailyBalance = state.currentDailyBalance;
 
     return Scaffold(
@@ -151,7 +161,8 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreen> {
               const SizedBox(height: 12),
               _buildStatCard(
                 'Today\'s Transactions',
-                dailyBalance.transactionsDebit - dailyBalance.transactionsCredit,
+                dailyBalance.transactionsDebit -
+                    dailyBalance.transactionsCredit,
                 Icons.swap_horiz,
                 Colors.orange,
               ),
@@ -188,22 +199,26 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreen> {
                       children: [
                         Icon(Icons.check_circle),
                         SizedBox(width: 8),
-                        Text('Day is Closed', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text('Day is Closed',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
                 ),
             ] else if (_selectedAccountId != null)
-              const Center(child: Text('No balance records found for this account.'))
+              const Center(
+                  child: Text('No balance records found for this account.'))
             else
-              const Center(child: Text('Please select an account to view cash flow.')),
+              const Center(
+                  child: Text('Please select an account to view cash flow.')),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatCard(String title, double amount, IconData icon, Color color, {bool isPrimary = false}) {
+  Widget _buildStatCard(String title, double amount, IconData icon, Color color,
+      {bool isPrimary = false}) {
     return Card(
       elevation: isPrimary ? 4 : 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -223,7 +238,9 @@ class _CashFlowScreenState extends ConsumerState<CashFlowScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                Text(title,
+                    style:
+                        TextStyle(color: Colors.grey.shade600, fontSize: 14)),
                 const SizedBox(height: 4),
                 Text(
                   amount.toStringAsFixed(2),

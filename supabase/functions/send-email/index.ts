@@ -14,12 +14,18 @@ serve(async (req) => {
 
     try {
         const body = await req.json();
-        const { email, subject, html, smtp_username, smtp_password } = body;
+        const { email, subject, email_subject, html, email_html, smtp_settings, smtp_username, smtp_password } = body;
 
-        if (!email || !subject || !html) throw new Error("Missing email, subject or html content");
-        if (!smtp_username || !smtp_password) throw new Error("Missing SMTP credentials");
+        const targetEmail = email;
+        const targetSubject = subject || email_subject || 'Verification Code';
+        const targetHtml = html || email_html;
 
-        // SMTP Config
+        const username = smtp_settings?.username || smtp_username;
+        const password = smtp_settings?.password || smtp_password;
+
+        if (!targetEmail) throw new Error("Missing email");
+        if (!username || !password) throw new Error("Missing SMTP credentials");
+
         const hostname = "smtp.gmail.com";
         const port = 465;
 
@@ -39,30 +45,31 @@ serve(async (req) => {
             return decoder.decode(buf.subarray(0, n));
         };
 
-        await read();
+        // Handshake
+        await read(); // Banner
         await write("EHLO localhost"); await read();
         await write("AUTH LOGIN"); await read();
-        await write(base64.encode(smtp_username)); await read();
-        await write(base64.encode(smtp_password));
+        await write(base64.encode(username)); await read();
+        await write(base64.encode(password));
         const authRes = await read();
-        if (!authRes.includes("235")) throw new Error(`SMTP Auth failed: ${authRes}`);
+        if (!authRes.includes("235")) throw new Error("SMTP Auth failed: " + authRes);
 
-        await write(`MAIL FROM: <${smtp_username}>`); await read();
-        await write(`RCPT TO: <${email}>`); await read();
+        await write("MAIL FROM: <" + username + ">"); await read();
+        await write("RCPT TO: <" + targetEmail + ">"); await read();
         await write("DATA"); await read();
 
-        const emailHeader = `From: OrderMate <${smtp_username}>
-To: ${email}
-Subject: ${subject}
-MIME-Version: 1.0
-Content-Type: text/html; charset=utf-8`;
+        const emailHeader = "From: OrderMate <" + username + ">\r\n" +
+            "To: " + targetEmail + "\r\n" +
+            "Subject: " + targetSubject + "\r\n" +
+            "MIME-Version: 1.0\r\n" +
+            "Content-Type: text/html; charset=utf-8";
 
         await write(emailHeader);
         await write("");
-        await write(html.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n'));
+        await write(targetHtml.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n'));
         await write(".");
         const sendRes = await read();
-        if (!sendRes.includes("250")) throw new Error(`Sending failed: ${sendRes}`);
+        if (!sendRes.includes("250")) throw new Error("Sending failed: " + sendRes);
 
         await write("QUIT");
         try { await read(); conn.close(); } catch (_) { }
@@ -73,6 +80,7 @@ Content-Type: text/html; charset=utf-8`;
         );
 
     } catch (error) {
+        console.error("Error:", error);
         return new Response(
             JSON.stringify({ error: error.message }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }

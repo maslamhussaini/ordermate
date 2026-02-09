@@ -1,4 +1,3 @@
-
 import 'package:ordermate/core/database/database_helper.dart';
 import 'package:ordermate/features/inventory/data/models/stock_transfer_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -6,7 +5,8 @@ import 'package:sqflite/sqflite.dart';
 class StockTransferLocalRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Future<List<StockTransferModel>> getTransfers({int? organizationId, int? storeId}) async {
+  Future<List<StockTransferModel>> getTransfers(
+      {int? organizationId, int? storeId}) async {
     final db = await _dbHelper.database;
     String whereClause = '1=1';
     List<dynamic> args = [];
@@ -29,7 +29,8 @@ class StockTransferLocalRepository {
       orderBy: 'transfer_date DESC, created_at DESC',
     );
 
-    return List.generate(maps.length, (i) => StockTransferModel.fromJson(maps[i]));
+    return List.generate(
+        maps.length, (i) => StockTransferModel.fromJson(maps[i]));
   }
 
   Future<void> addTransfer(StockTransferModel transfer) async {
@@ -60,7 +61,8 @@ class StockTransferLocalRepository {
     );
   }
 
-  Future<List<StockTransferModel>> getUnsyncedTransfers({int? organizationId}) async {
+  Future<List<StockTransferModel>> getUnsyncedTransfers(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -73,7 +75,8 @@ class StockTransferLocalRepository {
       where: where,
       whereArgs: args,
     );
-    return List.generate(maps.length, (i) => StockTransferModel.fromJson(maps[i]));
+    return List.generate(
+        maps.length, (i) => StockTransferModel.fromJson(maps[i]));
   }
 
   Future<void> markTransferAsSynced(String id) async {
@@ -91,8 +94,10 @@ class StockTransferLocalRepository {
     final batch = db.batch();
     for (var t in transfers) {
       final json = t.toJson();
-      json['is_synced'] = 1; // Explicitly marked as synced when coming from server
-      batch.insert('local_stock_transfers', json, conflictAlgorithm: ConflictAlgorithm.replace);
+      json['is_synced'] =
+          1; // Explicitly marked as synced when coming from server
+      batch.insert('local_stock_transfers', json,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
   }

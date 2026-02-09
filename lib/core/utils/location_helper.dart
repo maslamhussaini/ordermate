@@ -113,7 +113,8 @@ class LocationHelper {
 
   /// Get coordinates from address (Forward Geocoding)
   static Future<LocationSearchResult> getCoordinatesFromAddress(
-      String address,) async {
+    String address,
+  ) async {
     // 1. Try Standard Geocoding (Platform)
     try {
       final locations = await locationFromAddress(address);
@@ -176,7 +177,8 @@ class LocationHelper {
     }
 
     throw LocationException(
-        'No location found for "$address" or its surrounding area.',);
+      'No location found for "$address" or its surrounding area.',
+    );
   }
 
   static Position _toPosition(double lat, double lng) {
@@ -264,8 +266,9 @@ class LocationHelper {
                 (address['village'] as String?) ??
                 (address['hamlet'] as String?) ??
                 '',
-            administrativeArea:
-                (address['state'] as String?) ?? (address['region'] as String?) ?? '',
+            administrativeArea: (address['state'] as String?) ??
+                (address['region'] as String?) ??
+                '',
             postalCode: (address['postcode'] as String?) ?? '',
             country: (address['country'] as String?) ?? '',
             isoCountryCode:
@@ -281,4 +284,3 @@ class LocationHelper {
     );
   }
 }
-

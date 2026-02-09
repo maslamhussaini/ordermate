@@ -32,10 +32,12 @@ class LookupField<TItem, TValue> extends StatefulWidget {
   final IconData? prefixIcon;
 
   @override
-  State<LookupField<TItem, TValue>> createState() => _LookupFieldState<TItem, TValue>();
+  State<LookupField<TItem, TValue>> createState() =>
+      _LookupFieldState<TItem, TValue>();
 }
 
-class _LookupFieldState<TItem, TValue> extends State<LookupField<TItem, TValue>> {
+class _LookupFieldState<TItem, TValue>
+    extends State<LookupField<TItem, TValue>> {
   final _fieldKey = GlobalKey<FormFieldState<TValue>>();
 
   @override
@@ -63,14 +65,16 @@ class _LookupFieldState<TItem, TValue> extends State<LookupField<TItem, TValue>>
         TItem? selectedItem;
         try {
           if (field.value != null) {
-            selectedItem = widget.items.firstWhere((item) => widget.valueBuilder(item) == field.value);
+            selectedItem = widget.items
+                .firstWhere((item) => widget.valueBuilder(item) == field.value);
           }
         } catch (_) {
           // If value not found in items (e.g. inactive or newly added but not yet in list)
         }
 
-        final displayLabel =
-            selectedItem != null ? widget.labelBuilder(selectedItem) : (widget.hint ?? 'Select ${widget.label}');
+        final displayLabel = selectedItem != null
+            ? widget.labelBuilder(selectedItem)
+            : (widget.hint ?? 'Select ${widget.label}');
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,17 +113,21 @@ class _LookupFieldState<TItem, TValue> extends State<LookupField<TItem, TValue>>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                      borderSide: BorderSide(
+                          color: Theme.of(context).primaryColor, width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 18,
                     ),
                     labelText: widget.label,
-                    prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
+                    prefixIcon: widget.prefixIcon != null
+                        ? Icon(widget.prefixIcon)
+                        : null,
                     errorText: field.errorText ?? widget.validationError,
-                    suffixIcon:
-                        widget.enabled ? const Icon(Icons.arrow_drop_down) : null,
+                    suffixIcon: widget.enabled
+                        ? const Icon(Icons.arrow_drop_down)
+                        : null,
                     fillColor: widget.enabled ? null : Colors.grey.shade100,
                     filled: !widget.enabled,
                   ),
@@ -188,7 +196,8 @@ class _LookupFieldState<TItem, TValue> extends State<LookupField<TItem, TValue>>
                   if (ctx.mounted) {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text('${widget.label} Added Successfully!')),
+                      SnackBar(
+                          content: Text('${widget.label} Added Successfully!')),
                     );
                   }
                 } catch (e) {
@@ -210,4 +219,3 @@ class _LookupFieldState<TItem, TValue> extends State<LookupField<TItem, TValue>>
     );
   }
 }
-

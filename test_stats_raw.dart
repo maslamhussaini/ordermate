@@ -7,7 +7,7 @@ Future<void> main() async {
   final lines = await envFile.readAsLines();
   String url = '';
   String key = '';
-  
+
   for (var line in lines) {
     if (line.startsWith('SUPABASE_URL=')) {
       url = line.substring('SUPABASE_URL='.length).trim();
@@ -21,7 +21,7 @@ Future<void> main() async {
     print('Failed to load credentials from .env');
     return;
   }
-  
+
   print('URL: $url');
   final headers = {
     'apikey': key,
@@ -30,12 +30,12 @@ Future<void> main() async {
 
   print('\n--- Querying Account Categories (omtbl_account_categories) ---');
   try {
-     final response = await http.get(
-       Uri.parse('$url/rest/v1/omtbl_account_categories?select=*&limit=1'),
-       headers: headers,
-     );
-     print('Status: ${response.statusCode}');
-     print('Body: ${response.body}');
+    final response = await http.get(
+      Uri.parse('$url/rest/v1/omtbl_account_categories?select=*&limit=1'),
+      headers: headers,
+    );
+    print('Status: ${response.statusCode}');
+    print('Body: ${response.body}');
   } catch (e) {
     print('Error: $e');
   }

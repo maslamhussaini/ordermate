@@ -19,7 +19,7 @@ class _RoleListScreenState extends ConsumerState<RoleListScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-       ref.read(businessPartnerProvider.notifier).loadRoles();
+      ref.read(businessPartnerProvider.notifier).loadRoles();
     });
   }
 
@@ -47,7 +47,8 @@ class _RoleListScreenState extends ConsumerState<RoleListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(businessPartnerProvider.notifier).loadRoles(),
+            onPressed: () =>
+                ref.read(businessPartnerProvider.notifier).loadRoles(),
             tooltip: 'Refresh',
           ),
           TextButton.icon(
@@ -132,10 +133,12 @@ class _RoleListScreenState extends ConsumerState<RoleListScreen> {
                                         fontSize: 16),
                                   ),
                                   subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        role['description'] ?? 'No description provided',
+                                        role['description'] ??
+                                            'No description provided',
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -146,27 +149,41 @@ class _RoleListScreenState extends ConsumerState<RoleListScreen> {
                                       Wrap(
                                         spacing: 4,
                                         children: [
-                                          if (role['can_read'] == 1 || role['can_read'] == true)
-                                            _buildPrivilegeChip('Read', Colors.green),
-                                          if (role['can_write'] == 1 || role['can_write'] == true)
-                                            _buildPrivilegeChip('Write', Colors.blue),
-                                          if (role['can_edit'] == 1 || role['can_edit'] == true)
-                                            _buildPrivilegeChip('Edit', Colors.orange),
-                                          if (role['can_print'] == 1 || role['can_print'] == true)
-                                            _buildPrivilegeChip('Print', Colors.purple),
+                                          if (role['can_read'] == 1 ||
+                                              role['can_read'] == true)
+                                            _buildPrivilegeChip(
+                                                'Read', Colors.green),
+                                          if (role['can_write'] == 1 ||
+                                              role['can_write'] == true)
+                                            _buildPrivilegeChip(
+                                                'Write', Colors.blue),
+                                          if (role['can_edit'] == 1 ||
+                                              role['can_edit'] == true)
+                                            _buildPrivilegeChip(
+                                                'Edit', Colors.orange),
+                                          if (role['can_print'] == 1 ||
+                                              role['can_print'] == true)
+                                            _buildPrivilegeChip(
+                                                'Print', Colors.purple),
                                         ],
                                       ),
                                     ],
                                   ),
-                                  childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  childrenPadding:
+                                      const EdgeInsets.fromLTRB(16, 0, 16, 16),
                                   children: [
                                     const Divider(),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         OutlinedButton.icon(
-                                          onPressed: () => context.pushNamed(RouteNames.roleEdit, pathParameters: {'id': role['id'].toString()}),
-                                          icon: const Icon(Icons.edit, size: 18),
+                                          onPressed: () => context.pushNamed(
+                                              RouteNames.roleEdit,
+                                              pathParameters: {
+                                                'id': role['id'].toString()
+                                              }),
+                                          icon:
+                                              const Icon(Icons.edit, size: 18),
                                           label: const Text('Edit'),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: Colors.blue,
@@ -178,7 +195,8 @@ class _RoleListScreenState extends ConsumerState<RoleListScreen> {
                                         OutlinedButton.icon(
                                           onPressed: () =>
                                               _showDeleteConfirmation(role),
-                                          icon: const Icon(Icons.delete, size: 18),
+                                          icon: const Icon(Icons.delete,
+                                              size: 18),
                                           label: const Text('Delete'),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: Colors.red,
@@ -198,8 +216,6 @@ class _RoleListScreenState extends ConsumerState<RoleListScreen> {
       ),
     );
   }
-
-
 
   Widget _buildPrivilegeChip(String label, Color color) {
     return Container(
@@ -225,7 +241,8 @@ class _RoleListScreenState extends ConsumerState<RoleListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Role'),
-        content: Text('Are you sure you want to delete the role "${role['role_name']}"?'),
+        content: Text(
+            'Are you sure you want to delete the role "${role['role_name']}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

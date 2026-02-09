@@ -12,7 +12,8 @@ class AccountingSetupService {
   Future<void> setupDefaultAccounting(int organizationId) async {
     try {
       // 1. Import Account Types
-      final typesJson = await rootBundle.loadString('assets/json/accounting/account_types.json');
+      final typesJson = await rootBundle
+          .loadString('assets/json/accounting/account_types.json');
       final List<dynamic> typesData = jsonDecode(typesJson);
       final types = typesData.map((e) {
         final model = AccountTypeModel.fromJson(e);
@@ -27,7 +28,8 @@ class AccountingSetupService {
       await _repository.bulkCreateAccountTypes(types);
 
       // 2. Import Account Categories
-      final catsJson = await rootBundle.loadString('assets/json/accounting/account_categories.json');
+      final catsJson = await rootBundle
+          .loadString('assets/json/accounting/account_categories.json');
       final List<dynamic> catsData = jsonDecode(catsJson);
       final categories = catsData.map((e) {
         final model = AccountCategoryModel.fromJson(e);
@@ -43,9 +45,10 @@ class AccountingSetupService {
       await _repository.bulkCreateAccountCategories(categories);
 
       // 3. Import Chart of Accounts
-      final coaJson = await rootBundle.loadString('assets/json/accounting/chart_of_accounts.json');
+      final coaJson = await rootBundle
+          .loadString('assets/json/accounting/chart_of_accounts.json');
       final List<dynamic> coaData = jsonDecode(coaJson);
-      
+
       final now = DateTime.now();
       final accounts = coaData.map((json) {
         // We might want to give them unique IDs for this organization if needed,
@@ -67,13 +70,33 @@ class AccountingSetupService {
       }).toList();
 
       await _repository.bulkCreateChartOfAccounts(accounts);
-      
+
       // 4. Create default Invoice Types
       final defaultInvoiceTypes = [
-        const InvoiceTypeModel(idInvoiceType: 'SI', description: 'Sales Invoice', forUsed: 'Sales Invoice', isActive: true, organizationId: 0),
-        const InvoiceTypeModel(idInvoiceType: 'SIR', description: 'Sales Invoice Return', forUsed: 'Sales Return', isActive: true, organizationId: 0),
-        const InvoiceTypeModel(idInvoiceType: 'PI', description: 'Purchase Invoice', forUsed: 'Purchase Invoice', isActive: true, organizationId: 0),
-        const InvoiceTypeModel(idInvoiceType: 'PR', description: 'Purchase Return', forUsed: 'Purchase Return', isActive: true, organizationId: 0),
+        const InvoiceTypeModel(
+            idInvoiceType: 'SI',
+            description: 'Sales Invoice',
+            forUsed: 'Sales Invoice',
+            isActive: true,
+            organizationId: 0),
+        const InvoiceTypeModel(
+            idInvoiceType: 'SIR',
+            description: 'Sales Invoice Return',
+            forUsed: 'Sales Return',
+            isActive: true,
+            organizationId: 0),
+        const InvoiceTypeModel(
+            idInvoiceType: 'PI',
+            description: 'Purchase Invoice',
+            forUsed: 'Purchase Invoice',
+            isActive: true,
+            organizationId: 0),
+        const InvoiceTypeModel(
+            idInvoiceType: 'PR',
+            description: 'Purchase Return',
+            forUsed: 'Purchase Return',
+            isActive: true,
+            organizationId: 0),
       ];
 
       for (var type in defaultInvoiceTypes) {
@@ -86,7 +109,8 @@ class AccountingSetupService {
             isActive: true,
           ));
         } catch (e) {
-          debugPrint('Error creating default invoice type ${type.idInvoiceType}: $e');
+          debugPrint(
+              'Error creating default invoice type ${type.idInvoiceType}: $e');
         }
       }
 

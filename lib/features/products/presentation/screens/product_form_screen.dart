@@ -69,7 +69,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   void _calculateAfterDiscount() {
     final price = double.tryParse(_priceController.text) ?? 0.0;
     final discLimit = double.tryParse(_discountLimitController.text) ?? 0.0;
-    
+
     setState(() {
       _afterDiscountPrice = price * (1 - (discLimit / 100));
     });
@@ -82,65 +82,83 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
       debugPrint('ProductForm: Loading initial data for Org $orgId...');
-      
-      // We will perform a fresh load to ensure data is up to date, 
+
+      // We will perform a fresh load to ensure data is up to date,
       // but we catch errors for each section so one failure doesn't block the whole form.
-      
+
       await Future.wait([
         // Inventory
-        ref.read(inventoryProvider.notifier).loadAll().timeout(const Duration(seconds: 15)).catchError((e) {
-           debugPrint('ProductForm: Inventory load error: $e');
-           return;
+        ref
+            .read(inventoryProvider.notifier)
+            .loadAll()
+            .timeout(const Duration(seconds: 15))
+            .catchError((e) {
+          debugPrint('ProductForm: Inventory load error: $e');
+          return;
         }),
         // Vendors
-        ref.read(vendorProvider.notifier).loadVendors().timeout(const Duration(seconds: 15)).catchError((e) {
-           debugPrint('ProductForm: Vendors load error: $e');
-           return;
+        ref
+            .read(vendorProvider.notifier)
+            .loadVendors()
+            .timeout(const Duration(seconds: 15))
+            .catchError((e) {
+          debugPrint('ProductForm: Vendors load error: $e');
+          return;
         }),
-        ref.read(vendorProvider.notifier).loadSuppliers().timeout(const Duration(seconds: 15)).catchError((e) {
-           debugPrint('ProductForm: Suppliers load error: $e');
-           return;
+        ref
+            .read(vendorProvider.notifier)
+            .loadSuppliers()
+            .timeout(const Duration(seconds: 15))
+            .catchError((e) {
+          debugPrint('ProductForm: Suppliers load error: $e');
+          return;
         }),
         // Accounting
-        ref.read(accountingProvider.notifier).loadAll(organizationId: orgId).timeout(const Duration(seconds: 20)).catchError((e) {
-           debugPrint('ProductForm: Accounting load error: $e');
-           return;
+        ref
+            .read(accountingProvider.notifier)
+            .loadAll(organizationId: orgId)
+            .timeout(const Duration(seconds: 20))
+            .catchError((e) {
+          debugPrint('ProductForm: Accounting load error: $e');
+          return;
         }),
       ]);
-      
+
       if (!mounted) return;
-      
+
       // Log Status
       final accState = ref.read(accountingProvider);
-      debugPrint('ProductForm: Data Load Complete. Accounts: ${accState.accounts.length}');
+      debugPrint(
+          'ProductForm: Data Load Complete. Accounts: ${accState.accounts.length}');
 
       if (accState.accounts.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Warning: No Accounting Data loaded. Check internet or permissions.'),
+            content: Text(
+                'Warning: No Accounting Data loaded. Check internet or permissions.'),
             backgroundColor: Colors.orange,
-        ));
+          ));
         }
       }
 
       // Handle extra from navigation
       final extra = GoRouterState.of(context).extra as Map<String, dynamic>?;
       if (extra != null && extra.containsKey('vendorId')) {
-         final vId = extra['vendorId'] as String;
-         final vState = ref.read(vendorProvider);
-         final vendor = [...vState.vendors, ...vState.suppliers]
-             .cast<Vendor?>()
-             .firstWhere((v) => v?.id == vId, orElse: () => null);
-             
-         if (vendor != null) {
-           _selectedBusinessPartnerId = vId;
-           try {
-             final matchingBrand = ref.read(inventoryProvider).brands.firstWhere(
-               (b) => b.name.toLowerCase() == vendor.name.toLowerCase(),
-             );
-             _selectedBrandId = matchingBrand.id;
-           } catch (_) {}
-         }
+        final vId = extra['vendorId'] as String;
+        final vState = ref.read(vendorProvider);
+        final vendor = [...vState.vendors, ...vState.suppliers]
+            .cast<Vendor?>()
+            .firstWhere((v) => v?.id == vId, orElse: () => null);
+
+        if (vendor != null) {
+          _selectedBusinessPartnerId = vId;
+          try {
+            final matchingBrand = ref.read(inventoryProvider).brands.firstWhere(
+                  (b) => b.name.toLowerCase() == vendor.name.toLowerCase(),
+                );
+            _selectedBrandId = matchingBrand.id;
+          } catch (_) {}
+        }
       }
 
       // If editing, populate fields
@@ -150,9 +168,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           await ref.read(productProvider.notifier).loadProducts();
         }
 
-        final product = ref.read(productProvider).products
-            .cast<Product>()
-            .firstWhere((p) => p.id == widget.productId, orElse: () => throw Exception('Product not found'),);
+        final product =
+            ref.read(productProvider).products.cast<Product>().firstWhere(
+                  (p) => p.id == widget.productId,
+                  orElse: () => throw Exception('Product not found'),
+                );
 
         _nameController.text = product.name;
         _skuController.text = product.sku;
@@ -168,8 +188,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         _selectedCogsGlId = product.cogsGlId;
         _selectedRevenueGlId = product.revenueGlId;
         _selectedSalesDiscountGlId = product.salesDiscountGlId;
-        _defaultDiscountController.text = product.defaultDiscountPercent.toString();
-        _discountLimitController.text = product.defaultDiscountPercentLimit.toString();
+        _defaultDiscountController.text =
+            product.defaultDiscountPercent.toString();
+        _discountLimitController.text =
+            product.defaultDiscountPercentLimit.toString();
 
         final invState = ref.read(inventoryProvider);
         final vendorState = ref.read(vendorProvider);
@@ -183,25 +205,28 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         if (invState.brands.any((b) => b.id == product.brandId)) {
           _selectedBrandId = product.brandId;
         }
-        if ([...vendorState.vendors, ...vendorState.suppliers].any((v) => v.id == product.businessPartnerId)) {
+        if ([...vendorState.vendors, ...vendorState.suppliers]
+            .any((v) => v.id == product.businessPartnerId)) {
           _selectedBusinessPartnerId = product.businessPartnerId;
         }
 
         // If sales discount account is missing, try to get from GLSetup
-        _selectedSalesDiscountGlId ??= ref.read(accountingProvider).glSetup?.salesDiscountAccountId;
+        _selectedSalesDiscountGlId ??=
+            ref.read(accountingProvider).glSetup?.salesDiscountAccountId;
       } else {
         // New Product - default GL accounts from GLSetup
         final setup = ref.read(accountingProvider).glSetup;
         if (setup != null) {
-           _selectedInventoryGlId = setup.inventoryAccountId;
-           _selectedCogsGlId = setup.cogsAccountId;
-           _selectedRevenueGlId = setup.salesAccountId;
-           _selectedSalesDiscountGlId = setup.salesDiscountAccountId;
+          _selectedInventoryGlId = setup.inventoryAccountId;
+          _selectedCogsGlId = setup.cogsAccountId;
+          _selectedRevenueGlId = setup.salesAccountId;
+          _selectedSalesDiscountGlId = setup.salesDiscountAccountId;
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error loading data: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -227,42 +252,69 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     super.dispose();
   }
 
-  List<ChartOfAccount> _getFilteredAccounts(String categoryKeyword, AccountingState accState) {
+  List<ChartOfAccount> _getFilteredAccounts(
+      String categoryKeyword, AccountingState accState) {
     final allAccounts = accState.accounts;
     final categories = accState.categories;
-    
+
     // 1. Precise Filter: Keyword match in Category Name + Level 3 or 4
     final strictMatches = allAccounts.where((account) {
-       if (account.accountCategoryId == null) return false;
-       final cat = categories.firstWhere((c) => c.id == account.accountCategoryId, orElse: () => const AccountCategory(id: 0, categoryName: '', accountTypeId: 0, organizationId: 0, status: false));
-       // Use tighter contains check
-       if (!cat.categoryName.toLowerCase().contains(categoryKeyword.toLowerCase())) return false;
-       if (account.level != 3 && account.level != 4) return false;
-       return true;
+      if (account.accountCategoryId == null) return false;
+      final cat = categories.firstWhere(
+          (c) => c.id == account.accountCategoryId,
+          orElse: () => const AccountCategory(
+              id: 0,
+              categoryName: '',
+              accountTypeId: 0,
+              organizationId: 0,
+              status: false));
+      // Use tighter contains check
+      if (!cat.categoryName
+          .toLowerCase()
+          .contains(categoryKeyword.toLowerCase())) return false;
+      if (account.level != 3 && account.level != 4) return false;
+      return true;
     }).toList();
 
     if (strictMatches.isNotEmpty) {
-      debugPrint('ProductForm: Found ${strictMatches.length} accounts for "$categoryKeyword" (Strict)');
-      return strictMatches..sort((a, b) => a.accountCode.compareTo(b.accountCode));
+      debugPrint(
+          'ProductForm: Found ${strictMatches.length} accounts for "$categoryKeyword" (Strict)');
+      return strictMatches
+        ..sort((a, b) => a.accountCode.compareTo(b.accountCode));
     }
 
     // 2. Relaxed Filter: Keyword match in Category OR Account Title
     final relaxedMatches = allAccounts.where((account) {
-       final cat = categories.firstWhere((c) => c.id == account.accountCategoryId, orElse: () => const AccountCategory(id: 0, categoryName: '', accountTypeId: 0, organizationId: 0, status: false));
-       final matchesCategory = cat.categoryName.toLowerCase().contains(categoryKeyword.toLowerCase());
-       // Also check account title for the keyword
-       final matchesTitle = account.accountTitle.toLowerCase().contains(categoryKeyword.toLowerCase());
-       return matchesCategory || matchesTitle;
+      final cat = categories.firstWhere(
+          (c) => c.id == account.accountCategoryId,
+          orElse: () => const AccountCategory(
+              id: 0,
+              categoryName: '',
+              accountTypeId: 0,
+              organizationId: 0,
+              status: false));
+      final matchesCategory = cat.categoryName
+          .toLowerCase()
+          .contains(categoryKeyword.toLowerCase());
+      // Also check account title for the keyword
+      final matchesTitle = account.accountTitle
+          .toLowerCase()
+          .contains(categoryKeyword.toLowerCase());
+      return matchesCategory || matchesTitle;
     }).toList();
 
     if (relaxedMatches.isNotEmpty) {
-      debugPrint('ProductForm: Found ${relaxedMatches.length} accounts for "$categoryKeyword" (Relaxed)');
-      return relaxedMatches..sort((a, b) => a.accountCode.compareTo(b.accountCode));
+      debugPrint(
+          'ProductForm: Found ${relaxedMatches.length} accounts for "$categoryKeyword" (Relaxed)');
+      return relaxedMatches
+        ..sort((a, b) => a.accountCode.compareTo(b.accountCode));
     }
 
     // 3. Fallback: Return all accounts (Better than empty)
-    debugPrint('ProductForm: No specific matches for "$categoryKeyword". Returning all accounts.');
-    return allAccounts.toList()..sort((a, b) => a.accountCode.compareTo(b.accountCode));
+    debugPrint(
+        'ProductForm: No specific matches for "$categoryKeyword". Returning all accounts.');
+    return allAccounts.toList()
+      ..sort((a, b) => a.accountCode.compareTo(b.accountCode));
   }
 
   Future<void> _saveProduct() async {
@@ -283,14 +335,18 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         inventoryGlId: _selectedInventoryGlId,
         cogsGlId: _selectedCogsGlId,
         revenueGlId: _selectedRevenueGlId,
-        businessPartnerId: (_selectedBusinessPartnerId?.isEmpty ?? true) ? null : _selectedBusinessPartnerId,
+        businessPartnerId: (_selectedBusinessPartnerId?.isEmpty ?? true)
+            ? null
+            : _selectedBusinessPartnerId,
         productTypeId: _selectedTypeId,
         categoryId: _selectedCategoryId,
         brandId: _selectedBrandId,
         uomSymbol: _uomSymbol,
         baseQuantity: double.tryParse(_baseQuantityController.text) ?? 1.0,
-        defaultDiscountPercent: double.tryParse(_defaultDiscountController.text) ?? 0.0,
-        defaultDiscountPercentLimit: double.tryParse(_discountLimitController.text) ?? 0.0,
+        defaultDiscountPercent:
+            double.tryParse(_defaultDiscountController.text) ?? 0.0,
+        defaultDiscountPercentLimit:
+            double.tryParse(_discountLimitController.text) ?? 0.0,
         salesDiscountGlId: _selectedSalesDiscountGlId,
         storeId: orgState.selectedStore?.id ?? 0,
         organizationId: orgState.selectedOrganization?.id ?? 0,
@@ -305,12 +361,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Product saved successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Product saved successfully')));
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -326,20 +384,21 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(widget.productId == null ? 'Add Product' : 'Edit Product', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(widget.productId == null ? 'Add Product' : 'Edit Product',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-             icon: const Icon(Icons.refresh),
-             tooltip: 'Refresh Data',
-             onPressed: _loadInitialData,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh Data',
+            onPressed: _loadInitialData,
           ),
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: IconButton(
-              onPressed: _isLoading ? null : _saveProduct, 
+              onPressed: _isLoading ? null : _saveProduct,
               icon: const Icon(Icons.check_circle_outline, size: 28),
               tooltip: 'Save Product',
             ),
@@ -362,40 +421,55 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         Card(
                           elevation: 2,
                           shadowColor: Colors.black12,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionHeader('Basic Information', Icons.info_outline),
+                                _buildSectionHeader(
+                                    'Basic Information', Icons.info_outline),
                                 const SizedBox(height: 20),
                                 TextFormField(
                                   controller: _nameController,
                                   decoration: InputDecoration(
-                                    labelText: 'Product Name', 
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                    prefixIcon: const Icon(Icons.shopping_bag_outlined),
+                                    labelText: 'Product Name',
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    prefixIcon:
+                                        const Icon(Icons.shopping_bag_outlined),
                                   ),
-                                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                                  validator: (v) => v == null || v.isEmpty
+                                      ? 'Required'
+                                      : null,
                                 ),
                                 const SizedBox(height: 20),
                                 TextFormField(
                                   controller: _skuController,
                                   decoration: InputDecoration(
-                                    labelText: 'SKU', 
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                    prefixIcon: const Icon(Icons.qr_code_scanner),
+                                    labelText: 'SKU',
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    prefixIcon:
+                                        const Icon(Icons.qr_code_scanner),
                                   ),
-                                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                                  validator: (v) => v == null || v.isEmpty
+                                      ? 'Required'
+                                      : null,
                                 ),
                                 const SizedBox(height: 20),
                                 TextFormField(
                                   controller: _descriptionController,
                                   decoration: InputDecoration(
-                                    labelText: 'Description', 
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                    prefixIcon: const Icon(Icons.description_outlined),
+                                    labelText: 'Description',
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    prefixIcon:
+                                        const Icon(Icons.description_outlined),
                                     alignLabelWithHint: true,
                                   ),
                                   maxLines: 3,
@@ -408,28 +482,43 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         Card(
                           elevation: 2,
                           shadowColor: Colors.black12,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionHeader('Classification', Icons.category_outlined),
+                                _buildSectionHeader(
+                                    'Classification', Icons.category_outlined),
                                 const SizedBox(height: 20),
                                 LookupField<ProductType, int>(
                                   label: 'Product Type *',
                                   value: _selectedTypeId,
                                   prefixIcon: Icons.merge_type,
                                   items: inventoryState.productTypes,
-                                  hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.productTypes.isEmpty ? 'No Product Types Found' : 'Select Product Type'),
-                                  onChanged: (v) => setState(() => _selectedTypeId = v),
-                                  validator: (v) => v == null ? 'Please select a Product Type' : null,
+                                  hint: inventoryState.isLoading
+                                      ? 'Loading...'
+                                      : (inventoryState.productTypes.isEmpty
+                                          ? 'No Product Types Found'
+                                          : 'Select Product Type'),
+                                  onChanged: (v) =>
+                                      setState(() => _selectedTypeId = v),
+                                  validator: (v) => v == null
+                                      ? 'Please select a Product Type'
+                                      : null,
                                   labelBuilder: (item) => item.name,
                                   valueBuilder: (item) => item.id,
                                   onAdd: (name) async {
-                                    await ref.read(inventoryProvider.notifier).addProductType(name);
-                                    final newItem = ref.read(inventoryProvider).productTypes.firstWhere((i) => i.name == name);
-                                    setState(() => _selectedTypeId = newItem.id);
+                                    await ref
+                                        .read(inventoryProvider.notifier)
+                                        .addProductType(name);
+                                    final newItem = ref
+                                        .read(inventoryProvider)
+                                        .productTypes
+                                        .firstWhere((i) => i.name == name);
+                                    setState(
+                                        () => _selectedTypeId = newItem.id);
                                   },
                                 ),
                                 const SizedBox(height: 20),
@@ -438,15 +527,28 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                   value: _selectedCategoryId,
                                   prefixIcon: Icons.category_outlined,
                                   items: inventoryState.categories,
-                                  hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.categories.isEmpty ? 'No Categories Found' : 'Select Category'),
-                                  onChanged: (v) => setState(() => _selectedCategoryId = v),
-                                  validator: (v) => v == null ? 'Please select a Category' : null,
+                                  hint: inventoryState.isLoading
+                                      ? 'Loading...'
+                                      : (inventoryState.categories.isEmpty
+                                          ? 'No Categories Found'
+                                          : 'Select Category'),
+                                  onChanged: (v) =>
+                                      setState(() => _selectedCategoryId = v),
+                                  validator: (v) => v == null
+                                      ? 'Please select a Category'
+                                      : null,
                                   labelBuilder: (item) => item.name,
                                   valueBuilder: (item) => item.id,
                                   onAdd: (name) async {
-                                    await ref.read(inventoryProvider.notifier).addCategory(name);
-                                    final newItem = ref.read(inventoryProvider).categories.firstWhere((i) => i.name == name);
-                                    setState(() => _selectedCategoryId = newItem.id);
+                                    await ref
+                                        .read(inventoryProvider.notifier)
+                                        .addCategory(name);
+                                    final newItem = ref
+                                        .read(inventoryProvider)
+                                        .categories
+                                        .firstWhere((i) => i.name == name);
+                                    setState(
+                                        () => _selectedCategoryId = newItem.id);
                                   },
                                 ),
                                 const SizedBox(height: 20),
@@ -455,15 +557,28 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                   value: _selectedBrandId,
                                   prefixIcon: Icons.branding_watermark_outlined,
                                   items: inventoryState.brands,
-                                  hint: inventoryState.isLoading ? 'Loading...' : (inventoryState.brands.isEmpty ? 'No Brands Found' : 'Select Brand'),
-                                  onChanged: (v) => setState(() => _selectedBrandId = v),
-                                  validator: (v) => v == null ? 'Please select a Brand' : null,
+                                  hint: inventoryState.isLoading
+                                      ? 'Loading...'
+                                      : (inventoryState.brands.isEmpty
+                                          ? 'No Brands Found'
+                                          : 'Select Brand'),
+                                  onChanged: (v) =>
+                                      setState(() => _selectedBrandId = v),
+                                  validator: (v) => v == null
+                                      ? 'Please select a Brand'
+                                      : null,
                                   labelBuilder: (item) => item.name,
                                   valueBuilder: (item) => item.id,
                                   onAdd: (name) async {
-                                    await ref.read(inventoryProvider.notifier).addBrand(name);
-                                    final newItem = ref.read(inventoryProvider).brands.firstWhere((i) => i.name == name);
-                                    setState(() => _selectedBrandId = newItem.id);
+                                    await ref
+                                        .read(inventoryProvider.notifier)
+                                        .addBrand(name);
+                                    final newItem = ref
+                                        .read(inventoryProvider)
+                                        .brands
+                                        .firstWhere((i) => i.name == name);
+                                    setState(
+                                        () => _selectedBrandId = newItem.id);
                                   },
                                 ),
                                 const SizedBox(height: 20),
@@ -472,7 +587,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                   value: _selectedBusinessPartnerId,
                                   prefixIcon: Icons.business_outlined,
                                   items: vendorState.suppliers,
-                                  onChanged: (v) => setState(() => _selectedBusinessPartnerId = v),
+                                  onChanged: (v) => setState(
+                                      () => _selectedBusinessPartnerId = v),
                                   labelBuilder: (item) => item.name,
                                   valueBuilder: (item) => item.id,
                                 ),
@@ -484,13 +600,15 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         Card(
                           elevation: 2,
                           shadowColor: Colors.black12,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionHeader('Pricing & Inventory', Icons.inventory_2_outlined),
+                                _buildSectionHeader('Pricing & Inventory',
+                                    Icons.inventory_2_outlined),
                                 const SizedBox(height: 20),
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,14 +620,18 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                         prefixIcon: Icons.straighten_outlined,
                                         items: inventoryState.unitsOfMeasure,
                                         onChanged: (v) {
-                                          final uom = inventoryState.unitsOfMeasure.firstWhere((u) => u.id == v);
+                                          final uom = inventoryState
+                                              .unitsOfMeasure
+                                              .firstWhere((u) => u.id == v);
                                           setState(() {
                                             _selectedUomId = v;
                                             _uomSymbol = uom.symbol;
                                           });
                                         },
-                                        validator: (v) => v == null ? 'Required' : null,
-                                        labelBuilder: (item) => '${item.name} (${item.symbol})',
+                                        validator: (v) =>
+                                            v == null ? 'Required' : null,
+                                        labelBuilder: (item) =>
+                                            '${item.name} (${item.symbol})',
                                         valueBuilder: (item) => item.id,
                                       ),
                                     ),
@@ -519,13 +641,18 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                         controller: _baseQuantityController,
                                         decoration: InputDecoration(
                                           labelText: 'Base Qty',
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
                                           hintText: 'e.g. 1.0',
                                         ),
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        keyboardType: const TextInputType
+                                            .numberWithOptions(decimal: true),
                                         validator: (v) {
-                                          if (v == null || v.isEmpty) return 'Required';
-                                          if (double.tryParse(v) == null) return 'Invalid';
+                                          if (v == null || v.isEmpty)
+                                            return 'Required';
+                                          if (double.tryParse(v) == null)
+                                            return 'Invalid';
                                           return null;
                                         },
                                       ),
@@ -539,12 +666,17 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                       child: TextFormField(
                                         controller: _costController,
                                         decoration: InputDecoration(
-                                          labelText: 'Cost Price', 
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                          prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
+                                          labelText: 'Cost Price',
+                                          border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                          prefixIcon: const Icon(Icons
+                                              .account_balance_wallet_outlined),
                                         ),
                                         keyboardType: TextInputType.number,
-                                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                                        validator: (v) => v == null || v.isEmpty
+                                            ? 'Required'
+                                            : null,
                                       ),
                                     ),
                                     const SizedBox(width: 16),
@@ -552,12 +684,17 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                       child: TextFormField(
                                         controller: _priceController,
                                         decoration: InputDecoration(
-                                          labelText: 'Sales Price', 
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                          prefixIcon: const Icon(Icons.sell_outlined),
+                                          labelText: 'Sales Price',
+                                          border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                          prefixIcon:
+                                              const Icon(Icons.sell_outlined),
                                         ),
                                         keyboardType: TextInputType.number,
-                                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                                        validator: (v) => v == null || v.isEmpty
+                                            ? 'Required'
+                                            : null,
                                       ),
                                     ),
                                   ],
@@ -580,7 +717,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                           if (v != null && v.isNotEmpty) {
                                             final limit =
                                                 double.tryParse(v) ?? 0.0;
-                                            if (_afterDiscountPrice < limit - 0.01) {
+                                            if (_afterDiscountPrice <
+                                                limit - 0.01) {
                                               return 'Must be ≤ After-Disc Price (${_afterDiscountPrice.toStringAsFixed(2)})';
                                             }
                                           }
@@ -593,8 +731,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                       child: TextFormField(
                                         controller: _stockQtyController,
                                         decoration: InputDecoration(
-                                          labelText: 'Opening Stock ${_uomSymbol != null ? '($_uomSymbol)' : ''}', 
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          labelText:
+                                              'Opening Stock ${_uomSymbol != null ? '($_uomSymbol)' : ''}',
+                                          border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
                                         ),
                                         keyboardType: TextInputType.number,
                                       ),
@@ -609,24 +750,31 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         Card(
                           elevation: 2,
                           shadowColor: Colors.black12,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionHeader('Accounting (GL Accounts)', Icons.account_balance_outlined),
+                                _buildSectionHeader('Accounting (GL Accounts)',
+                                    Icons.account_balance_outlined),
                                 if (accountingState.accounts.isEmpty)
                                   const Padding(
                                     padding: EdgeInsets.only(top: 8.0),
-                                    child: Text('⚠️ No accounts loaded. Please refresh.', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                    child: Text(
+                                        '⚠️ No accounts loaded. Please refresh.',
+                                        style: TextStyle(
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.bold)),
                                   )
-                                else 
+                                else
                                   Padding(
                                     padding: const EdgeInsets.only(top: 4.0),
                                     child: Text(
                                       'Debug: ${accountingState.accounts.length} Accounts, ${accountingState.categories.length} Cats loaded.',
-                                      style: const TextStyle(color: Colors.grey, fontSize: 11),
+                                      style: const TextStyle(
+                                          color: Colors.grey, fontSize: 11),
                                     ),
                                   ),
                                 const SizedBox(height: 20),
@@ -634,10 +782,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                   label: 'Inventory Asset Account',
                                   value: _selectedInventoryGlId,
                                   prefixIcon: Icons.account_balance_outlined,
-                                  items: _getFilteredAccounts('Inventory', accountingState),
-                                  onChanged: (v) => setState(() => _selectedInventoryGlId = v),
-                                  validator: (v) => v == null ? 'Required' : null,
-                                  labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
+                                  items: _getFilteredAccounts(
+                                      'Inventory', accountingState),
+                                  onChanged: (v) => setState(
+                                      () => _selectedInventoryGlId = v),
+                                  validator: (v) =>
+                                      v == null ? 'Required' : null,
+                                  labelBuilder: (item) =>
+                                      '${item.accountCode} - ${item.accountTitle}',
                                   valueBuilder: (item) => item.id,
                                 ),
                                 const SizedBox(height: 20),
@@ -645,10 +797,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                   label: 'COGS Account',
                                   value: _selectedCogsGlId,
                                   prefixIcon: Icons.account_tree_outlined,
-                                  items: _getFilteredAccounts('COGS', accountingState),
-                                  onChanged: (v) => setState(() => _selectedCogsGlId = v),
-                                  validator: (v) => v == null ? 'Required' : null,
-                                  labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
+                                  items: _getFilteredAccounts(
+                                      'COGS', accountingState),
+                                  onChanged: (v) =>
+                                      setState(() => _selectedCogsGlId = v),
+                                  validator: (v) =>
+                                      v == null ? 'Required' : null,
+                                  labelBuilder: (item) =>
+                                      '${item.accountCode} - ${item.accountTitle}',
                                   valueBuilder: (item) => item.id,
                                 ),
                                 const SizedBox(height: 20),
@@ -656,10 +812,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                   label: 'Revenue/Sales Account',
                                   value: _selectedRevenueGlId,
                                   prefixIcon: Icons.monetization_on_outlined,
-                                  items: _getFilteredAccounts('BasicRevenue', accountingState),
-                                  onChanged: (v) => setState(() => _selectedRevenueGlId = v),
-                                  validator: (v) => v == null ? 'Required' : null,
-                                  labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
+                                  items: _getFilteredAccounts(
+                                      'BasicRevenue', accountingState),
+                                  onChanged: (v) =>
+                                      setState(() => _selectedRevenueGlId = v),
+                                  validator: (v) =>
+                                      v == null ? 'Required' : null,
+                                  labelBuilder: (item) =>
+                                      '${item.accountCode} - ${item.accountTitle}',
                                   valueBuilder: (item) => item.id,
                                 ),
                               ],
@@ -670,13 +830,15 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         Card(
                           elevation: 2,
                           shadowColor: Colors.black12,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionHeader('Discounts', Icons.discount_outlined),
+                                _buildSectionHeader(
+                                    'Discounts', Icons.discount_outlined),
                                 const SizedBox(height: 20),
                                 Row(
                                   children: [
@@ -685,7 +847,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                         controller: _defaultDiscountController,
                                         decoration: InputDecoration(
                                           labelText: 'Default Discount %',
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
                                           suffixText: '%',
                                         ),
                                         keyboardType: TextInputType.number,
@@ -706,9 +870,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                           helperStyle: TextStyle(
                                             color: _afterDiscountPrice <
                                                     (double.tryParse(
-                                                            _limitPriceController
-                                                                .text) ??
-                                                        0.0) - 0.01
+                                                                _limitPriceController
+                                                                    .text) ??
+                                                            0.0) -
+                                                        0.01
                                                 ? Colors.red
                                                 : Colors.green,
                                             fontWeight: FontWeight.bold,
@@ -737,10 +902,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                   label: 'Sales Discount Account',
                                   value: _selectedSalesDiscountGlId,
                                   prefixIcon: Icons.money_off_outlined,
-                                  items: _getFilteredAccounts('Discount', accountingState),
-                                  onChanged: (v) => setState(() => _selectedSalesDiscountGlId = v),
-                                  validator: (v) => v == null ? 'Required' : null,
-                                  labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
+                                  items: _getFilteredAccounts(
+                                      'Discount', accountingState),
+                                  onChanged: (v) => setState(
+                                      () => _selectedSalesDiscountGlId = v),
+                                  validator: (v) =>
+                                      v == null ? 'Required' : null,
+                                  labelBuilder: (item) =>
+                                      '${item.accountCode} - ${item.accountTitle}',
                                   valueBuilder: (item) => item.id,
                                 ),
                               ],
@@ -766,14 +935,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             children: [
               Icon(icon, color: Colors.indigo, size: 22),
               const SizedBox(width: 10),
-              Text(
-                title, 
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold, 
-                  color: Colors.indigo.shade800,
-                  letterSpacing: 0.5,
-                )
-              ),
+              Text(title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo.shade800,
+                        letterSpacing: 0.5,
+                      )),
             ],
           ),
           const SizedBox(height: 8),

@@ -11,7 +11,8 @@ class ReportsHubScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Reports Center', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Reports Center',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.indigo,
         elevation: 0,
@@ -24,34 +25,82 @@ class ReportsHubScreen extends StatelessWidget {
           children: [
             _buildSectionHeader('FINANCIAL LEDGERS'),
             _buildReportGrid(context, [
-              _ReportItem(title: 'Customer Ledgers', icon: Icons.person_search, route: '/reports/ledger/customer', color: Colors.blue),
-              _ReportItem(title: 'Vendor Ledgers', icon: Icons.local_shipping, route: '/reports/ledger/vendor', color: Colors.orange),
-              _ReportItem(title: 'Bank Ledgers', icon: Icons.account_balance, route: '/reports/ledger/bank', color: Colors.green),
-              _ReportItem(title: 'Cash Ledgers', icon: Icons.payments, route: '/reports/ledger/cash', color: Colors.teal),
-              _ReportItem(title: 'GL Account Ledgers', icon: Icons.account_tree, route: '/reports/ledger/gl', color: Colors.indigo),
+              _ReportItem(
+                  title: 'Customer Ledgers',
+                  icon: Icons.person_search,
+                  route: '/reports/ledger/customer',
+                  color: Colors.blue),
+              _ReportItem(
+                  title: 'Vendor Ledgers',
+                  icon: Icons.local_shipping,
+                  route: '/reports/ledger/vendor',
+                  color: Colors.orange),
+              _ReportItem(
+                  title: 'Bank Ledgers',
+                  icon: Icons.account_balance,
+                  route: '/reports/ledger/bank',
+                  color: Colors.green),
+              _ReportItem(
+                  title: 'Cash Ledgers',
+                  icon: Icons.payments,
+                  route: '/reports/ledger/cash',
+                  color: Colors.teal),
+              _ReportItem(
+                  title: 'GL Account Ledgers',
+                  icon: Icons.account_tree,
+                  route: '/reports/ledger/gl',
+                  color: Colors.indigo),
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('SALES REPORTS'),
             _buildReportGrid(context, [
-              _ReportItem(title: 'Sales - Product Wise', icon: Icons.inventory_2, route: '/reports/sales/product', color: Colors.purple),
-              _ReportItem(title: 'Sales - Customer Wise', icon: Icons.groups, route: '/reports/sales/customer', color: Colors.deepPurple),
+              _ReportItem(
+                  title: 'Sales - Product Wise',
+                  icon: Icons.inventory_2,
+                  route: '/reports/sales/product',
+                  color: Colors.purple),
+              _ReportItem(
+                  title: 'Sales - Customer Wise',
+                  icon: Icons.groups,
+                  route: '/reports/sales/customer',
+                  color: Colors.deepPurple),
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('SALES RETURNS'),
             _buildReportGrid(context, [
-              _ReportItem(title: 'Returns - Product Wise', icon: Icons.assignment_return, route: '/reports/returns/product', color: Colors.red),
-              _ReportItem(title: 'Returns - Customer Wise', icon: Icons.person_remove, route: '/reports/returns/customer', color: Colors.pink),
+              _ReportItem(
+                  title: 'Returns - Product Wise',
+                  icon: Icons.assignment_return,
+                  route: '/reports/returns/product',
+                  color: Colors.red),
+              _ReportItem(
+                  title: 'Returns - Customer Wise',
+                  icon: Icons.person_remove,
+                  route: '/reports/returns/customer',
+                  color: Colors.pink),
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('INVENTORY REPORTS'),
             _buildReportGrid(context, [
-              _ReportItem(title: 'General Journal', icon: Icons.history_edu, route: '/reports/inventory-journal', color: Colors.brown),
+              _ReportItem(
+                  title: 'General Journal',
+                  icon: Icons.history_edu,
+                  route: '/reports/inventory-journal',
+                  color: Colors.brown),
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('OTHER REPORTS'),
             _buildReportGrid(context, [
-              _ReportItem(title: 'Sales Manager (Loc)', icon: Icons.location_on, route: '/reports/location', color: Colors.blueGrey),
-              _ReportItem(title: 'Day Summary Report', icon: Icons.summarize, route: '/reports/day-closing', color: Colors.indigo),
+              _ReportItem(
+                  title: 'Sales Manager (Loc)',
+                  icon: Icons.location_on,
+                  route: '/reports/location',
+                  color: Colors.blueGrey),
+              _ReportItem(
+                  title: 'Day Summary Report',
+                  icon: Icons.summarize,
+                  route: '/reports/day-closing',
+                  color: Colors.indigo),
             ]),
           ],
         ),
@@ -145,5 +194,9 @@ class _ReportItem {
   final String route;
   final Color color;
 
-  _ReportItem({required this.title, required this.icon, required this.route, required this.color});
+  _ReportItem(
+      {required this.title,
+      required this.icon,
+      required this.route,
+      required this.color});
 }

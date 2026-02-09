@@ -11,7 +11,7 @@ class PdfSettings {
   final bool showAmountInWords;
   final bool enableNumberFormatting;
   final bool showSrNumber;
-  
+
   final String topNote;
   final String bottomNote;
   final String footerNote; // "Footer Note _________ textbox"
@@ -82,7 +82,8 @@ class PdfSettings {
       showPhone: showPhone ?? this.showPhone,
       showLogo: showLogo ?? this.showLogo,
       showAmountInWords: showAmountInWords ?? this.showAmountInWords,
-      enableNumberFormatting: enableNumberFormatting ?? this.enableNumberFormatting,
+      enableNumberFormatting:
+          enableNumberFormatting ?? this.enableNumberFormatting,
       showSrNumber: showSrNumber ?? this.showSrNumber,
       topNote: topNote ?? this.topNote,
       bottomNote: bottomNote ?? this.bottomNote,

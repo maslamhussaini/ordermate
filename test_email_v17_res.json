@@ -1,0 +1,28 @@
+﻿{
+    "error":  "Sending failed: ${sendRes}",
+    "debug_logs":  [
+                       "Sending email to: ${targetEmail}",
+                       "S: ${res.trim()}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "S: ${res.trim()}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "S: ${res.trim()}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "S: ${res.trim()}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "S: ${res.trim()}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "S: ${res.trim()}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "S: ${res.trim()}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "S: ${res.trim()}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "C: ${text.startsWith(\"AUTH\") || text.length \u003e 50 ? text.substring(0, 10) + \"...\" : text}",
+                       "S: ${res.trim()}",
+                       "Error: ${error.message}"
+                   ],
+    "debug_status":  "failed"
+}

@@ -9,7 +9,8 @@ class UnitConversionsScreen extends ConsumerStatefulWidget {
   const UnitConversionsScreen({super.key});
 
   @override
-  ConsumerState<UnitConversionsScreen> createState() => _UnitConversionsScreenState();
+  ConsumerState<UnitConversionsScreen> createState() =>
+      _UnitConversionsScreenState();
 }
 
 class _UnitConversionsScreenState extends ConsumerState<UnitConversionsScreen> {
@@ -37,7 +38,8 @@ class _UnitConversionsScreenState extends ConsumerState<UnitConversionsScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Delete Conversion'),
-          content: const Text('Are you sure you want to delete this conversion?'),
+          content:
+              const Text('Are you sure you want to delete this conversion?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -47,11 +49,14 @@ class _UnitConversionsScreenState extends ConsumerState<UnitConversionsScreen> {
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () async {
                 try {
-                  await ref.read(inventoryProvider.notifier).deleteUnitConversion(conversion.id);
+                  await ref
+                      .read(inventoryProvider.notifier)
+                      .deleteUnitConversion(conversion.id);
                   if (context.mounted) Navigator.pop(context);
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text('Error: $e')));
                   }
                 }
               },
@@ -70,30 +75,29 @@ class _UnitConversionsScreenState extends ConsumerState<UnitConversionsScreen> {
     final uoms = state.unitsOfMeasure;
 
     final filteredConversions = conversions.where((item) {
-        final fromUnit = uoms.any((u) => u.id == item.fromUnitId) 
-            ? uoms.firstWhere((u) => u.id == item.fromUnitId).name.toLowerCase()
-            : '';
-        final toUnit = uoms.any((u) => u.id == item.toUnitId)
-            ? uoms.firstWhere((u) => u.id == item.toUnitId).name.toLowerCase()
-            : '';
-        final query = _searchQuery.toLowerCase();
-        
-        return fromUnit.contains(query) || toUnit.contains(query);
-    }).toList();
+      final fromUnit = uoms.any((u) => u.id == item.fromUnitId)
+          ? uoms.firstWhere((u) => u.id == item.fromUnitId).name.toLowerCase()
+          : '';
+      final toUnit = uoms.any((u) => u.id == item.toUnitId)
+          ? uoms.firstWhere((u) => u.id == item.toUnitId).name.toLowerCase()
+          : '';
+      final query = _searchQuery.toLowerCase();
 
+      return fromUnit.contains(query) || toUnit.contains(query);
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Unit Conversions'),
-         actions: [
+        actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-               ref.read(inventoryProvider.notifier).loadUnitsOfMeasure();
-               ref.read(inventoryProvider.notifier).loadUnitConversions();
+              ref.read(inventoryProvider.notifier).loadUnitsOfMeasure();
+              ref.read(inventoryProvider.notifier).loadUnitConversions();
             },
           ),
-           TextButton.icon(
+          TextButton.icon(
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text('New', style: TextStyle(color: Colors.white)),
             onPressed: () => context.push('/inventory/unit-conversions/create'),
@@ -103,7 +107,7 @@ class _UnitConversionsScreenState extends ConsumerState<UnitConversionsScreen> {
       ),
       body: Column(
         children: [
-           // Search Bar
+          // Search Bar
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -129,15 +133,18 @@ class _UnitConversionsScreenState extends ConsumerState<UnitConversionsScreen> {
           Expanded(
             child: state.isLoading && conversions.isEmpty
                 ? const Center(child: CircularProgressIndicator())
-                : state.error != null && conversions.isEmpty 
-                  ? Center(child: Text('Error: ${state.error}'))
-                  : filteredConversions.isEmpty
-                    ? Center(
-                             child: Column(
-                               mainAxisAlignment: MainAxisAlignment.center,
-                               children: [
-                                 Icon(Icons.swap_horiz,
-                                    size: 64, color: Colors.grey.shade400,),
+                : state.error != null && conversions.isEmpty
+                    ? Center(child: Text('Error: ${state.error}'))
+                    : filteredConversions.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.swap_horiz,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   conversions.isEmpty
@@ -151,21 +158,28 @@ class _UnitConversionsScreenState extends ConsumerState<UnitConversionsScreen> {
                               ],
                             ),
                           )
-                    : ListView.builder(
-                        itemCount: filteredConversions.length,
-                        padding: const EdgeInsets.only(bottom: 80),
-                        itemBuilder: (context, index) {
-                          final item = filteredConversions[index];
-                          final fromUnit = uoms.any((u) => u.id == item.fromUnitId) 
-                              ? uoms.firstWhere((u) => u.id == item.fromUnitId).name 
-                              : 'Unit ${item.fromUnitId}';
-                          final toUnit = uoms.any((u) => u.id == item.toUnitId)
-                              ? uoms.firstWhere((u) => u.id == item.toUnitId).name
-                              : 'Unit ${item.toUnitId}';
-            
-                          return _buildListItem(item, fromUnit, toUnit);
-                        },
-                      ),
+                        : ListView.builder(
+                            itemCount: filteredConversions.length,
+                            padding: const EdgeInsets.only(bottom: 80),
+                            itemBuilder: (context, index) {
+                              final item = filteredConversions[index];
+                              final fromUnit =
+                                  uoms.any((u) => u.id == item.fromUnitId)
+                                      ? uoms
+                                          .firstWhere(
+                                              (u) => u.id == item.fromUnitId)
+                                          .name
+                                      : 'Unit ${item.fromUnitId}';
+                              final toUnit = uoms
+                                      .any((u) => u.id == item.toUnitId)
+                                  ? uoms
+                                      .firstWhere((u) => u.id == item.toUnitId)
+                                      .name
+                                  : 'Unit ${item.toUnitId}';
+
+                              return _buildListItem(item, fromUnit, toUnit);
+                            },
+                          ),
           ),
         ],
       ),
@@ -192,7 +206,8 @@ class _UnitConversionsScreenState extends ConsumerState<UnitConversionsScreen> {
           children: [
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.teal),
-              onPressed: () => context.push('/inventory/unit-conversions/edit/${item.id}'),
+              onPressed: () =>
+                  context.push('/inventory/unit-conversions/edit/${item.id}'),
             ),
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),

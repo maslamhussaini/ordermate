@@ -13,8 +13,10 @@ enum ConnectionStatus {
 }
 
 class ConnectivityServiceNotifier extends StateNotifier<ConnectionStatus> {
-  ConnectivityServiceNotifier(this._ref, {bool initialOffline = false}) 
-      : super(initialOffline ? ConnectionStatus.offline : ConnectionStatus.online) {
+  ConnectivityServiceNotifier(this._ref, {bool initialOffline = false})
+      : super(initialOffline
+            ? ConnectionStatus.offline
+            : ConnectionStatus.online) {
     _init();
   }
 
@@ -29,7 +31,7 @@ class ConnectivityServiceNotifier extends StateNotifier<ConnectionStatus> {
       _updateStatus(result);
     } catch (e) {
       debugPrint('Connectivity: Initial check failed: $e');
-      // On some platforms, even checkConnectivity might fail. 
+      // On some platforms, even checkConnectivity might fail.
       // Assume offline or online based on a safe default.
     }
 
@@ -41,7 +43,7 @@ class ConnectivityServiceNotifier extends StateNotifier<ConnectionStatus> {
     try {
       // Clear existing subscription if any
       _subscription?.cancel();
-      
+
       _subscription = Connectivity().onConnectivityChanged.listen(
         (result) {
           _updateStatus(result);
@@ -54,10 +56,12 @@ class ConnectivityServiceNotifier extends StateNotifier<ConnectionStatus> {
         cancelOnError: false,
       );
     } on PlatformException catch (e) {
-      debugPrint('Connectivity: PlatformException while establishing stream: ${e.code} - ${e.message}');
+      debugPrint(
+          'Connectivity: PlatformException while establishing stream: ${e.code} - ${e.message}');
       // Specifically handle the Windows NetworkManager error if it occurs here
       if (e.message?.contains('NetworkManager') == true) {
-        debugPrint('Connectivity: Windows NetworkManager failed to start. Falling back to manual checks.');
+        debugPrint(
+            'Connectivity: Windows NetworkManager failed to start. Falling back to manual checks.');
       }
     } catch (e) {
       debugPrint('Connectivity: Unexpected error establishing stream: $e');
@@ -72,9 +76,9 @@ class ConnectivityServiceNotifier extends StateNotifier<ConnectionStatus> {
 
   void _updateStatus(List<ConnectivityResult> result) {
     if (!mounted) return;
-    
+
     final offlineMode = _ref.read(settingsProvider).offlineMode;
-    
+
     final newStatus = (result.contains(ConnectivityResult.none) || offlineMode)
         ? ConnectionStatus.offline
         : ConnectionStatus.online;

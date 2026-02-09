@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordermate/features/organization/data/repositories/organization_repository_impl.dart';
@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // State
 class OrganizationState {
-
   // State
   const OrganizationState({
     this.isLoading = false,
@@ -53,7 +52,8 @@ class OrganizationState {
       organizations: organizations ?? this.organizations,
       selectedOrganization: selectedOrganization ?? this.selectedOrganization,
       selectedStore: selectedStore ?? this.selectedStore,
-      selectedFinancialYear: selectedFinancialYear ?? this.selectedFinancialYear,
+      selectedFinancialYear:
+          selectedFinancialYear ?? this.selectedFinancialYear,
       stores: stores ?? this.stores,
       error: error,
     );
@@ -65,14 +65,16 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   final OrganizationRepository _repository;
   final Ref ref;
 
-  OrganizationNotifier(this._repository, this.ref) : super(const OrganizationState()) {
+  OrganizationNotifier(this._repository, this.ref)
+      : super(const OrganizationState()) {
     _init();
-    
+
     // Listen for auth events to manage state
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (previous?.isLoggedIn == true && !next.isLoggedIn) {
         reset();
-      } else if ((previous == null || !previous.isLoggedIn) && next.isLoggedIn) {
+      } else if ((previous == null || !previous.isLoggedIn) &&
+          next.isLoggedIn) {
         _init();
       }
     });
@@ -96,14 +98,15 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
         if (org != null) {
           state = state.copyWith(selectedOrganization: org);
           await loadStores(orgId);
-          
+
           if (storeId != null) {
-            final store = state.stores.where((s) => s.id == storeId).firstOrNull;
+            final store =
+                state.stores.where((s) => s.id == storeId).firstOrNull;
             if (store != null) {
               state = state.copyWith(selectedStore: store);
             }
           }
-          
+
           if (year != null) {
             state = state.copyWith(selectedFinancialYear: year);
           }
@@ -118,19 +121,21 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (state.selectedOrganization != null) {
-        await prefs.setInt('selected_organization_id', state.selectedOrganization!.id);
+        await prefs.setInt(
+            'selected_organization_id', state.selectedOrganization!.id);
       } else {
         await prefs.remove('selected_organization_id');
       }
-      
+
       if (state.selectedStore != null) {
         await prefs.setInt('selected_store_id', state.selectedStore!.id);
       } else {
         await prefs.remove('selected_store_id');
       }
-      
+
       if (state.selectedFinancialYear != null) {
-        await prefs.setInt('selected_financial_year', state.selectedFinancialYear!);
+        await prefs.setInt(
+            'selected_financial_year', state.selectedFinancialYear!);
       } else {
         await prefs.remove('selected_financial_year');
       }
@@ -143,14 +148,14 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
     state = state.copyWith(isLoading: true);
     try {
       final orgs = await _repository.getOrganizations();
-      
+
       // Only clear/auto-select if we have a non-empty results list
       var selected = state.selectedOrganization;
       if (orgs.isNotEmpty) {
         if (selected != null && !orgs.any((o) => o.id == selected!.id)) {
           selected = null;
         }
-        
+
         if (selected == null) {
           if (orgs.length == 1) {
             selected = orgs.first;
@@ -173,13 +178,13 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
-  
+
   Future<void> deleteOrganization(int id) async {
     state = state.copyWith(isLoading: true);
     try {
       await _repository.deleteOrganization(id);
       await loadOrganizations();
-    } catch(e) {
+    } catch (e) {
       state = state.copyWith(isLoading: false);
       rethrow;
     }
@@ -192,8 +197,8 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   }
 
   Future<void> selectStore(Store? store) async {
-     state = state.copyWith(selectedStore: store);
-     await _persistSelection();
+    state = state.copyWith(selectedStore: store);
+    await _persistSelection();
   }
 
   Future<void> setWorkspace({
@@ -235,16 +240,21 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   }
 
   Future<Organization> createOrganization(
-      String name, String? taxId, bool hasMultipleBranches, File? logoFile,) async {
+      String name, String? taxId, bool hasMultipleBranches,
+      {Uint8List? logoBytes, String? logoName}) async {
     state = state.copyWith(isLoading: true);
     try {
       String? logoUrl;
-      if (logoFile != null) {
-        logoUrl = await _repository.uploadOrganizationLogo(logoFile);
+      if (logoBytes != null && logoName != null) {
+        logoUrl = await _repository.uploadOrganizationLogo(logoBytes, logoName);
       }
 
       final newOrg = await _repository.createOrganization(
-          name, taxId, hasMultipleBranches, logoUrl,);
+        name,
+        taxId,
+        hasMultipleBranches,
+        logoUrl,
+      );
 
       // Trigger Accounting Setup in background
       _setupAccounting(newOrg.id);
@@ -262,12 +272,14 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
     }
   }
 
-  Future<void> updateOrganization(Organization org, {File? newLogoFile}) async {
+  Future<void> updateOrganization(Organization org,
+      {Uint8List? newLogoBytes, String? newLogoName}) async {
     state = state.copyWith(isLoading: true);
     try {
       var orgToUpdate = org;
-      if (newLogoFile != null) {
-        final logoUrl = await _repository.uploadOrganizationLogo(newLogoFile);
+      if (newLogoBytes != null && newLogoName != null) {
+        final logoUrl =
+            await _repository.uploadOrganizationLogo(newLogoBytes, newLogoName);
         orgToUpdate = Organization(
           id: org.id,
           name: org.name,
@@ -295,21 +307,28 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   Future<void> loadStores(int orgId) async {
     try {
       final allStores = await _repository.getStores(orgId);
-      
+
       // Filter stores based on user access
       final userProfile = await ref.read(userProfileProvider.future);
       List<Store> allowedStores = allStores;
 
       if (userProfile != null) {
-        // Corporate Admins see all stores. 
+        // Corporate Admins see all stores.
         // Others (ADMIN, EMPLOYEE) might be restricted to one store.
         final role = userProfile.role.toUpperCase();
-        print('DEBUG_LOG: Check Access - Role: $role, Assigned StoreID: ${userProfile.storeId}');
-        
-        if (role != 'CORPORATE_ADMIN' && role != 'ADMIN' && role != 'SUPER USER' && role != 'OWNER' && userProfile.storeId != null) {
-          allowedStores = allStores.where((s) => s.id == userProfile.storeId).toList();
+        print(
+            'DEBUG_LOG: Check Access - Role: $role, Assigned StoreID: ${userProfile.storeId}');
+
+        if (role != 'CORPORATE_ADMIN' &&
+            role != 'ADMIN' &&
+            role != 'SUPER USER' &&
+            role != 'OWNER' &&
+            userProfile.storeId != null) {
+          allowedStores =
+              allStores.where((s) => s.id == userProfile.storeId).toList();
         }
-        print('DEBUG_LOG: Filter Results - All: ${allStores.length}, Allowed: ${allowedStores.length}');
+        print(
+            'DEBUG_LOG: Filter Results - All: ${allStores.length}, Allowed: ${allowedStores.length}');
       }
 
       // Only clear/auto-select if we have a non-empty results list
@@ -317,7 +336,8 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
       if (allowedStores.isNotEmpty) {
         // If currently selected store is not in the allowed list, clear it
         if (selected != null) {
-          final fresh = allowedStores.where((s) => s.id == selected!.id).firstOrNull;
+          final fresh =
+              allowedStores.where((s) => s.id == selected!.id).firstOrNull;
           if (fresh != null) {
             selected = fresh;
           } else {
@@ -327,10 +347,10 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
 
         // If nothing selected, pick first
         if (selected == null) {
-            selected = allowedStores.first;
+          selected = allowedStores.first;
         }
       }
-      
+
       if (!mounted) return;
       state = state.copyWith(stores: allowedStores, selectedStore: selected);
     } catch (e) {
@@ -372,7 +392,9 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
 
   Future<void> _setupAccounting(int orgId) async {
     try {
-      await ref.read(accountingSetupServiceProvider).setupDefaultAccounting(orgId);
+      await ref
+          .read(accountingSetupServiceProvider)
+          .setupDefaultAccounting(orgId);
     } catch (e) {
       debugPrint('Accounting setup error: $e');
     }

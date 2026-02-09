@@ -9,7 +9,8 @@ class DepartmentFormScreen extends ConsumerStatefulWidget {
   final String? departmentId;
 
   @override
-  ConsumerState<DepartmentFormScreen> createState() => _DepartmentFormScreenState();
+  ConsumerState<DepartmentFormScreen> createState() =>
+      _DepartmentFormScreenState();
 }
 
 class _DepartmentFormScreenState extends ConsumerState<DepartmentFormScreen> {
@@ -27,7 +28,9 @@ class _DepartmentFormScreenState extends ConsumerState<DepartmentFormScreen> {
 
   void _loadDepartmentData() {
     final departments = ref.read(businessPartnerProvider).departments;
-    final dept = departments.where((d) => d['id'].toString() == widget.departmentId).firstOrNull;
+    final dept = departments
+        .where((d) => d['id'].toString() == widget.departmentId)
+        .firstOrNull;
     if (dept != null) {
       _nameController.text = dept['name'] ?? '';
     }
@@ -59,7 +62,7 @@ class _DepartmentFormScreenState extends ConsumerState<DepartmentFormScreen> {
               org.id,
             );
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Department updated successfully')),
           );
         }
@@ -74,7 +77,7 @@ class _DepartmentFormScreenState extends ConsumerState<DepartmentFormScreen> {
           );
         }
       }
-      
+
       if (mounted) {
         context.pop();
       }
@@ -93,7 +96,8 @@ class _DepartmentFormScreenState extends ConsumerState<DepartmentFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.departmentId != null ? 'Edit Department' : 'New Department'),
+        title: Text(
+            widget.departmentId != null ? 'Edit Department' : 'New Department'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

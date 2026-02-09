@@ -23,7 +23,8 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
   void initState() {
     super.initState();
     Future.microtask(
-        () => ref.read(businessPartnerProvider.notifier).loadEmployees(),);
+      () => ref.read(businessPartnerProvider.notifier).loadEmployees(),
+    );
   }
 
   final TextEditingController _searchController = TextEditingController();
@@ -34,17 +35,20 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
     _searchController.dispose();
     super.dispose();
   }
-  
+
   Future<void> _removeDuplicates() async {
     // Note: Provider might hold all partners, but we only care about employees.
     final state = ref.read(businessPartnerProvider);
-    final employees = state.employees; // Assuming getter exists from previous thought, or using direct list if possible.
+    final employees = state
+        .employees; // Assuming getter exists from previous thought, or using direct list if possible.
     // If 'employees' getter isn't available, we filter, but in previous thought I added code that used 'employees' getter/field.
     // Wait, let's verify if `employees` is available on state.
     // Assuming yes based on previous code.
-    
+
     if (employees.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No employees to check.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No employees to check.')));
       return;
     }
 
@@ -75,14 +79,16 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Duplicates?'),
-        content: Text('Found ${duplicates.length} duplicate entries based on Name and Phone.\n\nAre you sure you want to delete them?'),
+        content: Text(
+            'Found ${duplicates.length} duplicate entries based on Name and Phone.\n\nAre you sure you want to delete them?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Delete Duplicates'),
           ),
@@ -97,7 +103,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
       ImportProgress(total: duplicates.length),
     );
     var isCancelled = false;
-    
+
     if (!mounted) return;
 
     showDialog(
@@ -120,20 +126,22 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
       if (isCancelled) break;
 
       try {
-        await ref.read(businessPartnerProvider.notifier).deletePartner(duplicates[i].id, isEmployee: true);
+        await ref
+            .read(businessPartnerProvider.notifier)
+            .deletePartner(duplicates[i].id, isEmployee: true);
         successCount++;
       } catch (e) {
         debugPrint('Failed to delete duplicate ${duplicates[i].name}: $e');
         failCount++;
       }
-      
+
       progressNotifier.value = ImportProgress(
         total: duplicates.length,
         processed: i + 1,
         success: successCount,
         failed: failCount,
       );
-      
+
       await Future.delayed(Duration.zero);
     }
 
@@ -142,12 +150,14 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) Navigator.of(context, rootNavigator: true).pop();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isCancelled 
-            ? 'Deletion Cancelled' 
-            : 'Removed $successCount duplicates. ($failCount failed)',),
+          content: Text(
+            isCancelled
+                ? 'Deletion Cancelled'
+                : 'Removed $successCount duplicates. ($failCount failed)',
+          ),
           backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
         ),
       );
@@ -209,7 +219,8 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
       final headers = [
         ['Name', 'Phone', 'Email', 'Address'],
       ];
-      final path = await CsvService().saveCsvFile('employee_template.csv', headers);
+      final path =
+          await CsvService().saveCsvFile('employee_template.csv', headers);
       if (path != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Template saved to $path')),
@@ -230,10 +241,12 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
       if (rows == null || rows.isEmpty) return;
 
       var startIndex = 0;
-      if (rows.isNotEmpty && rows[0].isNotEmpty && rows[0][0].toString().toLowerCase() == 'name') {
+      if (rows.isNotEmpty &&
+          rows[0].isNotEmpty &&
+          rows[0][0].toString().toLowerCase() == 'name') {
         startIndex = 1;
       }
-      
+
       final totalItems = rows.length - startIndex;
       if (totalItems <= 0) return;
 
@@ -244,7 +257,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
       var isCancelled = false;
 
       if (!mounted) return;
-      
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -252,21 +265,21 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           title: 'Importing Employees',
           progressNotifier: progressNotifier,
           onStop: () {
-             isCancelled = true;
-             Navigator.of(context).pop();
+            isCancelled = true;
+            Navigator.of(context).pop();
           },
         ),
       );
-      
+
       // Duplicate Check: Name + Phone
-      final existingState = ref.read(businessPartnerProvider).employees; 
+      final existingState = ref.read(businessPartnerProvider).employees;
       // Note: provider getter might vary, assuming 'employees' getter exists or we filter.
       // But above code used `bpState.employees` so let's stick to that.
-      
+
       final existingKeys = existingState.map((e) {
-         final n = e.name.trim().toLowerCase();
-         final p = e.phone.trim();
-         return '$n|$p';
+        final n = e.name.trim().toLowerCase();
+        final p = e.phone.trim();
+        return '$n|$p';
       }).toSet();
 
       var successCount = 0;
@@ -278,28 +291,28 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
 
         final row = rows[i];
         if (row.isEmpty) {
-           progressNotifier.value = ImportProgress(
-             total: totalItems,
-             processed: i - startIndex + 1,
-             success: successCount,
-             failed: failCount + duplicateCount,
-           );
-           continue;
+          progressNotifier.value = ImportProgress(
+            total: totalItems,
+            processed: i - startIndex + 1,
+            success: successCount,
+            failed: failCount + duplicateCount,
+          );
+          continue;
         }
-        
+
         try {
           // Expected: Name, Phone, Email, Address
           final name = row.isNotEmpty ? row[0].toString().trim() : '';
-          
-          if (name.isEmpty) { 
-             failCount++; 
-             progressNotifier.value = ImportProgress(
-                total: totalItems,
-                processed: i - startIndex + 1,
-                success: successCount,
-                failed: failCount + duplicateCount,
-             );
-             continue; 
+
+          if (name.isEmpty) {
+            failCount++;
+            progressNotifier.value = ImportProgress(
+              total: totalItems,
+              processed: i - startIndex + 1,
+              success: successCount,
+              failed: failCount + duplicateCount,
+            );
+            continue;
           }
 
           final phone = row.length > 1 ? row[1].toString().trim() : '';
@@ -307,28 +320,28 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           final address = row.length > 3 ? row[3].toString().trim() : '';
 
           final currentKey = '${name.toLowerCase()}|$phone';
-          
-          if (existingKeys.contains(currentKey)) {
-             duplicateCount++;
-          } else {
-              // Import Logic
-              final orgState = ref.read(organizationProvider);
 
-             await ref.read(businessPartnerProvider.notifier).addPartner(
-              BusinessPartner(
-                id: '',
-                name: name,
-                phone: phone,
-                email: email,
-                address: address,
-                isEmployee: true,
-                isActive: true,
-                createdAt: DateTime.now(),
-                updatedAt: DateTime.now(),
-                organizationId: orgState.selectedOrganization?.id ?? 0,
-                storeId: orgState.selectedStore?.id ?? 0,
-              ),
-            );
+          if (existingKeys.contains(currentKey)) {
+            duplicateCount++;
+          } else {
+            // Import Logic
+            final orgState = ref.read(organizationProvider);
+
+            await ref.read(businessPartnerProvider.notifier).addPartner(
+                  BusinessPartner(
+                    id: '',
+                    name: name,
+                    phone: phone,
+                    email: email,
+                    address: address,
+                    isEmployee: true,
+                    isActive: true,
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                    organizationId: orgState.selectedOrganization?.id ?? 0,
+                    storeId: orgState.selectedStore?.id ?? 0,
+                  ),
+                );
             existingKeys.add(currentKey);
             successCount++;
           }
@@ -336,7 +349,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           debugPrint('Row $i failed: $e');
           failCount++;
         }
-        
+
         progressNotifier.value = ImportProgress(
           total: totalItems,
           processed: i - startIndex + 1,
@@ -344,25 +357,29 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           failed: failCount,
           duplicate: duplicateCount,
         );
-        
+
         await Future.delayed(const Duration(milliseconds: 10));
       }
 
       if (mounted) {
-         if (!isCancelled) {
-            await Future.delayed(const Duration(milliseconds: 800));
-            if (mounted) Navigator.of(context, rootNavigator: true).pop();
-         }
-         
-         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
-             content: Text(isCancelled 
-                ? 'Import Cancelled' 
-                : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',),
-             backgroundColor: successCount > 0 ? Colors.green : (duplicateCount > 0 ? Colors.orange : Colors.red),
-           ),
-         );
-         ref.read(businessPartnerProvider.notifier).loadEmployees();
+        if (!isCancelled) {
+          await Future.delayed(const Duration(milliseconds: 800));
+          if (mounted) Navigator.of(context, rootNavigator: true).pop();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCancelled
+                  ? 'Import Cancelled'
+                  : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',
+            ),
+            backgroundColor: successCount > 0
+                ? Colors.green
+                : (duplicateCount > 0 ? Colors.orange : Colors.red),
+          ),
+        );
+        ref.read(businessPartnerProvider.notifier).loadEmployees();
       }
     } catch (e) {
       if (mounted) {
@@ -373,16 +390,16 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     // Note: Provider state might still hold customers if we share the same state.
-    // Ideally we should have separate state or filter locally. 
+    // Ideally we should have separate state or filter locally.
     // But loadPartners above REPLACES the state.
     // If we want to avoid clashing with customer list state, we might need a separate provider.
     // For now, let's assume single list in state is fine as long as we reload on init.
     final bpState = ref.watch(businessPartnerProvider);
-    final employees = bpState.employees; // Using partners generic list, currently mapped to customers in state class?
+    final employees = bpState
+        .employees; // Using partners generic list, currently mapped to customers in state class?
 
     // Filter Logic
     final filteredEmployees = employees.where((c) {
@@ -392,7 +409,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
       final matchesSearch = c.name.toLowerCase().contains(query) ||
           c.phone.contains(query) ||
           c.address.toLowerCase().contains(query);
-      
+
       return matchesSearch;
     }).toList();
 
@@ -424,48 +441,60 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text('New', style: TextStyle(color: Colors.white)),
             onPressed: () async {
-              
               // Dependency Check
               try {
-                showDialog(context: context, barrierDismissible: false, builder: (ctx) => const Center(child: CircularProgressIndicator()));
-                
+                showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (ctx) =>
+                        const Center(child: CircularProgressIndicator()));
+
                 final orgState = ref.read(organizationProvider);
                 if (orgState.selectedOrganizationId == null) {
-                   Navigator.pop(context); // Close loading
-                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an Organization first.')));
-                   return;
+                  Navigator.pop(context); // Close loading
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Please select an Organization first.')));
+                  return;
                 }
 
                 await Future.wait([
-                  ref.read(businessPartnerProvider.notifier).loadDepartments(orgState.selectedOrganizationId!),
+                  ref
+                      .read(businessPartnerProvider.notifier)
+                      .loadDepartments(orgState.selectedOrganizationId!),
                   ref.read(businessPartnerProvider.notifier).loadRoles(),
                 ]);
 
                 if (!context.mounted) return;
-                Navigator.of(context, rootNavigator: true).pop(); // Use rootNavigator to ensure dialog is closed
+                Navigator.of(context, rootNavigator: true)
+                    .pop(); // Use rootNavigator to ensure dialog is closed
 
-               final bpState = ref.read(businessPartnerProvider);
-               final missing = <String>[];
-               if (bpState.departments.isEmpty) missing.add('Department');
-               if (bpState.roles.isEmpty) missing.add('Role');
+                final bpState = ref.read(businessPartnerProvider);
+                final missing = <String>[];
+                if (bpState.departments.isEmpty) missing.add('Department');
+                if (bpState.roles.isEmpty) missing.add('Role');
 
-               if (missing.isNotEmpty) {
-                 showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Missing Requirements'),
-                      content: Text('Please create the following before adding an Employee:\n\n• ${missing.join('\n• ')}\n\nYou can create these in the HR Settings.'),
-                      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-                    )
-                 );
-                 return;
-               }
+                if (missing.isNotEmpty) {
+                  showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                            title: const Text('Missing Requirements'),
+                            content: Text(
+                                'Please create the following before adding an Employee:\n\n• ${missing.join('\n• ')}\n\nYou can create these in the HR Settings.'),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('OK'))
+                            ],
+                          ));
+                  return;
+                }
 
                 context.goNamed('employee-create');
               } catch (e) {
                 if (context.mounted) {
-                   Navigator.pop(context);
-                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error checking dependencies: $e')));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Error checking dependencies: $e')));
                 }
               }
             },
@@ -489,8 +518,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                 ),
                 filled: true,
                 fillColor: Colors.grey.shade200,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
               onChanged: (value) {
                 setState(() {
@@ -511,16 +539,20 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.badge_outlined,
-                                    size: 64, color: Colors.grey.shade400,),
+                                Icon(
+                                  Icons.badge_outlined,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   employees.isEmpty
                                       ? 'No employees found.'
                                       : 'No results found.',
                                   style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 16,),
+                                    color: Colors.grey.shade600,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ],
                             ),
@@ -548,8 +580,9 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
         content: Text('Are you sure you want to delete ${employee.name}?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),),
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -627,8 +660,9 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           leading: CircleAvatar(
             backgroundColor: Colors.teal.shade50,
             child: Text(
-                employee.name.isNotEmpty ? employee.name[0].toUpperCase() : '?',
-                style: TextStyle(color: Colors.teal.shade800),),
+              employee.name.isNotEmpty ? employee.name[0].toUpperCase() : '?',
+              style: TextStyle(color: Colors.teal.shade800),
+            ),
           ),
           title: Text(
             employee.name,
@@ -645,17 +679,23 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                   children: [
                     Icon(Icons.phone, size: 14, color: Colors.grey.shade600),
                     const SizedBox(width: 4),
-                    Text(employee.phone,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),),
+                    Text(
+                      employee.phone,
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    ),
                   ],
                 ),
               if (employee.email != null && employee.email!.isNotEmpty)
-                 Row(
+                Row(
                   children: [
                     Icon(Icons.email, size: 14, color: Colors.grey.shade600),
                     const SizedBox(width: 4),
-                    Text(employee.email!,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),),
+                    Text(
+                      employee.email!,
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    ),
                   ],
                 ),
             ],
@@ -669,11 +709,13 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                 OutlinedButton.icon(
                   onPressed: () async {
                     if (employee.email == null || employee.email!.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Employee has no email address.')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Employee has no email address.')));
                       return;
                     }
-                    
-                    final passwordController = TextEditingController(text: 'Welcome@123');
+
+                    final passwordController =
+                        TextEditingController(text: 'Welcome@123');
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -682,7 +724,8 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('This will create/update the account for ${employee.name} in Supabase Auth and send them their login details.'),
+                            Text(
+                                'This will create/update the account for ${employee.name} in Supabase Auth and send them their login details.'),
                             const SizedBox(height: 20),
                             TextField(
                               controller: passwordController,
@@ -695,24 +738,43 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                           ],
                         ),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Send Invite')),
+                          TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel')),
+                          ElevatedButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Send Invite')),
                         ],
                       ),
                     );
-                    
+
                     if (confirm == true) {
                       try {
-                        showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
-                        await ref.read(businessPartnerProvider.notifier).sendCredentials(employee, passwordController.text.trim());
+                        showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => const Center(
+                                child: CircularProgressIndicator()));
+                        await ref
+                            .read(businessPartnerProvider.notifier)
+                            .sendCredentials(
+                                employee, passwordController.text.trim());
                         if (context.mounted) {
-                           Navigator.of(context, rootNavigator: true).pop(); // Close loading
-                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credentials sent successfully'), backgroundColor: Colors.green));
+                          Navigator.of(context, rootNavigator: true)
+                              .pop(); // Close loading
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Credentials sent successfully'),
+                                  backgroundColor: Colors.green));
                         }
                       } catch (e) {
                         if (context.mounted) {
-                          Navigator.of(context, rootNavigator: true).pop(); // Close loading
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red));
+                          Navigator.of(context, rootNavigator: true)
+                              .pop(); // Close loading
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Failed: $e'),
+                              backgroundColor: Colors.red));
                         }
                       }
                     }
@@ -726,8 +788,10 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
-                  onPressed: () => context.goNamed('employee-edit',
-                      pathParameters: {'id': employee.id},),
+                  onPressed: () => context.goNamed(
+                    'employee-edit',
+                    pathParameters: {'id': employee.id},
+                  ),
                   icon: const Icon(Icons.edit, size: 18),
                   label: const Text('Edit'),
                   style: OutlinedButton.styleFrom(

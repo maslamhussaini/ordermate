@@ -32,7 +32,6 @@ void main() {
   });
 
   group('Enterprise Permission Suite', () {
-    
     // 1️⃣ Unit Test - Permission Logic
     test('can() returns true only for matching module/action', () {
       const state = AuthState(
@@ -47,15 +46,16 @@ void main() {
       // Positive
       expect(state.can('customers', Permission.read), isTrue);
       expect(state.can('orders', Permission.write), isTrue);
-      
+
       // Negative
-      expect(state.can('customers', Permission.write), isFalse); 
-      expect(state.can('accounting', Permission.read), isFalse); 
+      expect(state.can('customers', Permission.write), isFalse);
+      expect(state.can('accounting', Permission.read), isFalse);
     });
 
     // 2️⃣ Widget Test - Menu Hides Restricted Items
-    testWidgets('AppMenu hides Accounting for Staff without permissions', (tester) async {
-       await tester.pumpWidget(
+    testWidgets('AppMenu hides Accounting for Staff without permissions',
+        (tester) async {
+      await tester.pumpWidget(
         ProviderScope(
           overrides: [
             authProvider.overrideWith(MockAuthNotifier.new),
@@ -65,17 +65,17 @@ void main() {
           ),
         ),
       );
-      
+
       final BuildContext context = tester.element(find.byType(AppMenu));
       final ProviderContainer container = ProviderScope.containerOf(context);
-      
+
       // Simulate Staff Login
-      final MockAuthNotifier notifier = container.read(authProvider.notifier) as MockAuthNotifier;
+      final MockAuthNotifier notifier =
+          container.read(authProvider.notifier) as MockAuthNotifier;
       notifier.setPermissions(
-        [const PermissionObject('customers', Permission.read)], 
-        UserRole.staff
-      );
-      
+          [const PermissionObject('customers', Permission.read)],
+          UserRole.staff);
+
       await tester.pumpAndSettle();
 
       expect(find.text('Customers'), findsOneWidget);
@@ -83,37 +83,39 @@ void main() {
     });
 
     // 3️⃣ Router Guard Test
-    testWidgets('Router redirects unauthorized access to Dashboard', (tester) async {
+    testWidgets('Router redirects unauthorized access to Dashboard',
+        (tester) async {
       await tester.pumpWidget(
-         ProviderScope(
+        ProviderScope(
           overrides: [
-             authProvider.overrideWith(MockAuthNotifier.new),
+            authProvider.overrideWith(MockAuthNotifier.new),
           ],
           child: const MaterialAppWithRouter(),
         ),
       );
 
-      final BuildContext context = tester.element(find.byType(MaterialAppWithRouter));
+      final BuildContext context =
+          tester.element(find.byType(MaterialAppWithRouter));
       final ProviderContainer container = ProviderScope.containerOf(context);
       final GoRouter router = container.read(routerProvider);
-      
+
       // Setup Auth
-      final MockAuthNotifier notifier = container.read(authProvider.notifier) as MockAuthNotifier;
+      final MockAuthNotifier notifier =
+          container.read(authProvider.notifier) as MockAuthNotifier;
       notifier.setPermissions(
-        [const PermissionObject('dashboard', Permission.read)], 
-        UserRole.staff
-      );
-      
-      await tester.pumpAndSettle(); 
+          [const PermissionObject('dashboard', Permission.read)],
+          UserRole.staff);
+
+      await tester.pumpAndSettle();
 
       // Attempt Navigation
       router.go('/accounting');
       await tester.pumpAndSettle();
 
       // Expect Fallback
-      expect(router.routerDelegate.currentConfiguration.uri.toString(), '/dashboard');
+      expect(router.routerDelegate.currentConfiguration.uri.toString(),
+          '/dashboard');
     });
-
   });
 }
 

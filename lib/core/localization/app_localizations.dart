@@ -9,7 +9,7 @@ class AppLocalizations {
   static AppLocalizations? of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
-  
+
   static const delegate = AppLocalizationsDelegate();
 
   static const _localizedValues = <String, Map<String, String>>{
@@ -18,7 +18,7 @@ class AppLocalizations {
       'dashboard': 'Tableau de bord',
       'settings': 'Paramètres',
       'login': 'Connexion',
-      
+
       // Drawer
       'admin': 'Admin',
       'customers_management': 'Gestion des clients',
@@ -47,8 +47,9 @@ class AppLocalizations {
       'close': 'Fermer',
       'cancel': 'Annuler',
       'new_order': 'Nouvelle commande',
-      'clear_cache_confirmation': 'Cela effacera toutes les données locales et les re-téléchargera depuis le serveur. Les modifications non synchronisées peuvent être perdues. Continuer?',
-      
+      'clear_cache_confirmation':
+          'Cela effacera toutes les données locales et les re-téléchargera depuis le serveur. Les modifications non synchronisées peuvent être perdues. Continuer?',
+
       // Login
       'sign_in': 'Se connecter',
       'welcome_back': 'Bon retour! Veuillez entrer vos détails.',
@@ -148,8 +149,9 @@ class AppLocalizations {
       'close': 'Cerrar',
       'cancel': 'Cancelar',
       'new_order': 'Nuevo Pedido',
-      'clear_cache_confirmation': 'Esto eliminará todos los datos locales y los volverá a obtener del servidor. Los cambios no sincronizados pueden perderse. ¿Continuar?',
-      
+      'clear_cache_confirmation':
+          'Esto eliminará todos los datos locales y los volverá a obtener del servidor. Los cambios no sincronizados pueden perderse. ¿Continuar?',
+
       // Login
       'sign_in': 'Iniciar Sesión',
       'welcome_back': '¡Bienvenido de nuevo! Por favor, introduzca sus datos.',
@@ -249,7 +251,8 @@ class AppLocalizations {
       'close': 'Close',
       'cancel': 'Cancel',
       'new_order': 'New Order',
-      'clear_cache_confirmation': 'This will delete all local data and re-fetch it from the server. Unsynced changes might be lost if not forced synced first. Continue?',
+      'clear_cache_confirmation':
+          'This will delete all local data and re-fetch it from the server. Unsynced changes might be lost if not forced synced first. Continue?',
 
       // Login
       'sign_in': 'Sign In',
@@ -322,7 +325,9 @@ class AppLocalizations {
 
   String get(String key) {
     // Basic fallback to English if key/lang missing
-    return _localizedValues[locale.languageCode]?[key] ?? _localizedValues['en']?[key] ?? key;
+    return _localizedValues[locale.languageCode]?[key] ??
+        _localizedValues['en']?[key] ??
+        key;
   }
 }
 
@@ -330,7 +335,8 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'es', 'fr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      ['en', 'es', 'fr'].contains(locale.languageCode);
 
   @override
   Future<AppLocalizations> load(Locale locale) async {

@@ -12,10 +12,12 @@ class AccountCategoryFormScreen extends ConsumerStatefulWidget {
   const AccountCategoryFormScreen({super.key, this.accountCategoryId});
 
   @override
-  ConsumerState<AccountCategoryFormScreen> createState() => _AccountCategoryFormScreenState();
+  ConsumerState<AccountCategoryFormScreen> createState() =>
+      _AccountCategoryFormScreenState();
 }
 
-class _AccountCategoryFormScreenState extends ConsumerState<AccountCategoryFormScreen> {
+class _AccountCategoryFormScreenState
+    extends ConsumerState<AccountCategoryFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _idController;
   late TextEditingController _nameController;
@@ -31,7 +33,10 @@ class _AccountCategoryFormScreenState extends ConsumerState<AccountCategoryFormS
     _nameController = TextEditingController();
 
     if (widget.accountCategoryId != null) {
-      final cat = ref.read(accountingProvider).categories.firstWhere((c) => c.id == widget.accountCategoryId);
+      final cat = ref
+          .read(accountingProvider)
+          .categories
+          .firstWhere((c) => c.id == widget.accountCategoryId);
       _idController.text = cat.id.toString();
       _nameController.text = cat.categoryName;
       _selectedTypeId = cat.accountTypeId;
@@ -50,7 +55,8 @@ class _AccountCategoryFormScreenState extends ConsumerState<AccountCategoryFormS
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _selectedTypeId == null) {
       if (_selectedTypeId == null) {
-         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an Account Type')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select an Account Type')));
       }
       return;
     }
@@ -67,7 +73,7 @@ class _AccountCategoryFormScreenState extends ConsumerState<AccountCategoryFormS
         organizationId: orgId ?? 0,
       );
       final notifier = ref.read(accountingProvider.notifier);
-      
+
       if (widget.accountCategoryId == null) {
         await notifier.addAccountCategory(category, organizationId: orgId);
       } else {
@@ -97,7 +103,9 @@ class _AccountCategoryFormScreenState extends ConsumerState<AccountCategoryFormS
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.accountCategoryId == null ? 'Add Account Category' : 'Edit Account Category'),
+        title: Text(widget.accountCategoryId == null
+            ? 'Add Account Category'
+            : 'Edit Account Category'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -116,7 +124,10 @@ class _AccountCategoryFormScreenState extends ConsumerState<AccountCategoryFormS
                       ),
                       keyboardType: TextInputType.number,
                       enabled: widget.accountCategoryId == null,
-                      validator: (value) => (value == null || int.tryParse(value) == null) ? 'Invalid ID' : null,
+                      validator: (value) =>
+                          (value == null || int.tryParse(value) == null)
+                              ? 'Invalid ID'
+                              : null,
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -124,9 +135,11 @@ class _AccountCategoryFormScreenState extends ConsumerState<AccountCategoryFormS
                       decoration: const InputDecoration(
                         labelText: 'Category Name',
                         border: OutlineInputBorder(),
-                        hintText: 'e.g. Fixed Assets, Current Assets, Revenue...',
+                        hintText:
+                            'e.g. Fixed Assets, Current Assets, Revenue...',
                       ),
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<int>(
@@ -150,10 +163,11 @@ class _AccountCategoryFormScreenState extends ConsumerState<AccountCategoryFormS
                       value: _isActive,
                       onChanged: (val) => setState(() => _isActive = val),
                     ),
-                    if (widget.accountCategoryId == null) 
+                    if (widget.accountCategoryId == null)
                       SwitchListTile(
                         title: const Text('Is System'),
-                        subtitle: const Text('System categories cannot be deleted'),
+                        subtitle:
+                            const Text('System categories cannot be deleted'),
                         value: _isSystem,
                         onChanged: (val) => setState(() => _isSystem = val),
                       ),

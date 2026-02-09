@@ -61,7 +61,8 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
     debugPrint('InventoryNotifier: Loading all data for Org ID: $orgId');
 
     // Helper to safely load data
-    Future<List<T>> safeLoad<T>(String name, Future<List<T>> Function() fetcher) async {
+    Future<List<T>> safeLoad<T>(
+        String name, Future<List<T>> Function() fetcher) async {
       try {
         debugPrint('InventoryNotifier: Fetching $name...');
         final result = await fetcher();
@@ -74,11 +75,16 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
     }
 
     // Load sequentially to avoid SQLite locking issues during caching
-    final brands = await safeLoad('Brands', () => repository.getBrands(organizationId: orgId));
-    final categories = await safeLoad('Categories', () => repository.getCategories(organizationId: orgId));
-    final productTypes = await safeLoad('ProductTypes', () => repository.getProductTypes(organizationId: orgId));
-    final unitsOfMeasure = await safeLoad('UnitsOfMeasure', () => repository.getUnitsOfMeasure(organizationId: orgId));
-    final unitConversions = await safeLoad('UnitConversions', () => repository.getUnitConversions(organizationId: orgId));
+    final brands = await safeLoad(
+        'Brands', () => repository.getBrands(organizationId: orgId));
+    final categories = await safeLoad(
+        'Categories', () => repository.getCategories(organizationId: orgId));
+    final productTypes = await safeLoad('ProductTypes',
+        () => repository.getProductTypes(organizationId: orgId));
+    final unitsOfMeasure = await safeLoad('UnitsOfMeasure',
+        () => repository.getUnitsOfMeasure(organizationId: orgId));
+    final unitConversions = await safeLoad('UnitConversions',
+        () => repository.getUnitConversions(organizationId: orgId));
 
     if (brands.isEmpty && categories.isEmpty && productTypes.isEmpty) {
       debugPrint('InventoryNotifier: All primary inventory lists are empty.');
@@ -98,7 +104,8 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
     state = state.copyWith(isLoading: true, error: null);
     debugPrint('InventoryNotifier: Loading ALL data (ignoring Org ID)');
 
-    Future<List<T>> safeLoad<T>(String name, Future<List<T>> Function() fetcher) async {
+    Future<List<T>> safeLoad<T>(
+        String name, Future<List<T>> Function() fetcher) async {
       try {
         debugPrint('InventoryNotifier: Fetching $name (no org filter)...');
         final result = await fetcher();
@@ -110,11 +117,16 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
       }
     }
 
-    final brands = await safeLoad('Brands', () => repository.getBrands(organizationId: 0));
-    final categories = await safeLoad('Categories', () => repository.getCategories(organizationId: 0));
-    final productTypes = await safeLoad('ProductTypes', () => repository.getProductTypes(organizationId: 0));
-    final unitsOfMeasure = await safeLoad('UnitsOfMeasure', () => repository.getUnitsOfMeasure(organizationId: 0));
-    final unitConversions = await safeLoad('UnitConversions', () => repository.getUnitConversions(organizationId: 0));
+    final brands =
+        await safeLoad('Brands', () => repository.getBrands(organizationId: 0));
+    final categories = await safeLoad(
+        'Categories', () => repository.getCategories(organizationId: 0));
+    final productTypes = await safeLoad(
+        'ProductTypes', () => repository.getProductTypes(organizationId: 0));
+    final unitsOfMeasure = await safeLoad('UnitsOfMeasure',
+        () => repository.getUnitsOfMeasure(organizationId: 0));
+    final unitConversions = await safeLoad('UnitConversions',
+        () => repository.getUnitConversions(organizationId: 0));
 
     state = state.copyWith(
       isLoading: false,
@@ -361,8 +373,8 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
   Future<void> updateUnitConversion(UnitConversion conversion) async {
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      await repository.updateUnitConversion(
-          conversion.copyWith(organizationId: orgId));
+      await repository
+          .updateUnitConversion(conversion.copyWith(organizationId: orgId));
       await loadUnitConversions();
     } catch (e) {
       state = state.copyWith(error: e.toString());

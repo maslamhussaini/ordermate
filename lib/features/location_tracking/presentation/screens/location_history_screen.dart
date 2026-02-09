@@ -9,7 +9,8 @@ class LocationHistoryScreen extends ConsumerStatefulWidget {
   const LocationHistoryScreen({super.key});
 
   @override
-  ConsumerState<LocationHistoryScreen> createState() => _LocationHistoryScreenState();
+  ConsumerState<LocationHistoryScreen> createState() =>
+      _LocationHistoryScreenState();
 }
 
 class _LocationHistoryScreenState extends ConsumerState<LocationHistoryScreen> {
@@ -26,14 +27,15 @@ class _LocationHistoryScreenState extends ConsumerState<LocationHistoryScreen> {
   }
 
   void _fetchHistory() {
-    final startOfDay = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final startOfDay =
+        DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
-    
+
     ref.read(locationTrackingProvider.notifier).loadHistory(
-      start: startOfDay,
-      end: endOfDay,
-      userId: _selectedUserId,
-    );
+          start: startOfDay,
+          end: endOfDay,
+          userId: _selectedUserId,
+        );
   }
 
   @override
@@ -50,7 +52,9 @@ class _LocationHistoryScreenState extends ConsumerState<LocationHistoryScreen> {
             onPressed: () {
               // Implementation for printing/PDF generation would go here
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Print functionality to be implemented with pdf package')),
+                const SnackBar(
+                    content: Text(
+                        'Print functionality to be implemented with pdf package')),
               );
             },
           ),
@@ -87,7 +91,8 @@ class _LocationHistoryScreenState extends ConsumerState<LocationHistoryScreen> {
                                 border: OutlineInputBorder(),
                                 prefixIcon: Icon(Icons.calendar_today),
                               ),
-                              child: Text(DateFormat('yyyy-MM-dd').format(_selectedDate)),
+                              child: Text(DateFormat('yyyy-MM-dd')
+                                  .format(_selectedDate)),
                             ),
                           ),
                         ),
@@ -116,21 +121,28 @@ class _LocationHistoryScreenState extends ConsumerState<LocationHistoryScreen> {
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : state.history.isEmpty
-                    ? const Center(child: Text('No movement history found for this selection'))
+                    ? const Center(
+                        child: Text(
+                            'No movement history found for this selection'))
                     : ListView.separated(
                         itemCount: state.history.length,
-                        separatorBuilder: (context, index) => const Divider(height: 1),
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final item = state.history[index];
                           // Note: In real app, we'd join with business partners to show name
                           // Here we assume getHistory already handles it or we use userId
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                              backgroundColor: Theme.of(context)
+                                  .primaryColor
+                                  .withOpacity(0.1),
                               child: Text('${index + 1}'),
                             ),
-                            title: Text(DateFormat('hh:mm a').format(item.createdAt.toLocal())),
-                            subtitle: Text('Lat: ${item.latitude.toStringAsFixed(6)}, Lon: ${item.longitude.toStringAsFixed(6)}'),
+                            title: Text(DateFormat('hh:mm a')
+                                .format(item.createdAt.toLocal())),
+                            subtitle: Text(
+                                'Lat: ${item.latitude.toStringAsFixed(6)}, Lon: ${item.longitude.toStringAsFixed(6)}'),
                             trailing: IconButton(
                               icon: const Icon(Icons.map_outlined),
                               onPressed: () {

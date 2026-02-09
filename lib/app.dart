@@ -37,7 +37,7 @@ class OrderMateApp extends ConsumerWidget {
       theme: AppTheme.lightTheme(settings.fontFamily, settings.themeColor),
       darkTheme: AppTheme.darkTheme(settings.fontFamily, settings.themeColor),
       themeMode: settings.themeMode,
-      
+
       // Localization
       supportedLocales: const [
         Locale('en', ''), // English
@@ -49,9 +49,9 @@ class OrderMateApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      
+
       routerConfig: router,
-      
+
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         scrollbars: true,
         physics: const BouncingScrollPhysics(),
@@ -62,49 +62,50 @@ class OrderMateApp extends ConsumerWidget {
           PointerDeviceKind.trackpad,
         },
       ),
-      
+
       // Global Builder for Offline Overlay & Bug Reporting Screenshot
       builder: (context, child) {
-         return Consumer(
-            builder: (context, ref, _) {
-              final connection = ref.watch(connectivityProvider);
-              final screenshotController = ref.watch(screenshotControllerProvider);
-              
-              return Screenshot(
-                controller: screenshotController,
-                child: Stack(
-                  children: [
-                    if (child != null) child,
-                    // Offline Indicator
-                    if (connection == ConnectionStatus.offline)
-                      Positioned(
-                        bottom: 20,
-                        right: 20,
-                        child: Material(
-                          elevation: 8,
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.redAccent,
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.wifi_off, color: Colors.white, size: 16),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Offline Mode',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
-                              ],
+        return Consumer(builder: (context, ref, _) {
+          final connection = ref.watch(connectivityProvider);
+          final screenshotController = ref.watch(screenshotControllerProvider);
+
+          return Screenshot(
+            controller: screenshotController,
+            child: Stack(
+              children: [
+                if (child != null) child,
+                // Offline Indicator
+                if (connection == ConnectionStatus.offline)
+                  Positioned(
+                    bottom: 20,
+                    right: 20,
+                    child: Material(
+                      elevation: 8,
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.redAccent,
+                      child: const Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.wifi_off, color: Colors.white, size: 16),
+                            SizedBox(width: 8),
+                            Text(
+                              'Offline Mode',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              );
-            }
-         );
+                    ),
+                  ),
+              ],
+            ),
+          );
+        });
       },
     );
   }

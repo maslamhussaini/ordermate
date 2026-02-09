@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordermate/features/inventory/data/repositories/stock_transfer_repository_impl.dart';
@@ -37,7 +36,8 @@ class StockTransferNotifier extends StateNotifier<StockTransferState> {
   final StockTransferRepository _repository;
   final Ref _ref;
 
-  StockTransferNotifier(this._repository, this._ref) : super(const StockTransferState());
+  StockTransferNotifier(this._repository, this._ref)
+      : super(const StockTransferState());
 
   Future<void> loadTransfers() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -97,15 +97,18 @@ class StockTransferNotifier extends StateNotifier<StockTransferState> {
 }
 
 // Providers
-final stockTransferRepositoryProvider = Provider<StockTransferRepository>((ref) {
+final stockTransferRepositoryProvider =
+    Provider<StockTransferRepository>((ref) {
   return StockTransferRepositoryImpl();
 });
 
-final stockTransferLocalRepositoryProvider = Provider<StockTransferLocalRepository>((ref) {
+final stockTransferLocalRepositoryProvider =
+    Provider<StockTransferLocalRepository>((ref) {
   return StockTransferLocalRepository();
 });
 
-final stockTransferProvider = StateNotifierProvider<StockTransferNotifier, StockTransferState>((ref) {
+final stockTransferProvider =
+    StateNotifierProvider<StockTransferNotifier, StockTransferState>((ref) {
   final repo = ref.watch(stockTransferRepositoryProvider);
   return StockTransferNotifier(repo, ref);
 });

@@ -55,7 +55,6 @@ final getCustomersByLocationUseCaseProvider =
   return GetCustomersByLocationUseCase(repository);
 });
 
-
 // StateNotifier for customer management
 class CustomerNotifier extends StateNotifier<CustomerState> {
   CustomerNotifier(this.ref, this.getCustomersByLocation, this.repository)

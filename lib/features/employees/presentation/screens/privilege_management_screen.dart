@@ -10,10 +10,12 @@ class PrivilegeManagementScreen extends ConsumerStatefulWidget {
   const PrivilegeManagementScreen({super.key});
 
   @override
-  ConsumerState<PrivilegeManagementScreen> createState() => _PrivilegeManagementScreenState();
+  ConsumerState<PrivilegeManagementScreen> createState() =>
+      _PrivilegeManagementScreenState();
 }
 
-class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementScreen> {
+class _PrivilegeManagementScreenState
+    extends ConsumerState<PrivilegeManagementScreen> {
   int? _selectedRoleId;
   String? _selectedEmployeeId;
   String _viewMode = 'role'; // 'role' or 'employee'
@@ -22,7 +24,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
   final Map<int, Map<String, bool>> _pendingChanges = {};
   final List<int> _pendingStoreChanges = [];
   bool _storeChangesDirty = false;
-  
+
   final ScrollController _leftScrollController = ScrollController();
   final ScrollController _rightScrollController = ScrollController();
 
@@ -31,9 +33,11 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
     super.initState();
     Future.microtask(() {
       ref.read(businessPartnerProvider.notifier).loadRoles();
-      ref.read(businessPartnerProvider.notifier).loadAppUsers(); // Changed from loadEmployees
+      ref
+          .read(businessPartnerProvider.notifier)
+          .loadAppUsers(); // Changed from loadEmployees
       ref.read(businessPartnerProvider.notifier).loadAppForms();
-      
+
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
       if (orgId != null) {
         ref.read(organizationProvider.notifier).loadStores(orgId);
@@ -49,17 +53,24 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
       _pendingStoreChanges.clear();
       _storeChangesDirty = false;
     });
-    ref.read(businessPartnerProvider.notifier).loadFormPrivileges(roleId: roleId);
-    ref.read(businessPartnerProvider.notifier).loadStoreAccess(roleId: roleId).then((_) {
+    ref
+        .read(businessPartnerProvider.notifier)
+        .loadFormPrivileges(roleId: roleId);
+    ref
+        .read(businessPartnerProvider.notifier)
+        .loadStoreAccess(roleId: roleId)
+        .then((_) {
       setState(() {
-         _pendingStoreChanges.addAll(ref.read(businessPartnerProvider).storeAccess);
+        _pendingStoreChanges
+            .addAll(ref.read(businessPartnerProvider).storeAccess);
       });
     });
   }
 
   void _onEmployeeSelected(String employeeId) {
     final state = ref.read(businessPartnerProvider);
-    final int? roleId = state.appUsers.where((u) => u.id == employeeId).firstOrNull?.roleId;
+    final int? roleId =
+        state.appUsers.where((u) => u.id == employeeId).firstOrNull?.roleId;
 
     setState(() {
       _selectedEmployeeId = employeeId;
@@ -68,10 +79,16 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
       _pendingStoreChanges.clear();
       _storeChangesDirty = false;
     });
-    ref.read(businessPartnerProvider.notifier).loadFormPrivileges(employeeId: employeeId, roleId: roleId);
-    ref.read(businessPartnerProvider.notifier).loadStoreAccess(employeeId: employeeId).then((_) {
+    ref
+        .read(businessPartnerProvider.notifier)
+        .loadFormPrivileges(employeeId: employeeId, roleId: roleId);
+    ref
+        .read(businessPartnerProvider.notifier)
+        .loadStoreAccess(employeeId: employeeId)
+        .then((_) {
       setState(() {
-         _pendingStoreChanges.addAll(ref.read(businessPartnerProvider).storeAccess);
+        _pendingStoreChanges
+            .addAll(ref.read(businessPartnerProvider).storeAccess);
       });
     });
   }
@@ -82,7 +99,11 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
     setState(() {
       if (!_pendingChanges.containsKey(formId)) {
         // Initialize from current state
-        final existing = ref.read(businessPartnerProvider).formPrivileges.where((p) => p['form_id'] == formId).firstOrNull;
+        final existing = ref
+            .read(businessPartnerProvider)
+            .formPrivileges
+            .where((p) => p['form_id'] == formId)
+            .firstOrNull;
         _pendingChanges[formId] = {
           'can_view': _parseBool(existing?['can_view']),
           'can_add': _parseBool(existing?['can_add']),
@@ -92,7 +113,7 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
           'can_print': _parseBool(existing?['can_print']),
         };
       }
-      
+
       if (flag == 'all') {
         _pendingChanges[formId]!['can_view'] = value;
         _pendingChanges[formId]!['can_add'] = value;
@@ -121,12 +142,12 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
           final formId = entry.key;
           final flags = entry.value;
           final existing = existingPrivs.where((p) {
-             final matchForm = p['form_id'] == formId;
-             if (_selectedRoleId != null) {
-               return matchForm && p['role_id'] == _selectedRoleId;
-             } else {
-               return matchForm && p['employee_id'] == _selectedEmployeeId;
-             }
+            final matchForm = p['form_id'] == formId;
+            if (_selectedRoleId != null) {
+              return matchForm && p['role_id'] == _selectedRoleId;
+            } else {
+              return matchForm && p['employee_id'] == _selectedEmployeeId;
+            }
           }).firstOrNull;
 
           toSave.add({
@@ -143,83 +164,92 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
             'can_print': flags['can_print']! ? 1 : 0,
           });
         }
-        await ref.read(businessPartnerProvider.notifier).saveFormPrivileges(toSave);
+        await ref
+            .read(businessPartnerProvider.notifier)
+            .saveFormPrivileges(toSave);
       }
 
       if (_storeChangesDirty) {
         await ref.read(businessPartnerProvider.notifier).saveStoreAccess(
-          roleId: _selectedRoleId,
-          employeeId: _selectedEmployeeId,
-          storeIds: _pendingStoreChanges,
-        );
+              roleId: _selectedRoleId,
+              employeeId: _selectedEmployeeId,
+              storeIds: _pendingStoreChanges,
+            );
       }
 
       // Reload privileges to reflect saved changes
       if (_selectedRoleId != null) {
-        await ref.read(businessPartnerProvider.notifier).loadFormPrivileges(roleId: _selectedRoleId);
+        await ref
+            .read(businessPartnerProvider.notifier)
+            .loadFormPrivileges(roleId: _selectedRoleId);
       } else if (_selectedEmployeeId != null) {
         final state = ref.read(businessPartnerProvider);
-        final int? roleId = state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull?.roleId;
-        await ref.read(businessPartnerProvider.notifier).loadFormPrivileges(employeeId: _selectedEmployeeId, roleId: roleId);
+        final int? roleId = state.appUsers
+            .where((u) => u.id == _selectedEmployeeId)
+            .firstOrNull
+            ?.roleId;
+        await ref.read(businessPartnerProvider.notifier).loadFormPrivileges(
+            employeeId: _selectedEmployeeId, roleId: roleId);
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permissions saved successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Permissions saved successfully')));
         setState(() {
-           _pendingChanges.clear();
-           _storeChangesDirty = false;
+          _pendingChanges.clear();
+          _storeChangesDirty = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error saving: $e')));
       }
     }
   }
 
   void _showCopyRoleDialog() {
     showDialog(
-      context: context,
-      builder: (context) {
-        final roles = ref.read(businessPartnerProvider).roles;
-        return AlertDialog(
-          title: const Text('Copy Permissions from Role'),
-          content: SizedBox(
-             width: double.maxFinite,
-             child: ListView.builder(
-               shrinkWrap: true,
-               itemCount: roles.length,
-               itemBuilder: (context, index) {
-                 final role = roles[index];
-                 return ListTile(
-                   title: Text(role['role_name'] ?? 'Unknown Role'),
-                   onTap: () {
-                     Navigator.of(context).pop();
-                     _copyPermissionsFromRole(role['id']);
-                   },
-                 );
-               },
-             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(), 
-              child: const Text('Cancel')
+        context: context,
+        builder: (context) {
+          final roles = ref.read(businessPartnerProvider).roles;
+          return AlertDialog(
+            title: const Text('Copy Permissions from Role'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: roles.length,
+                itemBuilder: (context, index) {
+                  final role = roles[index];
+                  return ListTile(
+                    title: Text(role['role_name'] ?? 'Unknown Role'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _copyPermissionsFromRole(role['id']);
+                    },
+                  );
+                },
+              ),
             ),
-          ],
-        );
-      }
-    );
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel')),
+            ],
+          );
+        });
   }
 
   Future<void> _copyPermissionsFromRole(int roleId) async {
     try {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fetching role permissions...')));
-      
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fetching role permissions...')));
+
       final repo = ref.read(businessPartnerRepositoryProvider);
       final permissions = await repo.getFormPrivileges(roleId: roleId);
       final storeAccess = await repo.getRoleStoreAccess(roleId);
-      
+
       setState(() {
         // 1. Apply Form Permissions
         // We iterate through fetched permissions and update _pendingChanges
@@ -235,20 +265,22 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
             'can_print': _parseBool(p['can_print']),
           };
         }
-        
+
         // 2. Apply Store Access
         _pendingStoreChanges.clear();
         _pendingStoreChanges.addAll(storeAccess);
         _storeChangesDirty = true;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permissions applied. Click "Save" to persist.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Permissions applied. Click "Save" to persist.')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error copying permissions: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error copying permissions: $e')));
       }
     }
   }
@@ -256,7 +288,8 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
   void _toggleStoreAccess(int storeId, bool value) {
     setState(() {
       if (value) {
-        if (!_pendingStoreChanges.contains(storeId)) _pendingStoreChanges.add(storeId);
+        if (!_pendingStoreChanges.contains(storeId))
+          _pendingStoreChanges.add(storeId);
       } else {
         _pendingStoreChanges.remove(storeId);
       }
@@ -274,19 +307,23 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
   Future<void> _sendWelcomeEmail(AppUser user) async {
     final email = user.email;
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User has no email address')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User has no email address')));
       return;
     }
 
-    setState(() => _storeChangesDirty = true); // Using as a proxy for loading if needed, or just show snackbar
-    
+    setState(() => _storeChangesDirty =
+        true); // Using as a proxy for loading if needed, or just show snackbar
+
     // In a real app, you'd use a dedicated EmailService call here
     // For now, let's show a simulated success after a delay
     // Use Edge Function which now handles SMTP internally (works on Web & Mobile)
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sending welcome email to $email...')));
-    
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sending welcome email to $email...')));
+
     // Debug Role Name
-    debugPrint('Sending Email -> User: ${user.fullName}, Role: ${user.roleName}, RoleID: ${user.roleId}');
+    debugPrint(
+        'Sending Email -> User: ${user.fullName}, Role: ${user.roleName}, RoleID: ${user.roleId}');
 
     try {
       final smtpUser = EmailService().smtpUsername;
@@ -320,30 +357,31 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
           'role_id': user.roleId,
           'organization_id': user.organizationId,
           'store_id': user.storeId,
-          'smtp_settings': {
-             'username': smtpUser,
-             'password': smtpPass
-          },
+          'smtp_settings': {'username': smtpUser, 'password': smtpPass},
           'email_subject': 'Welcome to OrderMate - Complete Registration',
           'email_html': htmlContent,
           'generate_link': true,
           // Pass current origin for redirect, fallback to a sensible default
-          'redirect_to': SupabaseConfig.frontendUrl, 
+          'redirect_to': SupabaseConfig.frontendUrl,
         },
       );
 
       if (mounted) {
         if (response.status == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Welcome email sent to $email successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Welcome email sent to $email successfully')));
         } else {
-           // Parse error from response data if possible
-           final error = response.data is Map ? response.data['error'] : 'Unknown error';
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send email: $error')));
+          // Parse error from response data if possible
+          final error =
+              response.data is Map ? response.data['error'] : 'Unknown error';
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to send email: $error')));
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error sending email: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error sending email: $e')));
       }
     }
   }
@@ -355,15 +393,17 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
 
     final bool isImmutable;
     if (_viewMode == 'role') {
-      final role = state.roles.where((r) => r['id'] == _selectedRoleId).firstOrNull;
+      final role =
+          state.roles.where((r) => r['id'] == _selectedRoleId).firstOrNull;
       final roleName = role?['role_name']?.toString().toUpperCase();
       isImmutable = roleName == 'SUPER USER' || roleName == 'OWNER';
     } else {
-      final user = state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull;
+      final user =
+          state.appUsers.where((u) => u.id == _selectedEmployeeId).firstOrNull;
       final roleName = user?.roleName?.toString().toUpperCase();
       isImmutable = roleName == 'SUPER USER' || roleName == 'OWNER';
     }
-    
+
     final formsByModule = <String, List<Map<String, dynamic>>>{};
     for (var form in state.appForms) {
       final module = form['module_name'] ?? 'Other';
@@ -399,21 +439,32 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
               onPressed: () {
                 ref.read(businessPartnerProvider.notifier).loadRoles();
                 ref.read(businessPartnerProvider.notifier).loadAppUsers();
-                final orgId = ref.read(organizationProvider).selectedOrganizationId;
+                final orgId =
+                    ref.read(organizationProvider).selectedOrganizationId;
                 if (orgId != null) {
                   ref.read(organizationProvider.notifier).loadStores(orgId);
                 }
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Refreshing data...')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Refreshing data...')));
               },
             ),
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: FilledButton.icon(
-                onPressed: (state.isLoading || isImmutable || (_pendingChanges.isEmpty && !_storeChangesDirty)) ? null : _saveChanges,
+                onPressed: (state.isLoading ||
+                        isImmutable ||
+                        (_pendingChanges.isEmpty && !_storeChangesDirty))
+                    ? null
+                    : _saveChanges,
                 icon: state.isLoading
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.save),
-                label: isMobile ? const Text('Save') : const Text('Save Changes'),
+                label:
+                    isMobile ? const Text('Save') : const Text('Save Changes'),
               ),
             ),
           ],
@@ -435,8 +486,14 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                     padding: const EdgeInsets.all(8.0),
                     child: SegmentedButton<String>(
                       segments: const [
-                        ButtonSegment(value: 'role', label: Text('Roles'), icon: Icon(Icons.security)),
-                        ButtonSegment(value: 'employee', label: Text('Employees'), icon: Icon(Icons.person)),
+                        ButtonSegment(
+                            value: 'role',
+                            label: Text('Roles'),
+                            icon: Icon(Icons.security)),
+                        ButtonSegment(
+                            value: 'employee',
+                            label: Text('Employees'),
+                            icon: Icon(Icons.person)),
                       ],
                       selected: {_viewMode},
                       onSelectionChanged: (set) {
@@ -459,11 +516,13 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                                 itemCount: state.roles.length,
                                 itemBuilder: (context, index) {
                                   final role = state.roles[index];
-                                  final isSelected = _selectedRoleId == role['id'];
+                                  final isSelected =
+                                      _selectedRoleId == role['id'];
                                   return ListTile(
                                     selected: isSelected,
                                     selectedTileColor: Colors.blue.shade50,
-                                    leading: Icon(Icons.verified_user, color: isSelected ? Colors.blue : null),
+                                    leading: Icon(Icons.verified_user,
+                                        color: isSelected ? Colors.blue : null),
                                     title: Text(role['role_name'] ?? ''),
                                     onTap: () => _onRoleSelected(role['id']),
                                   );
@@ -476,17 +535,22 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                                 itemCount: state.appUsers.length,
                                 itemBuilder: (context, index) {
                                   final user = state.appUsers[index];
-                                  final isSelected = _selectedEmployeeId == user.id;
+                                  final isSelected =
+                                      _selectedEmployeeId == user.id;
                                   return ListTile(
                                     selected: isSelected,
                                     selectedTileColor: Colors.blue.shade50,
-                                    leading: Icon(Icons.person, color: isSelected ? Colors.blue : null),
+                                    leading: Icon(Icons.person,
+                                        color: isSelected ? Colors.blue : null),
                                     title: Text(user.fullName ?? user.email),
                                     subtitle: Text(user.roleName ?? user.email),
                                     trailing: isSelected
                                         ? IconButton(
-                                            icon: const Icon(Icons.email_outlined, color: Colors.blue),
-                                            onPressed: () => _sendWelcomeEmail(user),
+                                            icon: const Icon(
+                                                Icons.email_outlined,
+                                                color: Colors.blue),
+                                            onPressed: () =>
+                                                _sendWelcomeEmail(user),
                                             tooltip: 'Send Welcome Email',
                                           )
                                         : null,
@@ -507,9 +571,12 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.shield_outlined, size: 64, color: Colors.grey.shade300),
+                          Icon(Icons.shield_outlined,
+                              size: 64, color: Colors.grey.shade300),
                           const SizedBox(height: 16),
-                          const Text('Select a Role or Employee to manage privileges', style: TextStyle(color: Colors.grey)),
+                          const Text(
+                              'Select a Role or Employee to manage privileges',
+                              style: TextStyle(color: Colors.grey)),
                         ],
                       ),
                     )
@@ -520,12 +587,35 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                         Text(
                           'Access Control for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ' +
                               (_viewMode == 'role'
-                                  ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId, orElse: () => {'role_name': 'Unknown'})['role_name'])
-                                  : (state.appUsers.cast<AppUser>().firstWhere((u) => u.id == _selectedEmployeeId, orElse: () => AppUser(id: '', businessPartnerId: '', email: 'Unknown', roleId: 0, organizationId: 0, storeId: 0, updatedAt: DateTime.now())).fullName ?? 'Unknown')),
-                          style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+                                  ? (state.roles.firstWhere(
+                                      (r) => r['id'] == _selectedRoleId,
+                                      orElse: () => {
+                                            'role_name': 'Unknown'
+                                          })['role_name'])
+                                  : (state.appUsers
+                                          .cast<AppUser>()
+                                          .firstWhere(
+                                              (u) =>
+                                                  u.id == _selectedEmployeeId,
+                                              orElse: () => AppUser(
+                                                  id: '',
+                                                  businessPartnerId: '',
+                                                  email: 'Unknown',
+                                                  roleId: 0,
+                                                  organizationId: 0,
+                                                  storeId: 0,
+                                                  updatedAt: DateTime.now()))
+                                          .fullName ??
+                                      'Unknown')),
+                          style: (isMobile
+                                  ? Theme.of(context).textTheme.titleLarge
+                                  : Theme.of(context).textTheme.headlineSmall)
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
-                        const Text('Total privilege management for all system components.', style: TextStyle(color: Colors.grey)),
+                        const Text(
+                            'Total privilege management for all system components.',
+                            style: TextStyle(color: Colors.grey)),
                         if (isImmutable)
                           Container(
                             margin: const EdgeInsets.only(top: 16),
@@ -537,12 +627,15 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.info_outline, color: Colors.orange),
+                                const Icon(Icons.info_outline,
+                                    color: Colors.orange),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'This is a core system ${ _viewMode == 'role' ? 'role' : 'user'}. Privileges are fixed and cannot be modified.',
-                                    style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold),
+                                    'This is a core system ${_viewMode == 'role' ? 'role' : 'user'}. Privileges are fixed and cannot be modified.',
+                                    style: TextStyle(
+                                        color: Colors.orange.shade900,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
@@ -551,18 +644,33 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
                         const SizedBox(height: 24),
                         const Divider(),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0.0, vertical: 8.0),
                           child: SegmentedButton<String>(
                             segments: const [
-                              ButtonSegment(value: 'privileges', label: Text('Forms'), icon: Icon(Icons.list_alt)),
-                              ButtonSegment(value: 'stores', label: Text('Stores'), icon: Icon(Icons.store)),
+                              ButtonSegment(
+                                  value: 'privileges',
+                                  label: Text('Forms'),
+                                  icon: Icon(Icons.list_alt)),
+                              ButtonSegment(
+                                  value: 'stores',
+                                  label: Text('Stores'),
+                                  icon: Icon(Icons.store)),
                             ],
                             selected: {_tabMode},
-                            onSelectionChanged: (set) => setState(() => _tabMode = set.first),
+                            onSelectionChanged: (set) =>
+                                setState(() => _tabMode = set.first),
                           ),
                         ),
                         const SizedBox(height: 24),
-                        if (_tabMode == 'privileges') ..._buildPrivilegesTab(formsByModule, state, isMobile, isImmutable) else _buildStoresTab(ref.watch(organizationProvider).stores, isMobile, isImmutable),
+                        if (_tabMode == 'privileges')
+                          ..._buildPrivilegesTab(
+                              formsByModule, state, isMobile, isImmutable)
+                        else
+                          _buildStoresTab(
+                              ref.watch(organizationProvider).stores,
+                              isMobile,
+                              isImmutable),
                       ],
                     ),
             ),
@@ -571,169 +679,314 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
     );
   }
 
-  List<Widget> _buildPrivilegesTab(Map<String, List<Map<String, dynamic>>> formsByModule, BusinessPartnerState state, bool isMobile, bool isImmutable) {
+  List<Widget> _buildPrivilegesTab(
+      Map<String, List<Map<String, dynamic>>> formsByModule,
+      BusinessPartnerState state,
+      bool isMobile,
+      bool isImmutable) {
     return [
       Text(
         'Form Privileges for ${_viewMode == 'role' ? 'Role' : 'Employee'}: ' +
             (_viewMode == 'role'
-                ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId, orElse: () => {'role_name': 'Unknown'})['role_name'])
-                : (state.appUsers.cast<AppUser>().firstWhere((u) => u.id == _selectedEmployeeId, orElse: () => AppUser(id: '', businessPartnerId: '', email: 'Unknown', roleId: 0, organizationId: 0, storeId: 0, updatedAt: DateTime.now())).fullName ?? 'Unknown')),
-        style: (isMobile ? Theme.of(context).textTheme.titleMedium : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+                ? (state.roles.firstWhere((r) => r['id'] == _selectedRoleId,
+                    orElse: () => {'role_name': 'Unknown'})['role_name'])
+                : (state.appUsers
+                        .cast<AppUser>()
+                        .firstWhere((u) => u.id == _selectedEmployeeId,
+                            orElse: () => AppUser(
+                                id: '',
+                                businessPartnerId: '',
+                                email: 'Unknown',
+                                roleId: 0,
+                                organizationId: 0,
+                                storeId: 0,
+                                updatedAt: DateTime.now()))
+                        .fullName ??
+                    'Unknown')),
+        style: (isMobile
+                ? Theme.of(context).textTheme.titleMedium
+                : Theme.of(context).textTheme.headlineSmall)
+            ?.copyWith(fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 8),
-      const Text('Manage component-level access permissions.', style: TextStyle(color: Colors.grey)),
+      const Text('Manage component-level access permissions.',
+          style: TextStyle(color: Colors.grey)),
       const SizedBox(height: 24),
-    ...formsByModule.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 32.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade800,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      entry.key.toUpperCase(),
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    InkWell(
-                                      onTap: !isImmutable ? () {
-                                        // Check if all forms in this section are enabled
-                                        final allEnabled = entry.value.every((form) {
-                                          final formId = form['id'] as int;
-                                          final existing = state.formPrivileges.where((p) => p['form_id'] == formId).firstOrNull;
-                                          final canView = _pendingChanges[formId]?['can_view'] ?? _parseBool(existing?['can_view']);
-                                          final canAdd = _pendingChanges[formId]?['can_add'] ?? _parseBool(existing?['can_add']);
-                                          final canEdit = _pendingChanges[formId]?['can_edit'] ?? _parseBool(existing?['can_edit']);
-                                          final canDelete = _pendingChanges[formId]?['can_delete'] ?? _parseBool(existing?['can_delete']);
-                                          final canRead = _pendingChanges[formId]?['can_read'] ?? _parseBool(existing?['can_read']);
-                                          final canPrint = _pendingChanges[formId]?['can_print'] ?? _parseBool(existing?['can_print']);
-                                          return canView && canAdd && canEdit && canDelete && canRead && canPrint;
-                                        });
-                                        
-                                        // Toggle all forms in this section
-                                        for (var form in entry.value) {
-                                          final formId = form['id'] as int;
-                                          _togglePrivilege(formId, 'all', !allEnabled);
-                                        }
-                                      } : null,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: const Text(
-                                          'All',
-                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minWidth: 900, // Ensure ample space for all toggles + name
-                                        maxWidth: constraints.maxWidth > 900 ? constraints.maxWidth : 900,
-                                      ),
-                                      child: Card(
-                                        elevation: 0,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          side: BorderSide(color: Colors.grey.shade200),
-                                        ),
-                                        child: Table(
-                                          columnWidths: const {
-                                            0: FlexColumnWidth(2),
-                                            1: FixedColumnWidth(70),
-                                            2: FixedColumnWidth(70),
-                                            3: FixedColumnWidth(70),
-                                            4: FixedColumnWidth(70),
-                                            5: FixedColumnWidth(70),
-                                            6: FixedColumnWidth(70),
-                                            7: FixedColumnWidth(70),
-                                          },
-                                          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                                  children: [
-                                    TableRow(
-                                      decoration: BoxDecoration(color: Colors.grey.shade50),
-                                      children: const [
-                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Text('Form Name', style: TextStyle(fontWeight: FontWeight.bold)))),
-                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('All', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue))))),
-                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('View', style: TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Add', style: TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Edit', style: TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Delete', style: TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Read', style: TextStyle(fontWeight: FontWeight.bold))))),
-                                        TableCell(child: Padding(padding: EdgeInsets.all(12), child: Center(child: Text('Print', style: TextStyle(fontWeight: FontWeight.bold))))),
-                                      ],
-                                    ),
-                                      ...entry.value.map((form) {
-                                      final formId = form['id'] as int;
-                                      final existing = state.formPrivileges.where((p) => p['form_id'] == formId).firstOrNull;
-                                      
-                                      final canView = _pendingChanges[formId]?['can_view'] ?? _parseBool(existing?['can_view']);
-                                      final canAdd = _pendingChanges[formId]?['can_add'] ?? _parseBool(existing?['can_add']);
-                                      final canEdit = _pendingChanges[formId]?['can_edit'] ?? _parseBool(existing?['can_edit']);
-                                      final canDelete = _pendingChanges[formId]?['can_delete'] ?? _parseBool(existing?['can_delete']);
-                                      final canRead = _pendingChanges[formId]?['can_read'] ?? _parseBool(existing?['can_read']);
-                                      final canPrint = _pendingChanges[formId]?['can_print'] ?? _parseBool(existing?['can_print']);
-                                      
-                                      final isAll = canView && canAdd && canEdit && canDelete && canRead && canPrint;
+      ...formsByModule.entries.map((entry) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade800,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      entry.key.toUpperCase(),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12),
+                    ),
+                    const SizedBox(width: 16),
+                    InkWell(
+                      onTap: !isImmutable
+                          ? () {
+                              // Check if all forms in this section are enabled
+                              final allEnabled = entry.value.every((form) {
+                                final formId = form['id'] as int;
+                                final existing = state.formPrivileges
+                                    .where((p) => p['form_id'] == formId)
+                                    .firstOrNull;
+                                final canView = _pendingChanges[formId]
+                                        ?['can_view'] ??
+                                    _parseBool(existing?['can_view']);
+                                final canAdd = _pendingChanges[formId]
+                                        ?['can_add'] ??
+                                    _parseBool(existing?['can_add']);
+                                final canEdit = _pendingChanges[formId]
+                                        ?['can_edit'] ??
+                                    _parseBool(existing?['can_edit']);
+                                final canDelete = _pendingChanges[formId]
+                                        ?['can_delete'] ??
+                                    _parseBool(existing?['can_delete']);
+                                final canRead = _pendingChanges[formId]
+                                        ?['can_read'] ??
+                                    _parseBool(existing?['can_read']);
+                                final canPrint = _pendingChanges[formId]
+                                        ?['can_print'] ??
+                                    _parseBool(existing?['can_print']);
+                                return canView &&
+                                    canAdd &&
+                                    canEdit &&
+                                    canDelete &&
+                                    canRead &&
+                                    canPrint;
+                              });
 
-                                      return TableRow(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(12.0),
-                                            child: Text(form['form_name'], style: const TextStyle(fontWeight: FontWeight.w500)),
-                                          ),
-                                          _buildToggleCell(formId, 'all', isAll, activeColor: Colors.blue.shade300, isImmutable: isImmutable),
-                                          _buildToggleCell(formId, 'can_view', canView, isImmutable: isImmutable),
-                                          _buildToggleCell(formId, 'can_add', canAdd, isImmutable: isImmutable),
-                                          _buildToggleCell(formId, 'can_edit', canEdit, isImmutable: isImmutable),
-                                          _buildToggleCell(formId, 'can_delete', canDelete, isImmutable: isImmutable),
-                                          _buildToggleCell(formId, 'can_read', canRead, isImmutable: isImmutable),
-                                          _buildToggleCell(formId, 'can_print', canPrint, isImmutable: isImmutable),
-                                        ],
-                                      );
-                                    }),
-                                  ],
-                                    ),
-                                  ),
-                                ),
-                              ); // End Card
-                            }, // End LayoutBuilder builder
-                          ), // End LayoutBuilder
-                        ],
+                              // Toggle all forms in this section
+                              for (var form in entry.value) {
+                                final formId = form['id'] as int;
+                                _togglePrivilege(formId, 'all', !allEnabled);
+                              }
+                            }
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'All',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11),
+                        ),
                       ),
-                    );
-                  }),
-  ];
-}
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth:
+                            900, // Ensure ample space for all toggles + name
+                        maxWidth: constraints.maxWidth > 900
+                            ? constraints.maxWidth
+                            : 900,
+                      ),
+                      child: Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        child: Table(
+                          columnWidths: const {
+                            0: FlexColumnWidth(2),
+                            1: FixedColumnWidth(70),
+                            2: FixedColumnWidth(70),
+                            3: FixedColumnWidth(70),
+                            4: FixedColumnWidth(70),
+                            5: FixedColumnWidth(70),
+                            6: FixedColumnWidth(70),
+                            7: FixedColumnWidth(70),
+                          },
+                          defaultVerticalAlignment:
+                              TableCellVerticalAlignment.middle,
+                          children: [
+                            TableRow(
+                              decoration:
+                                  BoxDecoration(color: Colors.grey.shade50),
+                              children: const [
+                                TableCell(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Text('Form Name',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)))),
+                                TableCell(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Center(
+                                            child: Text('All',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.blue))))),
+                                TableCell(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Center(
+                                            child: Text('View',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold))))),
+                                TableCell(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Center(
+                                            child: Text('Add',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold))))),
+                                TableCell(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Center(
+                                            child: Text('Edit',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold))))),
+                                TableCell(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Center(
+                                            child: Text('Delete',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold))))),
+                                TableCell(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Center(
+                                            child: Text('Read',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold))))),
+                                TableCell(
+                                    child: Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Center(
+                                            child: Text('Print',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold))))),
+                              ],
+                            ),
+                            ...entry.value.map((form) {
+                              final formId = form['id'] as int;
+                              final existing = state.formPrivileges
+                                  .where((p) => p['form_id'] == formId)
+                                  .firstOrNull;
 
-  Widget _buildStoresTab(List<dynamic> stores, bool isMobile, bool isImmutable) {
+                              final canView = _pendingChanges[formId]
+                                      ?['can_view'] ??
+                                  _parseBool(existing?['can_view']);
+                              final canAdd = _pendingChanges[formId]
+                                      ?['can_add'] ??
+                                  _parseBool(existing?['can_add']);
+                              final canEdit = _pendingChanges[formId]
+                                      ?['can_edit'] ??
+                                  _parseBool(existing?['can_edit']);
+                              final canDelete = _pendingChanges[formId]
+                                      ?['can_delete'] ??
+                                  _parseBool(existing?['can_delete']);
+                              final canRead = _pendingChanges[formId]
+                                      ?['can_read'] ??
+                                  _parseBool(existing?['can_read']);
+                              final canPrint = _pendingChanges[formId]
+                                      ?['can_print'] ??
+                                  _parseBool(existing?['can_print']);
+
+                              final isAll = canView &&
+                                  canAdd &&
+                                  canEdit &&
+                                  canDelete &&
+                                  canRead &&
+                                  canPrint;
+
+                              return TableRow(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Text(form['form_name'],
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w500)),
+                                  ),
+                                  _buildToggleCell(formId, 'all', isAll,
+                                      activeColor: Colors.blue.shade300,
+                                      isImmutable: isImmutable),
+                                  _buildToggleCell(formId, 'can_view', canView,
+                                      isImmutable: isImmutable),
+                                  _buildToggleCell(formId, 'can_add', canAdd,
+                                      isImmutable: isImmutable),
+                                  _buildToggleCell(formId, 'can_edit', canEdit,
+                                      isImmutable: isImmutable),
+                                  _buildToggleCell(
+                                      formId, 'can_delete', canDelete,
+                                      isImmutable: isImmutable),
+                                  _buildToggleCell(formId, 'can_read', canRead,
+                                      isImmutable: isImmutable),
+                                  _buildToggleCell(
+                                      formId, 'can_print', canPrint,
+                                      isImmutable: isImmutable),
+                                ],
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ); // End Card
+                }, // End LayoutBuilder builder
+              ), // End LayoutBuilder
+            ],
+          ),
+        );
+      }),
+    ];
+  }
+
+  Widget _buildStoresTab(
+      List<dynamic> stores, bool isMobile, bool isImmutable) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Store Access Management',
-          style: (isMobile ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold),
+          style: (isMobile
+                  ? Theme.of(context).textTheme.titleLarge
+                  : Theme.of(context).textTheme.headlineSmall)
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text('Toggle access for specific store locations.', style: TextStyle(color: Colors.grey)),
+        const Text('Toggle access for specific store locations.',
+            style: TextStyle(color: Colors.grey)),
         const SizedBox(height: 24),
         GridView.builder(
           shrinkWrap: true,
@@ -752,15 +1005,24 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: isSelected ? Colors.blue.shade200 : Colors.grey.shade200),
+                side: BorderSide(
+                    color: isSelected
+                        ? Colors.blue.shade200
+                        : Colors.grey.shade200),
               ),
               color: isSelected ? Colors.blue.shade50 : null,
               child: SwitchListTile(
-                title: Text(store.name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                title: Text(store.name,
+                    style: TextStyle(
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal)),
                 subtitle: Text('ST-${store.id}'),
                 value: isSelected,
-                onChanged: isImmutable ? null : (val) => _toggleStoreAccess(store.id, val),
-                secondary: Icon(Icons.storefront, color: isSelected ? Colors.blue : Colors.grey),
+                onChanged: isImmutable
+                    ? null
+                    : (val) => _toggleStoreAccess(store.id, val),
+                secondary: Icon(Icons.storefront,
+                    color: isSelected ? Colors.blue : Colors.grey),
               ),
             );
           },
@@ -769,13 +1031,15 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
     );
   }
 
-  Widget _buildToggleCell(int formId, String flag, bool value, {Color? activeColor, bool isImmutable = false}) {
+  Widget _buildToggleCell(int formId, String flag, bool value,
+      {Color? activeColor, bool isImmutable = false}) {
     return TableCell(
       child: Center(
         child: Switch(
           value: value,
           activeThumbColor: activeColor ?? Colors.blue.shade700,
-          onChanged: isImmutable ? null : (val) => _togglePrivilege(formId, flag, val),
+          onChanged:
+              isImmutable ? null : (val) => _togglePrivilege(formId, flag, val),
         ),
       ),
     );
@@ -791,17 +1055,19 @@ class _PrivilegeManagementScreenState extends ConsumerState<PrivilegeManagementS
           children: [
             Icon(Icons.search_off, size: 48, color: Colors.grey.shade300),
             const SizedBox(height: 12),
-            Text('No $type found', style: TextStyle(color: Colors.grey.shade600)),
+            Text('No $type found',
+                style: TextStyle(color: Colors.grey.shade600)),
             const SizedBox(height: 8),
-            Text('Org ID: $orgId', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            Text('Org ID: $orgId',
+                style: const TextStyle(fontSize: 10, color: Colors.grey)),
             const SizedBox(height: 8),
             TextButton.icon(
-               icon: const Icon(Icons.refresh),
-               label: const Text('Refresh'),
-               onPressed: () {
-                   ref.read(businessPartnerProvider.notifier).loadRoles();
-                   ref.read(businessPartnerProvider.notifier).loadAppUsers();
-               },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+              onPressed: () {
+                ref.read(businessPartnerProvider.notifier).loadRoles();
+                ref.read(businessPartnerProvider.notifier).loadAppUsers();
+              },
             )
           ],
         ),

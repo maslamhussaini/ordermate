@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:ordermate/features/organization/domain/entities/organization.dart';
 import 'package:ordermate/features/organization/domain/entities/store.dart';
@@ -8,7 +7,7 @@ abstract class OrganizationRepository {
   Future<List<Organization>> getOrganizations();
   Future<Organization?> getOrganization(int id);
   Future<void> updateOrganization(Organization organization);
-  Future<String> uploadOrganizationLogo(File file);
+  Future<String> uploadOrganizationLogo(Uint8List bytes, String fileName);
   Future<Organization> createOrganization(
     String name,
     String? taxId,

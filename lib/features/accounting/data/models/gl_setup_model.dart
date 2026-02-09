@@ -29,7 +29,8 @@ class GLSetupModel extends GLSetup {
       taxOutputAccountId: json['tax_output_account_id'] as String?,
       taxInputAccountId: json['tax_input_account_id'] as String?,
       salesDiscountAccountId: json['sales_discount_account_id'] as String?,
-      purchaseDiscountAccountId: json['purchase_discount_account_id'] as String?,
+      purchaseDiscountAccountId:
+          json['purchase_discount_account_id'] as String?,
     );
   }
 

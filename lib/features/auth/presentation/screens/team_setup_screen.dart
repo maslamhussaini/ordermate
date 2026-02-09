@@ -24,7 +24,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
 
   void _addMember() {
     if (_nameController.text.isEmpty) return;
-    
+
     setState(() {
       _teamMembers.add({
         'name': _nameController.text.trim(),
@@ -59,7 +59,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
           'name': member['name'],
           'email': member['email']!.isEmpty ? null : member['email'],
           'phone': member['phone']!,
-          'is_employee': true,
+          'is_employee': 1,
           'organization_id': orgId,
           'store_id': storeId,
           'is_active': true,
@@ -69,25 +69,10 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
       }
 
       if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (c) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('All Set!', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-            content: const Text('Your account and team configuration is complete.', style: TextStyle(color: Colors.black87)),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(c);
-                  context.go('/login');
-                },
-                child: const Text('Get Started', style: TextStyle(color: AppColors.loginGradientStart, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        );
+        context.push('/onboarding/verify', extra: {
+          ...widget.onboardingData,
+          'teamMembers': _teamMembers,
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -130,8 +115,14 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
             children: [
               const StepIndicator(
                 currentStep: 3,
-                totalSteps: 4,
-                stepLabels: ['Account', 'Organization', 'Branch', 'Team'],
+                totalSteps: 5,
+                stepLabels: [
+                  'Account',
+                  'Organization',
+                  'Branch',
+                  'Team',
+                  'Verify'
+                ],
               ),
               Expanded(
                 child: SingleChildScrollView(
@@ -140,11 +131,15 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const SizedBox(height: 10),
-                      const Icon(Icons.group_add_outlined, size: 60, color: Colors.white),
+                      const Icon(Icons.group_add_outlined,
+                          size: 60, color: Colors.white),
                       const SizedBox(height: 16),
                       const Text(
                         'Invite Your Team',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
@@ -154,43 +149,59 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Add Member Form
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2)),
                         ),
                         child: Column(
                           children: [
-                            _buildTextField(controller: _nameController, hint: 'Full Name', icon: Icons.person),
+                            _buildTextField(
+                                controller: _nameController,
+                                hint: 'Full Name',
+                                icon: Icons.person),
                             const SizedBox(height: 12),
-                            _buildTextField(controller: _emailController, hint: 'Email Address', icon: Icons.email),
+                            _buildTextField(
+                                controller: _emailController,
+                                hint: 'Email Address',
+                                icon: Icons.email),
                             const SizedBox(height: 12),
-                            _buildTextField(controller: _phoneController, hint: 'Phone Number', icon: Icons.phone),
+                            _buildTextField(
+                                controller: _phoneController,
+                                hint: 'Phone Number',
+                                icon: Icons.phone),
                             const SizedBox(height: 12),
                             Row(
                               children: [
                                 Expanded(
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.9),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.9),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: DropdownButtonHideUnderline(
                                       child: DropdownButton<String>(
                                         value: _selectedRole,
                                         isExpanded: true,
-                                        items: ['Staff', 'Manager', 'Admin'].map((String value) {
+                                        items: ['Staff', 'Manager', 'Admin']
+                                            .map((String value) {
                                           return DropdownMenuItem<String>(
                                             value: value,
-                                            child: Text(value, style: const TextStyle(color: Colors.black)),
+                                            child: Text(value,
+                                                style: const TextStyle(
+                                                    color: Colors.black)),
                                           );
                                         }).toList(),
-                                        onChanged: (val) => setState(() => _selectedRole = val!),
+                                        onChanged: (val) => setState(
+                                            () => _selectedRole = val!),
                                       ),
                                     ),
                                   ),
@@ -200,9 +211,13 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
                                   onPressed: _addMember,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white,
-                                    foregroundColor: AppColors.loginGradientStart,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    foregroundColor:
+                                        AppColors.loginGradientStart,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 12),
                                   ),
                                   child: const Icon(Icons.add),
                                 ),
@@ -211,14 +226,17 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Team List
                       if (_teamMembers.isNotEmpty) ...[
                         const Text(
                           'Team Members',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
                         ),
                         const SizedBox(height: 12),
                         ...List.generate(_teamMembers.length, (index) {
@@ -226,41 +244,53 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
                           return Card(
                             margin: const EdgeInsets.only(bottom: 8),
                             color: Colors.white.withValues(alpha: 0.9),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                             child: ListTile(
                               leading: CircleAvatar(
                                 backgroundColor: AppColors.loginGradientStart,
-                                child: Text(member['name']![0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+                                child: Text(member['name']![0].toUpperCase(),
+                                    style:
+                                        const TextStyle(color: Colors.white)),
                               ),
-                              title: Text(member['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('${member['role']} • ${member['phone']}'),
+                              title: Text(member['name']!,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              subtitle: Text(
+                                  '${member['role']} • ${member['phone']}'),
                               trailing: IconButton(
-                                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                icon: const Icon(Icons.remove_circle_outline,
+                                    color: Colors.red),
                                 onPressed: () => _removeMember(index),
                               ),
                             ),
                           );
                         }),
                       ],
-                      
+
                       const SizedBox(height: 40),
-                      
-                      _isLoading 
-                        ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                        : ElevatedButton(
-                            onPressed: _finish,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: AppColors.loginGradientStart,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
+
+                      _isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.white))
+                          : ElevatedButton(
+                              onPressed: _finish,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: AppColors.loginGradientStart,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: Text(
+                                'Proceed to Verification',
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                            child: Text(
-                              _teamMembers.isEmpty ? 'Skip & Finish' : 'Complete Setup',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -289,7 +319,8 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
           hintText: hint,
           prefixIcon: Icon(icon, color: AppColors.loginGradientStart, size: 20),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         style: const TextStyle(color: Colors.black, fontSize: 14),
       ),

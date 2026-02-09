@@ -13,7 +13,6 @@ import 'package:ordermate/features/vendors/presentation/providers/vendor_provide
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/core/router/route_names.dart';
 
-
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({super.key});
 
@@ -46,8 +45,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         content: Text('Are you sure you want to delete ${product.name}?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),),
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -108,7 +108,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   Future<void> _removeDuplicates() async {
     final products = ref.read(productProvider).products;
     if (products.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No products to check.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No products to check.')));
       return;
     }
 
@@ -140,14 +142,16 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Duplicates?'),
-        content: Text('Found ${duplicates.length} duplicate entries based on Name and Brand.\n\nAre you sure you want to delete them?'),
+        content: Text(
+            'Found ${duplicates.length} duplicate entries based on Name and Brand.\n\nAre you sure you want to delete them?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Delete Duplicates'),
           ),
@@ -162,7 +166,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       ImportProgress(total: duplicates.length),
     );
     var isCancelled = false;
-    
+
     if (!mounted) return;
 
     showDialog(
@@ -185,20 +189,22 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       if (isCancelled) break;
 
       try {
-        await ref.read(productProvider.notifier).deleteProduct(duplicates[i].id);
+        await ref
+            .read(productProvider.notifier)
+            .deleteProduct(duplicates[i].id);
         successCount++;
       } catch (e) {
         debugPrint('Failed to delete duplicate ${duplicates[i].name}: $e');
         failCount++;
       }
-      
+
       progressNotifier.value = ImportProgress(
         total: duplicates.length,
         processed: i + 1,
         success: successCount,
         failed: failCount,
       );
-      
+
       await Future.delayed(Duration.zero);
     }
 
@@ -207,12 +213,14 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) Navigator.of(context, rootNavigator: true).pop();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isCancelled 
-            ? 'Deletion Cancelled' 
-            : 'Removed $successCount duplicates. ($failCount failed)',),
+          content: Text(
+            isCancelled
+                ? 'Deletion Cancelled'
+                : 'Removed $successCount duplicates. ($failCount failed)',
+          ),
           backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
         ),
       );
@@ -272,9 +280,20 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   Future<void> _downloadTemplate() async {
     try {
       final headers = [
-        ['Name', 'SKU', 'Description', 'Cost', 'Rate', 'Brand Name', 'Category Name', 'Supplier Name', 'Type Name'],
+        [
+          'Name',
+          'SKU',
+          'Description',
+          'Cost',
+          'Rate',
+          'Brand Name',
+          'Category Name',
+          'Supplier Name',
+          'Type Name'
+        ],
       ];
-      final path = await CsvService().saveCsvFile('product_template.csv', headers);
+      final path =
+          await CsvService().saveCsvFile('product_template.csv', headers);
       if (path != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Template saved to $path')),
@@ -290,15 +309,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   }
 
   Future<void> _importCsv() async {
-      try {
+    try {
       final rows = await CsvService().pickAndParseCsv();
       if (rows == null || rows.isEmpty) return;
 
       var startIndex = 0;
-      if (rows.isNotEmpty && rows[0].isNotEmpty && rows[0][0].toString().toLowerCase() == 'name') {
+      if (rows.isNotEmpty &&
+          rows[0].isNotEmpty &&
+          rows[0][0].toString().toLowerCase() == 'name') {
         startIndex = 1;
       }
-      
+
       final totalItems = rows.length - startIndex;
       if (totalItems <= 0) return;
 
@@ -309,7 +330,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       var isCancelled = false;
 
       if (!mounted) return;
-      
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -317,8 +338,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           title: 'Importing Products',
           progressNotifier: progressNotifier,
           onStop: () {
-             isCancelled = true;
-             Navigator.of(context).pop();
+            isCancelled = true;
+            Navigator.of(context).pop();
           },
         ),
       );
@@ -328,8 +349,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       await ref.read(inventoryProvider.notifier).loadCategories();
       await ref.read(inventoryProvider.notifier).loadProductTypes();
       await ref.read(vendorProvider.notifier).loadVendors();
-      await ref.read(productProvider.notifier).loadProducts(); // Ensure latest products
-      
+      await ref
+          .read(productProvider.notifier)
+          .loadProducts(); // Ensure latest products
+
       final brands = ref.read(inventoryProvider).brands;
       final categories = ref.read(inventoryProvider).categories;
       final types = ref.read(inventoryProvider).productTypes;
@@ -355,24 +378,32 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
 
           final row = rows[i];
           if (row.isEmpty) {
-             progressNotifier.value = ImportProgress(
-               total: totalItems, 
-               processed: i - startIndex + 1, 
-               success: success, 
-               failed: failed + duplicates, // Group duplicates into failed or separate? Standardize later.
-             );
-             continue;
+            progressNotifier.value = ImportProgress(
+              total: totalItems,
+              processed: i - startIndex + 1,
+              success: success,
+              failed: failed +
+                  duplicates, // Group duplicates into failed or separate? Standardize later.
+            );
+            continue;
           }
-          
+
           try {
             final name = row.isNotEmpty ? row[0].toString().trim() : '';
-            if (name.isEmpty) { failed++; continue; }
+            if (name.isEmpty) {
+              failed++;
+              continue;
+            }
 
             final sku = row.length > 1 ? row[1].toString().trim() : '';
             final desc = row.length > 2 ? row[2].toString().trim() : '';
-            final cost = row.length > 3 ? double.tryParse(row[3].toString()) ?? 0.0 : 0.0;
-            final rate = row.length > 4 ? double.tryParse(row[4].toString()) ?? 0.0 : 0.0;
-            
+            final cost = row.length > 3
+                ? double.tryParse(row[3].toString()) ?? 0.0
+                : 0.0;
+            final rate = row.length > 4
+                ? double.tryParse(row[4].toString()) ?? 0.0
+                : 0.0;
+
             // Normalize inputs
             final brandName = row.length > 5 ? row[5].toString().trim() : '';
             final categoryName = row.length > 6 ? row[6].toString().trim() : '';
@@ -380,49 +411,56 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             final typeName = row.length > 8 ? row[8].toString().trim() : '';
 
             // Helper
-            T? findByName<T>(List<T> list, String nameObj, String Function(T) getName) {
+            T? findByName<T>(
+                List<T> list, String nameObj, String Function(T) getName) {
               if (nameObj.isEmpty) return null;
               final normalizedInput = nameObj.trim().toLowerCase();
-               try {
-                 return list.firstWhere((item) {
-                   final itemContent = getName(item).trim().toLowerCase();
-                   return itemContent == normalizedInput;
-                 });
-               } catch (e) {
-                 return null;
-               }
+              try {
+                return list.firstWhere((item) {
+                  final itemContent = getName(item).trim().toLowerCase();
+                  return itemContent == normalizedInput;
+                });
+              } catch (e) {
+                return null;
+              }
             }
 
             final brand = findByName(brands, brandName, (b) => b.name);
-            final category = findByName(categories, categoryName, (c) => c.name);
+            final category =
+                findByName(categories, categoryName, (c) => c.name);
             final vendor = findByName(vendors, vendorName, (v) => v.name);
             final productType = findByName(types, typeName, (t) => t.name);
 
             // Duplicate Check
             final currentKey = '${name.toLowerCase()}|${brand?.id ?? ''}';
-            
+
             if (existingKeys.contains(currentKey)) {
               duplicates++;
             } else {
               await ref.read(productProvider.notifier).addProduct(
-                Product(
-                  id: '',
-                  name: name,
-                  sku: sku,
-                  description: desc,
-                  cost: cost,
-                  rate: rate,
-                  brandId: brand?.id,
-                  categoryId: category?.id,
-                  businessPartnerId: vendor?.id,
-                  productTypeId: productType?.id,
-                  storeId: ref.read(organizationProvider).selectedStore?.id ?? 0,
-                  organizationId: ref.read(organizationProvider).selectedOrganization?.id ?? 0,
-                  createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                ),
-              );
-              
+                    Product(
+                      id: '',
+                      name: name,
+                      sku: sku,
+                      description: desc,
+                      cost: cost,
+                      rate: rate,
+                      brandId: brand?.id,
+                      categoryId: category?.id,
+                      businessPartnerId: vendor?.id,
+                      productTypeId: productType?.id,
+                      storeId:
+                          ref.read(organizationProvider).selectedStore?.id ?? 0,
+                      organizationId: ref
+                              .read(organizationProvider)
+                              .selectedOrganization
+                              ?.id ??
+                          0,
+                      createdAt: DateTime.now(),
+                      updatedAt: DateTime.now(),
+                    ),
+                  );
+
               existingKeys.add(currentKey); // Add to local set
               success++;
             }
@@ -430,7 +468,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             debugPrint('Row $i failed: $e');
             failed++;
           }
-          
+
           progressNotifier.value = ImportProgress(
             total: totalItems,
             processed: i - startIndex + 1,
@@ -438,32 +476,36 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             failed: failed,
             duplicate: duplicates,
           );
-          
+
           await Future.delayed(const Duration(milliseconds: 10));
         }
 
         if (mounted) {
           if (!isCancelled) {
-             await Future.delayed(const Duration(milliseconds: 800));
-             if (mounted) Navigator.of(context, rootNavigator: true).pop(); // Close dialog
+            await Future.delayed(const Duration(milliseconds: 800));
+            if (mounted)
+              Navigator.of(context, rootNavigator: true).pop(); // Close dialog
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(
-               content: Text(isCancelled 
-                 ? 'Import Cancelled' 
-                 : 'Import Complete: $success added, $duplicates duplicates, $failed failed',),
-               backgroundColor: success > 0 ? Colors.green : (duplicates > 0 ? Colors.orange : Colors.red),
-             ),
+            SnackBar(
+              content: Text(
+                isCancelled
+                    ? 'Import Cancelled'
+                    : 'Import Complete: $success added, $duplicates duplicates, $failed failed',
+              ),
+              backgroundColor: success > 0
+                  ? Colors.green
+                  : (duplicates > 0 ? Colors.orange : Colors.red),
+            ),
           );
           ref.read(productProvider.notifier).loadProducts();
         }
       });
-      
+
       await importFuture;
-      
     } catch (e) {
-       if (mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error importing CSV: $e')),
         );
@@ -556,16 +598,20 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.inventory_2_outlined,
-                                    size: 64, color: Colors.grey.shade400,),
+                                Icon(
+                                  Icons.inventory_2_outlined,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   products.isEmpty
                                       ? 'No products found.'
                                       : 'No results found.',
                                   style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 16,),
+                                    color: Colors.grey.shade600,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ],
                             ),
@@ -614,15 +660,20 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           ),
           subtitle: Row(
             children: [
-              Text('SKU: ${product.sku}',
-                  style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 13),),
+              Text(
+                'SKU: ${product.sku}',
+                style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 13),
+              ),
               const Spacer(),
               Text(
                 '${product.formattedRate}${product.uomSymbol != null ? ' / ${product.baseQuantity != 1.0 ? product.baseQuantity : ''} ${product.uomSymbol}' : ''}',
                 style: const TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,),
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -637,11 +688,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildDetailRow(Icons.category, 'Category',
-                          product.categoryName ?? '-',),
+                      _buildDetailRow(
+                        Icons.category,
+                        'Category',
+                        product.categoryName ?? '-',
+                      ),
                       const SizedBox(height: 4),
                       _buildDetailRow(
-                          Icons.style, 'Type', product.productTypeName ?? '-',),
+                        Icons.style,
+                        'Type',
+                        product.productTypeName ?? '-',
+                      ),
                     ],
                   ),
                 ),
@@ -649,11 +706,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildDetailRow(Icons.branding_watermark, 'Brand',
-                          product.brandName ?? '-',),
+                      _buildDetailRow(
+                        Icons.branding_watermark,
+                        'Brand',
+                        product.brandName ?? '-',
+                      ),
                       const SizedBox(height: 4),
                       _buildDetailRow(
-                          Icons.store, 'Supplier', product.businessPartnerName ?? '-',),
+                        Icons.store,
+                        'Supplier',
+                        product.businessPartnerName ?? '-',
+                      ),
                     ],
                   ),
                 ),
@@ -666,8 +729,13 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               Text(
                 product.description!,
                 style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7), 
-                    fontStyle: FontStyle.italic,),
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.color
+                      ?.withValues(alpha: 0.7),
+                  fontStyle: FontStyle.italic,
+                ),
               ),
               const SizedBox(height: 12),
             ],
@@ -681,14 +749,16 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(4),),
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                   child: Text(
                     'Cost: ${product.formattedCost}${product.uomSymbol != null ? ' / ${product.baseQuantity != 1.0 ? product.baseQuantity : ''} ${product.uomSymbol}' : ''}',
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
 
@@ -697,9 +767,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     OutlinedButton.icon(
                       onPressed: () {
                         debugPrint(
-                            'User tapped Edit for product ${product.id}',);
-                        context.pushNamed('product-edit',
-                            pathParameters: {'id': product.id},);
+                          'User tapped Edit for product ${product.id}',
+                        );
+                        context.pushNamed(
+                          'product-edit',
+                          pathParameters: {'id': product.id},
+                        );
                       },
                       icon: const Icon(Icons.edit, size: 18),
                       label: const Text('Edit'),
@@ -731,7 +804,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)),
+        Icon(icon,
+            size: 14,
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)),
         const SizedBox(width: 4),
         Flexible(
           child: Text(

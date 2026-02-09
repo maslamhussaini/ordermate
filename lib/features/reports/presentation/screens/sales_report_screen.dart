@@ -10,7 +10,8 @@ import 'package:ordermate/features/organization/presentation/providers/organizat
 class SalesReportScreen extends ConsumerStatefulWidget {
   final String groupBy; // product, customer
   final String invoiceType; // SI, SIR
-  const SalesReportScreen({super.key, required this.groupBy, required this.invoiceType});
+  const SalesReportScreen(
+      {super.key, required this.groupBy, required this.invoiceType});
 
   @override
   ConsumerState<SalesReportScreen> createState() => _SalesReportScreenState();
@@ -92,7 +93,8 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : _data.isEmpty
                     ? const Center(
-                        child: Text("No records found for the selected period."))
+                        child:
+                            Text("No records found for the selected period."))
                     : _buildReportTableView(),
           ),
         ],
@@ -171,11 +173,9 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
   }
 
   Widget _buildReportTableView() {
-    final currency = ref
-            .watch(organizationProvider)
-            .selectedStore
-            ?.storeDefaultCurrency ??
-        'USD';
+    final currency =
+        ref.watch(organizationProvider).selectedStore?.storeDefaultCurrency ??
+            'USD';
 
     if (widget.groupBy == 'product') {
       // Group by Product Name
@@ -238,8 +238,7 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
           );
         },
       );
-    }
- else {
+    } else {
       return ListView.builder(
         itemCount: _data.length,
         itemBuilder: (context, index) {
@@ -247,11 +246,15 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: ListTile(
-              title: Text(item['customer_name'] ?? 'Unknown Customer', style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(item['customer_name'] ?? 'Unknown Customer',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text("${item['total_invoices']} Invoices"),
               trailing: Text(
                 "$currency ${((item['total_amount'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)}",
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo, fontSize: 16),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.indigo,
+                    fontSize: 16),
               ),
             ),
           );

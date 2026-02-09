@@ -19,7 +19,8 @@ class UnitConversionModel extends UnitConversion {
       fromUnitId: json['from_unit_id'] as int? ?? 0,
       toUnitId: json['to_unit_id'] as int? ?? 0,
       conversionFactor: (json['conversion_factor'] as num?)?.toDouble() ?? 1.0,
-      fromUnitName: json['from_unit'] != null ? json['from_unit']['unit_name'] : null,
+      fromUnitName:
+          json['from_unit'] != null ? json['from_unit']['unit_name'] : null,
       toUnitName: json['to_unit'] != null ? json['to_unit']['unit_name'] : null,
       organizationId: (json['organization_id'] as int?) ?? 0,
       createdAt: json['created_at'] != null

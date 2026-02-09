@@ -28,8 +28,10 @@ class StoreModel extends Store {
       postalCode: json['store_postal_code']?.toString(),
       phone: json['phone']?.toString(),
       isActive: json['is_active'] as bool? ?? true,
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+          DateTime.now(),
     );
   }
 

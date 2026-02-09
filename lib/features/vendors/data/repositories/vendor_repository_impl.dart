@@ -14,9 +14,14 @@ class VendorRepositoryImpl implements VendorRepository {
   @override
   Future<List<Vendor>> getVendors({int? organizationId}) async {
     final connectivityResult = await ConnectivityHelper.check();
-    if (connectivityResult.contains(ConnectivityResult.none) || SupabaseConfig.isOfflineLoggedIn) {
-       final localPartners = await _localRepository.getLocalPartners(isVendor: true, organizationId: organizationId);
-       return localPartners.where((p) => !p.isSupplier).map((p) => _mapToVendor(p)).toList();
+    if (connectivityResult.contains(ConnectivityResult.none) ||
+        SupabaseConfig.isOfflineLoggedIn) {
+      final localPartners = await _localRepository.getLocalPartners(
+          isVendor: true, organizationId: organizationId);
+      return localPartners
+          .where((p) => !p.isSupplier)
+          .map((p) => _mapToVendor(p))
+          .toList();
     }
 
     try {
@@ -39,48 +44,57 @@ class VendorRepositoryImpl implements VendorRepository {
       final vendors = (response as List)
           .map((json) => VendorModel.fromJson(json as Map<String, dynamic>))
           .toList();
-      
+
       // Filter out suppliers manually if needed, or refine query
       final filteredVendors = vendors.where((v) => !v.isSupplier).toList();
       debugPrint('VendorRepository: Found ${filteredVendors.length} vendors');
 
       // Cache
-      final partners = filteredVendors.map((v) => BusinessPartner(
-        id: v.id,
-        name: v.name,
-        phone: v.phone ?? '',
-        email: v.email,
-        address: v.address ?? '',
-        contactPerson: v.contactPerson,
-        isVendor: true,
-        isSupplier: v.isSupplier,
-        isActive: v.isActive,
-        createdAt: v.createdAt,
-        updatedAt: v.updatedAt,
-        chartOfAccountId: v.chartOfAccountId,
-        organizationId: v.organizationId,
-        storeId: v.storeId,
-      )).toList();
+      final partners = filteredVendors
+          .map((v) => BusinessPartner(
+                id: v.id,
+                name: v.name,
+                phone: v.phone ?? '',
+                email: v.email,
+                address: v.address ?? '',
+                contactPerson: v.contactPerson,
+                isVendor: true,
+                isSupplier: v.isSupplier,
+                isActive: v.isActive,
+                createdAt: v.createdAt,
+                updatedAt: v.updatedAt,
+                chartOfAccountId: v.chartOfAccountId,
+                organizationId: v.organizationId,
+                storeId: v.storeId,
+              ))
+          .toList();
       await _localRepository.cachePartners(partners);
 
       return filteredVendors;
     } catch (e) {
       debugPrint('Online fetch vendors failed: $e. Falling back to local.');
-      final localPartners = await _localRepository.getLocalPartners(isVendor: true, organizationId: organizationId);
-      return localPartners.where((p) => !p.isSupplier).map((p) => _mapToVendor(p)).toList();
+      final localPartners = await _localRepository.getLocalPartners(
+          isVendor: true, organizationId: organizationId);
+      return localPartners
+          .where((p) => !p.isSupplier)
+          .map((p) => _mapToVendor(p))
+          .toList();
     }
   }
 
   @override
   Future<List<Vendor>> getSuppliers({int? organizationId}) async {
     final connectivityResult = await ConnectivityHelper.check();
-    if (connectivityResult.contains(ConnectivityResult.none) || SupabaseConfig.isOfflineLoggedIn) {
-       final localPartners = await _localRepository.getLocalPartners(isSupplier: true, organizationId: organizationId);
-       return localPartners.map((p) => _mapToVendor(p)).toList();
+    if (connectivityResult.contains(ConnectivityResult.none) ||
+        SupabaseConfig.isOfflineLoggedIn) {
+      final localPartners = await _localRepository.getLocalPartners(
+          isSupplier: true, organizationId: organizationId);
+      return localPartners.map((p) => _mapToVendor(p)).toList();
     }
 
     try {
-      debugPrint('VendorRepository: Fetching suppliers for Org: $organizationId');
+      debugPrint(
+          'VendorRepository: Fetching suppliers for Org: $organizationId');
       var query = SupabaseConfig.client
           .from('omtbl_businesspartners')
           .select()
@@ -99,32 +113,35 @@ class VendorRepositoryImpl implements VendorRepository {
       final suppliers = (response as List)
           .map((json) => VendorModel.fromJson(json as Map<String, dynamic>))
           .toList();
-      
+
       debugPrint('VendorRepository: Found ${suppliers.length} suppliers');
 
       // Cache
-      final partners = suppliers.map((v) => BusinessPartner(
-        id: v.id,
-        name: v.name,
-        phone: v.phone ?? '',
-        email: v.email,
-        address: v.address ?? '',
-        contactPerson: v.contactPerson,
-        isVendor: v.isVendor,
-        isSupplier: true,
-        isActive: v.isActive,
-        createdAt: v.createdAt,
-        updatedAt: v.updatedAt,
-        chartOfAccountId: v.chartOfAccountId,
-        organizationId: v.organizationId,
-        storeId: v.storeId,
-      )).toList();
+      final partners = suppliers
+          .map((v) => BusinessPartner(
+                id: v.id,
+                name: v.name,
+                phone: v.phone ?? '',
+                email: v.email,
+                address: v.address ?? '',
+                contactPerson: v.contactPerson,
+                isVendor: v.isVendor,
+                isSupplier: true,
+                isActive: v.isActive,
+                createdAt: v.createdAt,
+                updatedAt: v.updatedAt,
+                chartOfAccountId: v.chartOfAccountId,
+                organizationId: v.organizationId,
+                storeId: v.storeId,
+              ))
+          .toList();
       await _localRepository.cachePartners(partners);
 
       return suppliers;
     } catch (e) {
       debugPrint('Online fetch suppliers failed: $e. Falling back to local.');
-      final localPartners = await _localRepository.getLocalPartners(isSupplier: true, organizationId: organizationId);
+      final localPartners = await _localRepository.getLocalPartners(
+          isSupplier: true, organizationId: organizationId);
       return localPartners.map((p) => _mapToVendor(p)).toList();
     }
   }
@@ -197,14 +214,14 @@ class VendorRepositoryImpl implements VendorRepository {
               isActive: vendor.isActive,
               organizationId: vendor.organizationId,
               storeId: vendor.storeId,
-      chartOfAccountId: vendor.chartOfAccountId,
+              chartOfAccountId: vendor.chartOfAccountId,
             );
 
       final json = model.toJson();
       // json.remove('id'); // DO NOT REMOVE ID. We generate it on client side now (UUID).
       json.remove('created_at');
       json.remove('updated_at');
-      
+
       json['is_vendor'] = 1;
 
       final response = await SupabaseConfig.client
@@ -212,7 +229,7 @@ class VendorRepositoryImpl implements VendorRepository {
           .insert(json)
           .select()
           .single();
-      
+
       // Cache the result (sets is_synced = 1)
       await _localRepository.cachePartners([partner]);
 
@@ -251,8 +268,8 @@ class VendorRepositoryImpl implements VendorRepository {
     bool isOnline = !connectivityResult.contains(ConnectivityResult.none);
 
     if (!isOnline) {
-       await _localRepository.updatePartner(partner);
-       return;
+      await _localRepository.updatePartner(partner);
+      return;
     }
 
     try {
@@ -271,24 +288,24 @@ class VendorRepositoryImpl implements VendorRepository {
               isActive: vendor.isActive,
               organizationId: vendor.organizationId,
               storeId: vendor.storeId,
-      chartOfAccountId: vendor.chartOfAccountId,
+              chartOfAccountId: vendor.chartOfAccountId,
             );
 
       final json = model.toJson();
       json.remove('id');
       json.remove('created_at');
       json.remove('updated_at');
-      
+
       await SupabaseConfig.client
           .from('omtbl_businesspartners')
           .update(json)
           .eq('id', vendor.id);
 
-       // Update local cache
-       await _localRepository.cachePartners([partner]);
+      // Update local cache
+      await _localRepository.cachePartners([partner]);
     } catch (e) {
-       debugPrint('Online update vendor failed: $e. Saving locally.');
-       await _localRepository.updatePartner(partner);
+      debugPrint('Online update vendor failed: $e. Saving locally.');
+      await _localRepository.updatePartner(partner);
     }
   }
 
@@ -297,19 +314,17 @@ class VendorRepositoryImpl implements VendorRepository {
     // Check Connectivity
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-       await _localRepository.deletePartner(id);
-       return;
+      await _localRepository.deletePartner(id);
+      return;
     }
 
     try {
       await SupabaseConfig.client
           .from('omtbl_businesspartners')
-          .update({'is_active': 0})
-          .eq('id', id);
-          
+          .update({'is_active': 0}).eq('id', id);
+
       // Also delete locally if online success
       await _localRepository.deletePartner(id);
-
     } catch (e) {
       debugPrint('Online delete failed: $e. Falling back to local.');
       // Fallback

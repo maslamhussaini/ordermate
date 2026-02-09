@@ -30,7 +30,6 @@ class InventoryDashboardScreen extends StatelessWidget {
                 onTap: () => context.push('/inventory/transfers'),
               ),
               const SizedBox(height: 24),
-
               Text(
                 'Inventory Items',
                 style: Theme.of(context).textTheme.titleLarge,
@@ -45,7 +44,6 @@ class InventoryDashboardScreen extends StatelessWidget {
                 onTap: () => context.push('/products'),
               ),
               const SizedBox(height: 24),
-
               Text(
                 'Products Setup',
                 style: Theme.of(context).textTheme.titleLarge,

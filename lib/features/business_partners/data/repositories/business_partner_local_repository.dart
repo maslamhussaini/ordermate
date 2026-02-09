@@ -9,14 +9,15 @@ class BusinessPartnerLocalRepository {
 
   Future<void> cachePartners(List<BusinessPartner> partners) async {
     final db = await _dbHelper.database;
-    
+
     // Get list of unsynced partners to preserve local changes
     final List<Map<String, dynamic>> unsyncedMaps = await db.query(
       'local_businesspartners',
       columns: ['id'],
       where: 'is_synced = 0',
     );
-    final Set<String> unsyncedIds = unsyncedMaps.map((m) => m['id'] as String).toSet();
+    final Set<String> unsyncedIds =
+        unsyncedMaps.map((m) => m['id'] as String).toSet();
 
     final batch = db.batch();
 
@@ -73,39 +74,41 @@ class BusinessPartnerLocalRepository {
     int? storeId,
   }) async {
     final db = await _dbHelper.database;
-    
+
     final conditions = <String>[];
     if (isCustomer) conditions.add('is_customer = 1');
     if (isVendor) conditions.add('is_vendor = 1');
     if (isEmployee) conditions.add('is_employee = 1');
     if (isSupplier) conditions.add('is_supplier = 1');
-    
+
     // Combine types with OR if multiple selected
     String typeCondition = '';
     if (conditions.isNotEmpty) {
       typeCondition = '(${conditions.join(' OR ')})';
     } else {
-      typeCondition = '1=1'; 
+      typeCondition = '1=1';
     }
-    
+
     // Combine with Store ID and Organization ID using AND
     final finalConditions = <String>[];
     if (typeCondition != '1=1') {
       finalConditions.add(typeCondition);
     }
-    
+
     if (organizationId != null) {
-      finalConditions.add('(organization_id = $organizationId OR organization_id IS NULL)');
+      finalConditions.add(
+          '(organization_id = $organizationId OR organization_id IS NULL)');
     }
 
     if (storeId != null) {
       finalConditions.add('store_id = $storeId');
     }
-    
-    final whereClause = finalConditions.isNotEmpty ? finalConditions.join(' AND ') : null;
-    
+
+    final whereClause =
+        finalConditions.isNotEmpty ? finalConditions.join(' AND ') : null;
+
     final maps = await db.query(
-      'local_businesspartners', 
+      'local_businesspartners',
       where: whereClause,
       orderBy: 'name ASC',
     );
@@ -117,8 +120,9 @@ class BusinessPartnerLocalRepository {
   Future<List<BusinessPartner>> getLocalCustomers() async {
     return getLocalPartners(isCustomer: true);
   }
-  
-  Future<List<BusinessPartner>> getUnsyncedPartners({int? organizationId, int? storeId}) async {
+
+  Future<List<BusinessPartner>> getUnsyncedPartners(
+      {int? organizationId, int? storeId}) async {
     final db = await _dbHelper.database;
     final List<String> conditions = ['is_synced = 0'];
     final List<dynamic> args = [];
@@ -220,7 +224,7 @@ class BusinessPartnerLocalRepository {
         'is_supplier': p.isSupplier ? 1 : 0,
         'is_employee': p.isEmployee ? 1 : 0,
         'is_active': p.isActive ? 1 : 0,
-        'is_synced': 0, 
+        'is_synced': 0,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
         'chart_of_account_id': p.chartOfAccountId,
         'password': p.password,
@@ -250,39 +254,39 @@ class BusinessPartnerLocalRepository {
   }
 
   BusinessPartner _mapToPartner(Map<String, dynamic> map) {
-      return BusinessPartner(
-        id: map['id']! as String,
-        name: map['name']! as String,
-        phone: map['phone']! as String,
-        email: map['email'] as String?,
-        address: map['address']! as String,
-        contactPerson: map['contact_person'] as String?,
-        businessTypeId: map['business_type_id'] as int?,
-        businessTypeName: map['business_type_name'] as String?,
-        roleId: map['role_id'] as int?,
-        roleName: map['role_name'] as String?,
-        departmentId: map['department_id'] as int?,
-        departmentName: map['department_name'] as String?,
-        storeId: (map['store_id'] as int?) ?? 0,
-        organizationId: (map['organization_id'] as int?) ?? 0,
-        cityId: map['city_id'] as int?,
-        stateId: map['state_id'] as int?,
-        countryId: map['country_id'] as int?,
-        postalCode: map['postal_code'] as String?,
-        latitude: map['latitude'] as double?,
-        longitude: map['longitude'] as double?,
-        isCustomer: (map['is_customer'] as int) == 1,
-        isVendor: (map['is_vendor'] as int) == 1,
-        isSupplier: (map['is_supplier'] as int? ?? 0) == 1,
-        isEmployee: (map['is_employee'] as int) == 1,
-        isActive: true, // Assuming active if locally present
-        createdAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at']! as int),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at']! as int),
-        createdBy: '', 
-        distanceMeters: null, 
-        chartOfAccountId: map['chart_of_account_id'] as String?,
-        password: map['password'] as String?,
-      );
+    return BusinessPartner(
+      id: map['id']! as String,
+      name: map['name']! as String,
+      phone: map['phone']! as String,
+      email: map['email'] as String?,
+      address: map['address']! as String,
+      contactPerson: map['contact_person'] as String?,
+      businessTypeId: map['business_type_id'] as int?,
+      businessTypeName: map['business_type_name'] as String?,
+      roleId: map['role_id'] as int?,
+      roleName: map['role_name'] as String?,
+      departmentId: map['department_id'] as int?,
+      departmentName: map['department_name'] as String?,
+      storeId: (map['store_id'] as int?) ?? 0,
+      organizationId: (map['organization_id'] as int?) ?? 0,
+      cityId: map['city_id'] as int?,
+      stateId: map['state_id'] as int?,
+      countryId: map['country_id'] as int?,
+      postalCode: map['postal_code'] as String?,
+      latitude: map['latitude'] as double?,
+      longitude: map['longitude'] as double?,
+      isCustomer: (map['is_customer'] as int) == 1,
+      isVendor: (map['is_vendor'] as int) == 1,
+      isSupplier: (map['is_supplier'] as int? ?? 0) == 1,
+      isEmployee: (map['is_employee'] as int) == 1,
+      isActive: true, // Assuming active if locally present
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at']! as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at']! as int),
+      createdBy: '',
+      distanceMeters: null,
+      chartOfAccountId: map['chart_of_account_id'] as String?,
+      password: map['password'] as String?,
+    );
   }
 
   // Metadata Caching Methods
@@ -387,14 +391,16 @@ class BusinessPartnerLocalRepository {
         final Map<String, Object> data = {
           'id': id is num ? id.toInt() : int.parse(id.toString()),
           'name': name.toString(),
-          'status': (item['status'] ?? 1) is num ? (item['status'] ?? 1).toInt() : 1,
+          'status':
+              (item['status'] ?? 1) is num ? (item['status'] ?? 1).toInt() : 1,
           'is_synced': 1,
           'updated_at': DateTime.now().millisecondsSinceEpoch,
         };
 
         if (item['organization_id'] != null) {
           final orgId = item['organization_id'];
-          data['organization_id'] = orgId is num ? orgId.toInt() : int.parse(orgId.toString());
+          data['organization_id'] =
+              orgId is num ? orgId.toInt() : int.parse(orgId.toString());
         }
 
         batch.insert(
@@ -417,14 +423,14 @@ class BusinessPartnerLocalRepository {
   Future<void> addDepartment(Map<String, dynamic> dept) async {
     final db = await _dbHelper.database;
     await db.insert('local_departments', {
-       // id should be generated or handled if offline
-       // For simplicity, we might assume offline creation generates a temporary ID or relies on sync
-       // But if we want local only first:
-       'name': dept['name'],
-       'organization_id': dept['organization_id'],
-       'status': 1,
-       'is_synced': 0,
-       'created_at': DateTime.now().millisecondsSinceEpoch,
+      // id should be generated or handled if offline
+      // For simplicity, we might assume offline creation generates a temporary ID or relies on sync
+      // But if we want local only first:
+      'name': dept['name'],
+      'organization_id': dept['organization_id'],
+      'status': 1,
+      'is_synced': 0,
+      'created_at': DateTime.now().millisecondsSinceEpoch,
     });
   }
 
@@ -476,17 +482,20 @@ class BusinessPartnerLocalRepository {
         }
         if (role['organization_id'] != null) {
           final orgId = role['organization_id'];
-          data['organization_id'] = orgId is num ? orgId.toInt() : int.parse(orgId.toString());
+          data['organization_id'] =
+              orgId is num ? orgId.toInt() : int.parse(orgId.toString());
         }
 
         if (role['department_id'] != null) {
           final deptId = role['department_id'];
-          data['department_id'] = deptId is num ? deptId.toInt() : int.parse(deptId.toString());
+          data['department_id'] =
+              deptId is num ? deptId.toInt() : int.parse(deptId.toString());
         }
 
         if (role['store_id'] != null) {
           final sId = role['store_id'];
-          data['store_id'] = sId is num ? sId.toInt() : int.parse(sId.toString());
+          data['store_id'] =
+              sId is num ? sId.toInt() : int.parse(sId.toString());
         }
 
         if (role['syear'] != null) {
@@ -494,10 +503,14 @@ class BusinessPartnerLocalRepository {
           data['syear'] = sy is num ? sy.toInt() : int.parse(sy.toString());
         }
 
-        data['can_read'] = (role['can_read'] == 1 || role['can_read'] == true) ? 1 : 0;
-        data['can_write'] = (role['can_write'] == 1 || role['can_write'] == true) ? 1 : 0;
-        data['can_edit'] = (role['can_edit'] == 1 || role['can_edit'] == true) ? 1 : 0;
-        data['can_print'] = (role['can_print'] == 1 || role['can_print'] == true) ? 1 : 0;
+        data['can_read'] =
+            (role['can_read'] == 1 || role['can_read'] == true) ? 1 : 0;
+        data['can_write'] =
+            (role['can_write'] == 1 || role['can_write'] == true) ? 1 : 0;
+        data['can_edit'] =
+            (role['can_edit'] == 1 || role['can_edit'] == true) ? 1 : 0;
+        data['can_print'] =
+            (role['can_print'] == 1 || role['can_print'] == true) ? 1 : 0;
 
         batch.insert(
           'local_roles',
@@ -513,9 +526,11 @@ class BusinessPartnerLocalRepository {
 
   Future<List<Map<String, dynamic>>> getRoles({int? organizationId}) async {
     final db = await _dbHelper.database;
-    final where = organizationId != null ? 'organization_id = $organizationId' : null;
-    final roles = await db.query('local_roles', where: where, orderBy: 'role_name ASC');
-    
+    // Removed organization_id restriction and filtered out "Super" roles as requested
+    const where = "role_name NOT LIKE '%Super%'";
+    final roles =
+        await db.query('local_roles', where: where, orderBy: 'role_name ASC');
+
     if (roles.isEmpty) {
       // Seed Defaults
       final defaults = [
@@ -524,36 +539,39 @@ class BusinessPartnerLocalRepository {
         {'id': 3, 'role_name': 'Booker', 'description': 'Book Orders'},
         {'id': 4, 'role_name': 'Driver', 'description': 'Deliver Orders'},
       ];
-      
+
       final batch = db.batch();
       for (final r in defaults) {
-         batch.insert('local_roles', r);
+        batch.insert('local_roles', r);
       }
       await batch.commit(noResult: true);
       return await db.query('local_roles', orderBy: 'role_name ASC');
     }
-    
+
     return roles;
   }
 
   Future<void> addRole(Map<String, dynamic> role) async {
     final db = await _dbHelper.database;
     final data = {
-        'role_name': role['role_name'],
-        'organization_id': role['organization_id'],
-        'department_id': role['department_id'],
-        'description': role['description'],
-        'can_read': (role['can_read'] == 1 || role['can_read'] == true) ? 1 : 0,
-        'can_write': (role['can_write'] == 1 || role['can_write'] == true) ? 1 : 0,
-        'can_edit': (role['can_edit'] == 1 || role['can_edit'] == true) ? 1 : 0,
-        'can_print': (role['can_print'] == 1 || role['can_print'] == true) ? 1 : 0,
-        'is_synced': 0,
+      'role_name': role['role_name'],
+      'organization_id': role['organization_id'],
+      'department_id': role['department_id'],
+      'description': role['description'],
+      'can_read': (role['can_read'] == 1 || role['can_read'] == true) ? 1 : 0,
+      'can_write':
+          (role['can_write'] == 1 || role['can_write'] == true) ? 1 : 0,
+      'can_edit': (role['can_edit'] == 1 || role['can_edit'] == true) ? 1 : 0,
+      'can_print':
+          (role['can_print'] == 1 || role['can_print'] == true) ? 1 : 0,
+      'is_synced': 0,
     };
-    
+
     if (role['store_id'] != null) data['store_id'] = role['store_id'];
     if (role['syear'] != null) data['syear'] = role['syear'];
-    
-    await db.insert('local_roles', data, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    await db.insert('local_roles', data,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> updateRole(
@@ -620,7 +638,7 @@ class BusinessPartnerLocalRepository {
         'is_active': 1,
         'is_synced': 0,
         'password': password,
-        'role_name': null, 
+        'role_name': null,
         'last_login': null,
         'updated_at': DateTime.now().millisecondsSinceEpoch,
       },
@@ -639,7 +657,8 @@ class BusinessPartnerLocalRepository {
     return res.isNotEmpty ? res.first : null;
   }
 
-  Future<void> updateAppUser(Map<String, dynamic> user, {String? password}) async {
+  Future<void> updateAppUser(Map<String, dynamic> user,
+      {String? password}) async {
     final db = await _dbHelper.database;
     final id = user['id'];
     if (id == null) return;
@@ -648,17 +667,29 @@ class BusinessPartnerLocalRepository {
     if (password != null && password.isNotEmpty) {
       data['password'] = password;
     } else {
-      data.remove('password'); // Don't override existing password if not changing
+      data.remove(
+          'password'); // Don't override existing password if not changing
     }
     data['is_synced'] = 0;
-    
+
     // Ensure we only include valid columns to avoid future SqfliteFfiException
     final validColumns = [
-      'id', 'business_partner_id', 'email', 'full_name', 'role_id', 'role_name',
-      'organization_id', 'store_id', 'is_active', 'last_login', 'updated_at', 'password', 'is_synced'
+      'id',
+      'business_partner_id',
+      'email',
+      'full_name',
+      'role_id',
+      'role_name',
+      'organization_id',
+      'store_id',
+      'is_active',
+      'last_login',
+      'updated_at',
+      'password',
+      'is_synced'
     ];
     data.removeWhere((key, value) => !validColumns.contains(key));
-    
+
     await db.update(
       'local_app_users',
       data,
@@ -667,7 +698,8 @@ class BusinessPartnerLocalRepository {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getAppUsersByOrg(int? organizationId) async {
+  Future<List<Map<String, dynamic>>> getAppUsersByOrg(
+      int? organizationId) async {
     final db = await _dbHelper.database;
     String where = '1=1';
     List<dynamic> args = [];
@@ -708,8 +740,9 @@ class BusinessPartnerLocalRepository {
     }
     await batch.commit(noResult: true);
   }
-  
-  Future<List<Map<String, dynamic>>> getUnsyncedAppUsers({int? organizationId}) async {
+
+  Future<List<Map<String, dynamic>>> getUnsyncedAppUsers(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -734,21 +767,24 @@ class BusinessPartnerLocalRepository {
     final db = await _dbHelper.database;
     final batch = db.batch();
     for (final f in forms) {
-      batch.insert('local_app_forms', f, conflictAlgorithm: ConflictAlgorithm.replace);
+      batch.insert('local_app_forms', f,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
   }
 
   Future<List<Map<String, dynamic>>> getAppForms() async {
     final db = await _dbHelper.database;
-    return await db.query('local_app_forms', where: 'is_active = 1', orderBy: 'module_name ASC, form_name ASC');
+    return await db.query('local_app_forms',
+        where: 'is_active = 1', orderBy: 'module_name ASC, form_name ASC');
   }
 
-  Future<List<Map<String, dynamic>>> getFormPrivileges({int? roleId, String? employeeId}) async {
+  Future<List<Map<String, dynamic>>> getFormPrivileges(
+      {int? roleId, String? employeeId}) async {
     final db = await _dbHelper.database;
     String where = '';
     List<dynamic> args = [];
-    
+
     if (roleId != null) {
       where = 'role_id = ?';
       args.add(roleId);
@@ -759,13 +795,14 @@ class BusinessPartnerLocalRepository {
       return [];
     }
 
-    return await db.query('local_role_form_privileges', where: where, whereArgs: args);
+    return await db.query('local_role_form_privileges',
+        where: where, whereArgs: args);
   }
 
   Future<void> saveFormPrivilege(Map<String, dynamic> privilege) async {
     final db = await _dbHelper.database;
     final id = privilege['id'];
-    
+
     if (id != null) {
       await db.update(
         'local_role_form_privileges',
@@ -778,12 +815,14 @@ class BusinessPartnerLocalRepository {
     }
   }
 
-  Future<void> saveBatchFormPrivileges(List<Map<String, dynamic>> privileges) async {
+  Future<void> saveBatchFormPrivileges(
+      List<Map<String, dynamic>> privileges) async {
     final db = await _dbHelper.database;
     final batch = db.batch();
     for (final p in privileges) {
       if (p['id'] != null) {
-        batch.update('local_role_form_privileges', p, where: 'id = ?', whereArgs: [p['id']]);
+        batch.update('local_role_form_privileges', p,
+            where: 'id = ?', whereArgs: [p['id']]);
       } else {
         batch.insert('local_role_form_privileges', p);
       }
@@ -794,14 +833,17 @@ class BusinessPartnerLocalRepository {
   // Store Access Methods
   Future<List<int>> getRoleStoreAccess(int roleId) async {
     final db = await _dbHelper.database;
-    final maps = await db.query('local_role_store_access', where: 'role_id = ?', whereArgs: [roleId]);
+    final maps = await db.query('local_role_store_access',
+        where: 'role_id = ?', whereArgs: [roleId]);
     return maps.map((e) => e['store_id'] as int).toList();
   }
 
-  Future<void> saveRoleStoreAccess(int roleId, List<int> storeIds, int organizationId) async {
+  Future<void> saveRoleStoreAccess(
+      int roleId, List<int> storeIds, int organizationId) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
-      await txn.delete('local_role_store_access', where: 'role_id = ?', whereArgs: [roleId]);
+      await txn.delete('local_role_store_access',
+          where: 'role_id = ?', whereArgs: [roleId]);
       for (final storeId in storeIds) {
         await txn.insert('local_role_store_access', {
           'role_id': roleId,
@@ -815,14 +857,17 @@ class BusinessPartnerLocalRepository {
 
   Future<List<int>> getUserStoreAccess(String employeeId) async {
     final db = await _dbHelper.database;
-    final maps = await db.query('local_user_store_access', where: 'employee_id = ?', whereArgs: [employeeId]);
+    final maps = await db.query('local_user_store_access',
+        where: 'employee_id = ?', whereArgs: [employeeId]);
     return maps.map((e) => e['store_id'] as int).toList();
   }
 
-  Future<void> saveUserStoreAccess(String employeeId, List<int> storeIds, int organizationId) async {
+  Future<void> saveUserStoreAccess(
+      String employeeId, List<int> storeIds, int organizationId) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
-      await txn.delete('local_user_store_access', where: 'employee_id = ?', whereArgs: [employeeId]);
+      await txn.delete('local_user_store_access',
+          where: 'employee_id = ?', whereArgs: [employeeId]);
       for (final storeId in storeIds) {
         await txn.insert('local_user_store_access', {
           'employee_id': employeeId,

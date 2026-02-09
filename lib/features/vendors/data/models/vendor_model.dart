@@ -29,7 +29,9 @@ class VendorModel extends Vendor {
       address: json['address'] as String?,
       isSupplier: json['is_supplier'] == 1 || json['is_supplier'] == true,
       isVendor: json['is_vendor'] == 1 || json['is_vendor'] == true,
-      isActive: json['is_active'] == 1 || json['is_active'] == true || json['is_active'] == null,
+      isActive: json['is_active'] == 1 ||
+          json['is_active'] == true ||
+          json['is_active'] == null,
       productCount: _parseProductCount(json['product_count']),
       organizationId: (json['organization_id'] as int?) ?? 0,
       storeId: (json['store_id'] as int?) ?? 0,

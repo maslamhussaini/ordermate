@@ -6,9 +6,13 @@ import 'package:flutter/material.dart';
 /// - "Add New" button support
 /// - customizable width and labels
 class SearchableDropdown<TItem, TValue> extends StatelessWidget {
-
   const SearchableDropdown({
-    required this.label, required this.items, required this.labelBuilder, required this.valueBuilder, required this.onChanged, super.key,
+    required this.label,
+    required this.items,
+    required this.labelBuilder,
+    required this.valueBuilder,
+    required this.onChanged,
+    super.key,
     this.value,
     this.onAdd,
     this.width,
@@ -26,60 +30,66 @@ class SearchableDropdown<TItem, TValue> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final effectiveWidth = width ?? constraints.maxWidth;
-      // Subtract width for the Add button if it exists (50px approx)
-      final menuWidth = onAdd != null ? effectiveWidth - 58 : effectiveWidth;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final effectiveWidth = width ?? constraints.maxWidth;
+        // Subtract width for the Add button if it exists (50px approx)
+        final menuWidth = onAdd != null ? effectiveWidth - 58 : effectiveWidth;
 
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DropdownMenu<TValue>(
-            width: menuWidth,
-            label: Text(label),
-            initialSelection: value,
-            enableFilter: true,
-            requestFocusOnTap: true,
-            errorText: validationError,
-            // Explicitly implement "Like %%" filtering (Contains)
-            filterCallback: (entries, query) {
-              if (query.isEmpty) return entries;
-              return entries
-                  .where((entry) =>
-                      entry.label.toLowerCase().contains(query.toLowerCase()),)
-                  .toList();
-            },
-            dropdownMenuEntries: items.map((item) {
-              return DropdownMenuEntry<TValue>(
-                value: valueBuilder(item),
-                label: labelBuilder(item),
-              );
-            }).toList(),
-            onSelected: onChanged,
-            inputDecorationTheme: const InputDecorationTheme(
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16),
-            ),
-          ),
-          if (onAdd != null) ...[
-            const SizedBox(width: 8),
-            Padding(
-              padding: const EdgeInsets.only(top: 4), // Align with input
-              child: IconButton.filledTonal(
-                onPressed: () => _showAddDialog(context),
-                icon: const Icon(Icons.add),
-                tooltip: 'Add new $label',
-                style: IconButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),),
-                  padding: const EdgeInsets.all(12),
-                ),
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownMenu<TValue>(
+              width: menuWidth,
+              label: Text(label),
+              initialSelection: value,
+              enableFilter: true,
+              requestFocusOnTap: true,
+              errorText: validationError,
+              // Explicitly implement "Like %%" filtering (Contains)
+              filterCallback: (entries, query) {
+                if (query.isEmpty) return entries;
+                return entries
+                    .where(
+                      (entry) => entry.label
+                          .toLowerCase()
+                          .contains(query.toLowerCase()),
+                    )
+                    .toList();
+              },
+              dropdownMenuEntries: items.map((item) {
+                return DropdownMenuEntry<TValue>(
+                  value: valueBuilder(item),
+                  label: labelBuilder(item),
+                );
+              }).toList(),
+              onSelected: onChanged,
+              inputDecorationTheme: const InputDecorationTheme(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16),
               ),
             ),
+            if (onAdd != null) ...[
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 4), // Align with input
+                child: IconButton.filledTonal(
+                  onPressed: () => _showAddDialog(context),
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Add new $label',
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
-      );
-    },);
+        );
+      },
+    );
   }
 
   Future<void> _showAddDialog(BuildContext context) async {
@@ -119,8 +129,9 @@ class SearchableDropdown<TItem, TValue> extends StatelessWidget {
                   if (ctx.mounted) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
                       SnackBar(
-                          content: Text('Error: $e'),
-                          backgroundColor: Colors.red,),
+                        content: Text('Error: $e'),
+                        backgroundColor: Colors.red,
+                      ),
                     );
                   }
                 }

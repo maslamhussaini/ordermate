@@ -34,15 +34,20 @@ class AppUser {
       email: json['email'] as String? ?? '',
       fullName: json['full_name'] as String?,
       roleId: json['role_id'] as int? ?? 0,
-      roleName: json['role_name'] as String? ?? 
-          (json['omtbl_roles'] is Map ? json['omtbl_roles']['role_name'] as String? : null),
+      roleName: json['role_name'] as String? ??
+          (json['omtbl_roles'] is Map
+              ? json['omtbl_roles']['role_name'] as String?
+              : null),
       organizationId: (json['organization_id'] as int?) ?? 0,
       storeId: (json['store_id'] as int?) ?? 0,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
-      lastLogin: json['last_login'] != null ? DateTime.parse(json['last_login'] as String) : null,
+      lastLogin: json['last_login'] != null
+          ? DateTime.parse(json['last_login'] as String)
+          : null,
       updatedAt: json['updated_at'] is int
           ? DateTime.fromMillisecondsSinceEpoch(json['updated_at'] as int)
-          : DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+          : DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+              DateTime.now(),
       password: json['password'] as String?,
     );
   }
@@ -57,7 +62,7 @@ class AppUser {
       'role_name': roleName,
       'organization_id': organizationId,
       'store_id': storeId,
-      'is_active': isActive ? 1 : 0,
+      'is_active': isActive,
       'last_login': lastLogin?.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'password': password,

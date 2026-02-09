@@ -31,7 +31,9 @@ class _GLSetupScreenState extends ConsumerState<GLSetupScreen> {
     Future.microtask(() {
       final org = ref.read(organizationProvider).selectedOrganization;
       if (org != null) {
-        ref.read(accountingProvider.notifier).loadGLSetup(organizationId: org.id);
+        ref
+            .read(accountingProvider.notifier)
+            .loadGLSetup(organizationId: org.id);
         ref.read(accountingProvider.notifier).loadAll(organizationId: org.id);
       }
     });
@@ -82,41 +84,51 @@ class _GLSetupScreenState extends ConsumerState<GLSetupScreen> {
       }
     });
   }
-  
+
   // Filter Helper
-  List<ChartOfAccount> _getFilteredAccounts(List<ChartOfAccount> allAccounts, String categoryKeyword) {
-    // 1. Filter by Level 4 (Ledger) -> Assuming level 4 or leaf. 
+  List<ChartOfAccount> _getFilteredAccounts(
+      List<ChartOfAccount> allAccounts, String categoryKeyword) {
+    // 1. Filter by Level 4 (Ledger) -> Assuming level 4 or leaf.
     // If level is not reliable, we might check if 'parentId' is present or logic changes.
     // User requirement: "no group account only ledger account".
     // 2. Filter by Category Name Like 'categoryKeyword'
-    
+
     final categories = ref.read(accountingProvider).categories;
-    
+
     return allAccounts.where((account) {
-       // Filter Logic
-       // Check if Level 4 (Leaf) ?? Or check if it has children? 
-       // For now assuming Level 4 is standard ledger level.
-       // User said "no group account". In many systems Level < Max are groups.
-       // Let's assume level 4.
-       // UPDATE: If the user system allows variable depth, we might need a property 'isGroup'.
-       // Previous code comments said "show all level 4".
-       // Let's stick with Level 4 check IF consistent, or just use category filtering.
-       // I'll filter by Category Name first.
-       
-       if (account.accountCategoryId == null) return false;
-       
-       final cat = categories.firstWhere((c) => c.id == account.accountCategoryId, orElse: () => const AccountCategory(id: 0, categoryName: '', accountTypeId: 0, status: false, organizationId: 0));
-       
-       if (!cat.categoryName.toLowerCase().contains(categoryKeyword.toLowerCase())) return false;
-       
-       // Check Group/Ledger (Assuming Level 4 is Ledger as per previous comments)
-       // Or if 'level' isn't sufficient, maybe I check if others have parentId == account.id? Too expensive.
-       // I will assume Level 4 is safe based on previous code.
-       // Or I can check naming convention? No.
-       // Let's use `level == 4`.
-       if (account.level != 3 && account.level != 4) return false;
-       
-       return true;
+      // Filter Logic
+      // Check if Level 4 (Leaf) ?? Or check if it has children?
+      // For now assuming Level 4 is standard ledger level.
+      // User said "no group account". In many systems Level < Max are groups.
+      // Let's assume level 4.
+      // UPDATE: If the user system allows variable depth, we might need a property 'isGroup'.
+      // Previous code comments said "show all level 4".
+      // Let's stick with Level 4 check IF consistent, or just use category filtering.
+      // I'll filter by Category Name first.
+
+      if (account.accountCategoryId == null) return false;
+
+      final cat = categories.firstWhere(
+          (c) => c.id == account.accountCategoryId,
+          orElse: () => const AccountCategory(
+              id: 0,
+              categoryName: '',
+              accountTypeId: 0,
+              status: false,
+              organizationId: 0));
+
+      if (!cat.categoryName
+          .toLowerCase()
+          .contains(categoryKeyword.toLowerCase())) return false;
+
+      // Check Group/Ledger (Assuming Level 4 is Ledger as per previous comments)
+      // Or if 'level' isn't sufficient, maybe I check if others have parentId == account.id? Too expensive.
+      // I will assume Level 4 is safe based on previous code.
+      // Or I can check naming convention? No.
+      // Let's use `level == 4`.
+      if (account.level != 3 && account.level != 4) return false;
+
+      return true;
     }).toList()
       ..sort((a, b) => a.accountCode.compareTo(b.accountCode));
   }
@@ -177,12 +189,13 @@ class _GLSetupScreenState extends ConsumerState<GLSetupScreen> {
                   _buildAccountDropdown(
                     'Sales Revenue Account',
                     'Account for recording sales income',
-                    _getFilteredAccounts(accounts, 'BasicRevenue'), // Category Like BasicRevenue
+                    _getFilteredAccounts(
+                        accounts, 'BasicRevenue'), // Category Like BasicRevenue
                     _selectedSalesId,
                     (val) => setState(() => _selectedSalesId = val),
                   ),
                   // Removed AR/AP
-                  
+
                   const SizedBox(height: 16),
                   _buildSectionHeader('Discount Accounts'),
                   const SizedBox(height: 16),
@@ -193,7 +206,7 @@ class _GLSetupScreenState extends ConsumerState<GLSetupScreen> {
                     _selectedSalesDiscountId,
                     (val) => setState(() => _selectedSalesDiscountId = val),
                   ),
-                   _buildAccountDropdown(
+                  _buildAccountDropdown(
                     'Default Purchase Discount GL Account',
                     'Account for purchase discounts',
                     _getFilteredAccounts(accounts, 'Purchase Discount'),
@@ -221,7 +234,7 @@ class _GLSetupScreenState extends ConsumerState<GLSetupScreen> {
                   _buildAccountDropdown(
                     'GST Output Account',
                     'Tax collected on sales',
-                    _getFilteredAccounts(accounts, 'Sales Tax PA'), 
+                    _getFilteredAccounts(accounts, 'Sales Tax PA'),
                     _selectedTaxOutputId,
                     (val) => setState(() => _selectedTaxOutputId = val),
                   ),
@@ -272,12 +285,15 @@ class _GLSetupScreenState extends ConsumerState<GLSetupScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: DropdownButtonFormField<String>(
-        initialValue: accounts.any((a) => a.id == selectedValue) ? selectedValue : null, // Safer initialization
+        initialValue: accounts.any((a) => a.id == selectedValue)
+            ? selectedValue
+            : null, // Safer initialization
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
           border: const OutlineInputBorder(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         ),
         items: accounts.map((account) {
           return DropdownMenuItem<String>(

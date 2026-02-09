@@ -19,22 +19,23 @@ class ReceiptScreen extends ConsumerStatefulWidget {
   ConsumerState<ReceiptScreen> createState() => _ReceiptScreenState();
 }
 
-class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTickerProviderStateMixin {
+class _ReceiptScreenState extends ConsumerState<ReceiptScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
-  
+
   // Form Fields
   double _amount = 0.0;
   DateTime _date = DateTime.now();
   String? _selectedAccountId;
   String _reference = '';
-  
+
   // New Fields
-  String _paymentMode = 'Cash'; 
+  String _paymentMode = 'Cash';
   final _refNoController = TextEditingController();
   final _refBankController = TextEditingController();
   DateTime _refDate = DateTime.now();
-  
+
   BusinessPartner? _customer;
 
   final List<String> _bankPaymentModes = ['Cheque', 'PO', 'DD', 'Online'];
@@ -50,19 +51,24 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
         setState(() => _paymentMode = _bankPaymentModes.first);
       }
     });
-    _amount = widget.invoice.totalAmount - widget.invoice.paidAmount; // Default to balance
+    _amount = widget.invoice.totalAmount -
+        widget.invoice.paidAmount; // Default to balance
     _date = DateTime.now();
     _refDate = DateTime.now();
-    
+
     // Load Customer
     Future.microtask(() async {
       final partners = ref.read(businessPartnerProvider).customers;
-      final customer = partners.where((c) => c.id == widget.invoice.businessPartnerId).firstOrNull;
+      final customer = partners
+          .where((c) => c.id == widget.invoice.businessPartnerId)
+          .firstOrNull;
       if (mounted) setState(() => _customer = customer);
-      
+
       // Load Accounts
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      await ref.read(accountingProvider.notifier).loadAll(organizationId: orgId);
+      await ref
+          .read(accountingProvider.notifier)
+          .loadAll(organizationId: orgId);
     });
   }
 
@@ -77,21 +83,25 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      
+
       try {
         final notifier = ref.read(accountingProvider.notifier);
         final state = ref.read(accountingProvider);
         final orgId = ref.read(organizationProvider).selectedOrganizationId;
         final storeId = ref.read(organizationProvider).selectedStore?.id;
 
-        if (orgId == null || storeId == null) throw Exception('Organization or Store not selected');
+        if (orgId == null || storeId == null)
+          throw Exception('Organization or Store not selected');
 
         // 1. Get Voucher Prefix for Receipt
         final prefix = state.voucherPrefixes.firstWhere(
-          (p) => p.voucherType.replaceAll(' ', '_') == 'RECEIPT' || 
-                 p.voucherType.replaceAll(' ', '_') == 'PAYMENT_VOUCHER' ||
-                 p.prefixCode == 'RV' || p.prefixCode == 'CRV',
-          orElse: () => throw Exception('Receipt Voucher prefix not configured'),
+          (p) =>
+              p.voucherType.replaceAll(' ', '_') == 'RECEIPT' ||
+              p.voucherType.replaceAll(' ', '_') == 'PAYMENT_VOUCHER' ||
+              p.prefixCode == 'RV' ||
+              p.prefixCode == 'CRV',
+          orElse: () =>
+              throw Exception('Receipt Voucher prefix not configured'),
         );
 
         // 2. Generate Voucher Number
@@ -103,7 +113,8 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
 
         // 3. Get Sub-Ledger (Offset Account) - The Customer
         final customerCOAId = _customer?.chartOfAccountId;
-        if (customerCOAId == null) throw Exception('Customer has no linked Chart of Account');
+        if (customerCOAId == null)
+          throw Exception('Customer has no linked Chart of Account');
 
         // 4. Create Transaction
         // Dr Bank/Cash Account (accountId)
@@ -117,13 +128,17 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
           offsetAccountId: customerCOAId, // The Customer's Receivable account
           offsetModuleAccount: widget.invoice.businessPartnerId,
           amount: _amount,
-          description: _reference.isEmpty ? 'Receipt for Invoice #${widget.invoice.invoiceNumber}' : _reference,
+          description: _reference.isEmpty
+              ? 'Receipt for Invoice #${widget.invoice.invoiceNumber}'
+              : _reference,
           organizationId: orgId,
           storeId: storeId,
           paymentMode: _paymentMode,
-          referenceNumber: _paymentMode == 'Cash' ? null : _refNoController.text,
+          referenceNumber:
+              _paymentMode == 'Cash' ? null : _refNoController.text,
           referenceDate: _paymentMode == 'Cash' ? null : _refDate,
-          referenceBank: _paymentMode == 'Cash' ? null : _refBankController.text,
+          referenceBank:
+              _paymentMode == 'Cash' ? null : _refBankController.text,
           invoiceId: widget.invoice.id,
         );
 
@@ -131,8 +146,10 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
 
         // 5. Update Invoice
         final newPaidAmount = widget.invoice.paidAmount + _amount;
-        final newStatus = (newPaidAmount >= widget.invoice.totalAmount - 0.01) ? 'Paid' : 'Partial';
-        
+        final newStatus = (newPaidAmount >= widget.invoice.totalAmount - 0.01)
+            ? 'Paid'
+            : 'Partial';
+
         final updatedInvoice = widget.invoice.copyWith(
           paidAmount: newPaidAmount,
           status: newStatus,
@@ -143,14 +160,18 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Receipt saved successfully for Invoice #${widget.invoice.invoiceNumber}')),
+            SnackBar(
+                content: Text(
+                    'Receipt saved successfully for Invoice #${widget.invoice.invoiceNumber}')),
           );
           Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error saving receipt: $e'), backgroundColor: Colors.red),
+            SnackBar(
+                content: Text('Error saving receipt: $e'),
+                backgroundColor: Colors.red),
           );
         }
       }
@@ -165,8 +186,12 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
 
     // Filter Bank/Cash accounts from the same source table (omtbl_bank_cash)
     // Heuristic: 'Cash' usually in name for Cash accounts.
-    final cashAccounts = state.bankCashAccounts.where((b) => b.name.toLowerCase().contains('cash')).toList();
-    final bankAccounts = state.bankCashAccounts.where((b) => !b.name.toLowerCase().contains('cash')).toList();
+    final cashAccounts = state.bankCashAccounts
+        .where((b) => b.name.toLowerCase().contains('cash'))
+        .toList();
+    final bankAccounts = state.bankCashAccounts
+        .where((b) => !b.name.toLowerCase().contains('cash'))
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -196,8 +221,12 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Customer', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                        Text(_customer?.name ?? 'Loading...', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('Customer',
+                            style: TextStyle(
+                                color: Colors.grey.shade600, fontSize: 12)),
+                        Text(_customer?.name ?? 'Loading...',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
                       ],
                     ),
                   ),
@@ -205,10 +234,16 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('Invoice Amount', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                        Text('Invoice Amount',
+                            style: TextStyle(
+                                color: Colors.grey.shade600, fontSize: 12)),
                         Text(
-                          NumberFormat.currency(symbol: currencySymbol).format(widget.invoice.totalAmount), 
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue),
+                          NumberFormat.currency(symbol: currencySymbol)
+                              .format(widget.invoice.totalAmount),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.blue),
                         ),
                       ],
                     ),
@@ -216,22 +251,28 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
                 ],
               ),
             ),
-            
+
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
                   // CASH TAB
                   _buildPaymentForm(
-                    cashAccounts.map((e) => DropdownMenuItem(value: e.id, child: Text(e.name))).toList(), 
+                    cashAccounts
+                        .map((e) =>
+                            DropdownMenuItem(value: e.id, child: Text(e.name)))
+                        .toList(),
                     'Cash Account',
                     currencySymbol,
                     isBank: false,
                   ),
-                  
+
                   // BANK TAB
                   _buildPaymentForm(
-                    bankAccounts.map((e) => DropdownMenuItem(value: e.id, child: Text(e.name))).toList(), 
+                    bankAccounts
+                        .map((e) =>
+                            DropdownMenuItem(value: e.id, child: Text(e.name)))
+                        .toList(),
                     'Bank Account',
                     currencySymbol,
                     isBank: true,
@@ -239,7 +280,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
                 ],
               ),
             ),
-            
+
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: SizedBox(
@@ -257,7 +298,9 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
     );
   }
 
-  Widget _buildPaymentForm(List<DropdownMenuItem<String>> items, String label, String currencySymbol, {required bool isBank}) {
+  Widget _buildPaymentForm(
+      List<DropdownMenuItem<String>> items, String label, String currencySymbol,
+      {required bool isBank}) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -266,7 +309,8 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
             decoration: InputDecoration(
               labelText: label,
               border: const OutlineInputBorder(),
-              prefixIcon: Icon(label.contains('Bank') ? Icons.account_balance : Icons.money),
+              prefixIcon: Icon(
+                  label.contains('Bank') ? Icons.account_balance : Icons.money),
             ),
             items: items,
             onChanged: (val) => setState(() => _selectedAccountId = val),
@@ -279,7 +323,8 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
               labelText: 'Received Amount',
               border: const OutlineInputBorder(),
               prefixText: '$currencySymbol ',
-              prefixStyle: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              prefixStyle: const TextStyle(
+                  color: Colors.black, fontWeight: FontWeight.bold),
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (val) {
@@ -295,7 +340,8 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
           ),
           const SizedBox(height: 16),
           TextFormField(
-            controller: TextEditingController(text: DateFormat('yyyy-MM-dd').format(_date)),
+            controller: TextEditingController(
+                text: DateFormat('yyyy-MM-dd').format(_date)),
             decoration: const InputDecoration(
               labelText: 'Date',
               border: OutlineInputBorder(),
@@ -315,13 +361,17 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
           if (isBank) ...[
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              initialValue: _paymentMode == 'Cash' ? _bankPaymentModes.first : _paymentMode,
+              initialValue: _paymentMode == 'Cash'
+                  ? _bankPaymentModes.first
+                  : _paymentMode,
               decoration: const InputDecoration(
                 labelText: 'Payment Mode',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.payment),
               ),
-              items: _bankPaymentModes.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              items: _bankPaymentModes
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
               onChanged: (val) => setState(() => _paymentMode = val!),
             ),
             const SizedBox(height: 16),
@@ -335,7 +385,8 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
             ),
             const SizedBox(height: 16),
             TextFormField(
-              controller: TextEditingController(text: DateFormat('yyyy-MM-dd').format(_refDate)),
+              controller: TextEditingController(
+                  text: DateFormat('yyyy-MM-dd').format(_refDate)),
               decoration: const InputDecoration(
                 labelText: 'Reference Date',
                 border: OutlineInputBorder(),
@@ -362,17 +413,19 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> with SingleTicker
               ),
             ),
           ] else ...[
-             const SizedBox(height: 16),
-             DropdownButtonFormField<String>(
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
               initialValue: 'Cash',
               decoration: const InputDecoration(
                 labelText: 'Payment Mode',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.payments),
               ),
-              items: const [DropdownMenuItem(value: 'Cash', child: Text('Cash'))],
+              items: const [
+                DropdownMenuItem(value: 'Cash', child: Text('Cash'))
+              ],
               onChanged: null, // Disabled for Cash tab
-             ),
+            ),
           ],
           const SizedBox(height: 16),
           TextFormField(

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ordermate/build_info.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
-import 'package:geolocator/geolocator.dart'; 
+import 'package:geolocator/geolocator.dart';
 import 'package:ordermate/core/services/sync_service.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
 
@@ -56,7 +56,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _enforceLocationPermission() async {
     if (!mounted) return;
     debugPrint('Splash: Enforcing location permission...');
-    
+
     // Bypass location check in Debug Mode (Web/Windows) to prevent stuck splash
     if (kDebugMode) {
       debugPrint('Splash: Debug mode detected. Bypassing location check.');
@@ -74,11 +74,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (!serviceEnabled) {
       debugPrint('Splash: Location service disabled.');
       if (mounted) {
-         setState(() {
-           _isLocationDenied = true;
-           _isCheckingLocation = false;
-         });
-         _showLocationDialog('Location services are disabled. Please enable them to continue.');
+        setState(() {
+          _isLocationDenied = true;
+          _isCheckingLocation = false;
+        });
+        _showLocationDialog(
+            'Location services are disabled. Please enable them to continue.');
       }
       return;
     }
@@ -86,7 +87,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     // 2. Check Permission
     permission = await Geolocator.checkPermission();
     debugPrint('Splash: Current permission: $permission');
-    
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       debugPrint('Splash: Requested permission result: $permission');
@@ -100,15 +101,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         return;
       }
     }
-    
+
     if (permission == LocationPermission.deniedForever) {
       debugPrint('Splash: Permission denied forever.');
       if (mounted) {
-          setState(() {
-            _isLocationDenied = true;
-            _isCheckingLocation = false;
-          });
-          _showLocationDialog('Location permissions are permanently denied. Please enable them in settings to continue.');
+        setState(() {
+          _isLocationDenied = true;
+          _isCheckingLocation = false;
+        });
+        _showLocationDialog(
+            'Location permissions are permanently denied. Please enable them in settings to continue.');
       }
       return;
     }
@@ -127,20 +129,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         content: Text(message),
         actions: [
           if (_isLocationDenied)
-             TextButton(
-               onPressed: () {
-                 Navigator.pop(context);
-                 _enforceLocationPermission();
-               },
-               child: const Text('Retry'),
-             ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _enforceLocationPermission();
+              },
+              child: const Text('Retry'),
+            ),
           if (_isLocationDenied)
-             TextButton(
-               onPressed: () {
-                 Geolocator.openAppSettings();
-               },
-               child: const Text('Open Settings'),
-             ),
+            TextButton(
+              onPressed: () {
+                Geolocator.openAppSettings();
+              },
+              child: const Text('Open Settings'),
+            ),
         ],
       ),
     );
@@ -149,18 +151,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _checkAuth() async {
     debugPrint('Splash: _checkAuth started.');
     if (mounted) {
-      final hasSession = SupabaseConfig.currentUser != null || SupabaseConfig.isOfflineLoggedIn;
+      final hasSession = SupabaseConfig.currentUser != null ||
+          SupabaseConfig.isOfflineLoggedIn;
       debugPrint('Splash: Has Session? $hasSession');
-      
+
       if (hasSession) {
         debugPrint('Splash: Session detected. Loading profile...');
-        
+
         // Ensure dynamic permissions/role are loaded before navigating
         await ref.read(authProvider.notifier).loadDynamicPermissions();
 
         debugPrint('Splash: Triggering Sync...');
         ref.read(syncServiceProvider).syncAll();
-        
+
         debugPrint('Splash: Navigating to /workspace-selection');
         context.go('/workspace-selection');
       } else {
@@ -196,7 +199,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       width: 150,
                       height: 150,
                       decoration: BoxDecoration(
-                        color: Colors.transparent, 
+                        color: Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: ClipRRect(
@@ -230,9 +233,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   if (_isLocationDenied && !_isCheckingLocation)
                     Column(
                       children: [
-                         const Text(
+                        const Text(
                           'Location Access Required',
-                          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Colors.red, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton(
@@ -245,13 +249,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     FadeTransition(
                       opacity: _opacityAnimation,
                       child: const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.loginGradientStart),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.loginGradientStart),
                       ),
                     ),
                 ],
               ),
             ),
-            
+
             // Footer (Powered By + Version)
             Positioned(
               bottom: 24,
@@ -267,9 +272,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         const Text(
                           'Powered by ',
                           style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,),
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         // Triangletech Logo
                         Image.asset(

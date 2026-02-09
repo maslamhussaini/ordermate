@@ -63,15 +63,16 @@ class VendorNotifier extends StateNotifier<VendorState> {
   }
 
   Future<void> loadAll() async {
-     state = state.copyWith(isLoading: true);
-     final orgId = ref.read(organizationProvider).selectedOrganizationId;
-     try {
-       final vendors = await repository.getVendors(organizationId: orgId);
-       final suppliers = await repository.getSuppliers(organizationId: orgId);
-       state = state.copyWith(isLoading: false, vendors: vendors, suppliers: suppliers);
-     } catch (e) {
-       state = state.copyWith(isLoading: false, error: e.toString());
-     }
+    state = state.copyWith(isLoading: true);
+    final orgId = ref.read(organizationProvider).selectedOrganizationId;
+    try {
+      final vendors = await repository.getVendors(organizationId: orgId);
+      final suppliers = await repository.getSuppliers(organizationId: orgId);
+      state = state.copyWith(
+          isLoading: false, vendors: vendors, suppliers: suppliers);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 
   Future<void> addVendor(Vendor vendor) async {
@@ -111,7 +112,7 @@ class VendorNotifier extends StateNotifier<VendorState> {
       // Backend (Repository) handles offline fallback.
       // We assume success or handled offline.
       // We can reload to be safe, but optimistic is enough for UI response.
-      // await loadVendors(); 
+      // await loadVendors();
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
       // Revert

@@ -18,10 +18,12 @@ class WorkspaceSelectionScreen extends ConsumerStatefulWidget {
   const WorkspaceSelectionScreen({super.key});
 
   @override
-  ConsumerState<WorkspaceSelectionScreen> createState() => _WorkspaceSelectionScreenState();
+  ConsumerState<WorkspaceSelectionScreen> createState() =>
+      _WorkspaceSelectionScreenState();
 }
 
-class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScreen> {
+class _WorkspaceSelectionScreenState
+    extends ConsumerState<WorkspaceSelectionScreen> {
   bool _isLoading = true;
   List<Organization> _organizations = [];
   Organization? _selectedOrganization;
@@ -41,15 +43,17 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
     try {
       final repo = OrganizationRepositoryImpl();
       final orgs = await repo.getOrganizations();
-      
+
       if (!mounted) return;
-      
+
       setState(() {
         _organizations = orgs;
         if (orgs.isNotEmpty) {
           // Check if an org is already selected in the provider
-          final currentOrgId = ref.read(organizationProvider).selectedOrganizationId;
-          _selectedOrganization = orgs.where((o) => o.id == currentOrgId).firstOrNull ?? orgs.first;
+          final currentOrgId =
+              ref.read(organizationProvider).selectedOrganizationId;
+          _selectedOrganization =
+              orgs.where((o) => o.id == currentOrgId).firstOrNull ?? orgs.first;
         }
       });
 
@@ -68,13 +72,15 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
     try {
       final repo = OrganizationRepositoryImpl();
       final stores = await repo.getStores(orgId);
-      
+
       if (!mounted) return;
       setState(() {
         _stores = stores;
         if (stores.isNotEmpty) {
           final currentStoreId = ref.read(organizationProvider).selectedStoreId;
-          _selectedStore = stores.where((s) => s.id == currentStoreId).firstOrNull ?? stores.first;
+          _selectedStore =
+              stores.where((s) => s.id == currentStoreId).firstOrNull ??
+                  stores.first;
         } else {
           _selectedStore = null;
         }
@@ -89,7 +95,7 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
       final localRepo = LocalAccountingRepository();
       final repo = AccountingRepositoryImpl(localRepo);
       var sessions = await repo.getFinancialSessions(organizationId: orgId);
-      
+
       if (sessions.isEmpty) {
         final currentYear = DateTime.now().year;
         final session = FinancialSession(
@@ -109,9 +115,12 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
       setState(() {
         _financialSessions = sessions;
         if (sessions.isNotEmpty) {
-          final currentYear = ref.read(organizationProvider).selectedFinancialYear;
-          _selectedSession = sessions.where((s) => s.sYear == currentYear).firstOrNull ?? 
-                             sessions.firstWhere((s) => s.inUse, orElse: () => sessions.first);
+          final currentYear =
+              ref.read(organizationProvider).selectedFinancialYear;
+          _selectedSession = sessions
+                  .where((s) => s.sYear == currentYear)
+                  .firstOrNull ??
+              sessions.firstWhere((s) => s.inUse, orElse: () => sessions.first);
         } else {
           _selectedSession = null;
         }
@@ -125,25 +134,28 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
     if (_selectedOrganization == null) return;
 
     final orgNotifier = ref.read(organizationProvider.notifier);
-    
+
     await orgNotifier.setWorkspace(
       organization: _selectedOrganization!,
       store: _selectedStore,
       financialYear: _selectedSession?.sYear,
     );
-    
+
     // Also update accounting provider for consistency across app
     if (_selectedSession != null) {
-      ref.read(accountingProvider.notifier).selectFinancialSession(_selectedSession);
+      ref
+          .read(accountingProvider.notifier)
+          .selectFinancialSession(_selectedSession);
     }
 
     if (!mounted) return;
     final landingPage = ref.read(settingsProvider).landingPage;
     context.go(landingPage);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Workspace selected: ${_selectedOrganization!.name}${_selectedStore != null ? " - ${_selectedStore!.name}" : ""}'),
+        content: Text(
+            'Workspace selected: ${_selectedOrganization!.name}${_selectedStore != null ? " - ${_selectedStore!.name}" : ""}'),
         backgroundColor: Colors.green,
       ),
     );
@@ -159,11 +171,14 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)?.get('select_workspace') ?? 'Select Workspace'),
+        title: Text(AppLocalizations.of(context)?.get('select_workspace') ??
+            'Select Workspace'),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+        foregroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white
+            : Colors.black,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -182,21 +197,26 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
               constraints: const BoxConstraints(maxWidth: 500),
               child: Card(
                 elevation: 8,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
                 child: Padding(
                   padding: const EdgeInsets.all(32),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Icon(Icons.business_center_rounded, 
-                        size: 80, 
-                        color: AppColors.loginGradientStart),
+                      const Icon(Icons.business_center_rounded,
+                          size: 80, color: AppColors.loginGradientStart),
                       const SizedBox(height: 24),
                       Text(
-                        AppLocalizations.of(context)?.get('workspace_configuration') ?? 'Configuration',
+                        AppLocalizations.of(context)
+                                ?.get('workspace_configuration') ??
+                            'Configuration',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -205,16 +225,20 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       // Organization Dropdown
                       _buildDropdown(
-                        label: AppLocalizations.of(context)?.get('organization') ?? 'Organization',
+                        label:
+                            AppLocalizations.of(context)?.get('organization') ??
+                                'Organization',
                         icon: Icons.domain,
                         value: _selectedOrganization,
-                        items: _organizations.map((org) => DropdownMenuItem(
-                          value: org,
-                          child: Text(org.name),
-                        )).toList(),
+                        items: _organizations
+                            .map((org) => DropdownMenuItem(
+                                  value: org,
+                                  child: Text(org.name),
+                                ))
+                            .toList(),
                         onChanged: (val) {
                           setState(() {
                             _selectedOrganization = val;
@@ -230,50 +254,66 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
                         },
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Store Dropdown
                       _buildDropdown(
-                        label: AppLocalizations.of(context)?.get('store_branch') ?? 'Store / Branch',
+                        label:
+                            AppLocalizations.of(context)?.get('store_branch') ??
+                                'Store / Branch',
                         icon: Icons.store,
                         value: _selectedStore,
-                        items: _stores.map((store) => DropdownMenuItem(
-                          value: store,
-                          child: Text(store.name),
-                        )).toList(),
+                        items: _stores
+                            .map((store) => DropdownMenuItem(
+                                  value: store,
+                                  child: Text(store.name),
+                                ))
+                            .toList(),
                         onChanged: (val) {
                           setState(() => _selectedStore = val);
                         },
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Financial Year Dropdown
                       _buildDropdown(
-                        label: AppLocalizations.of(context)?.get('financial_year') ?? 'Financial Year',
+                        label: AppLocalizations.of(context)
+                                ?.get('financial_year') ??
+                            'Financial Year',
                         icon: Icons.calendar_today,
                         value: _selectedSession,
-                        items: _financialSessions.map((session) => DropdownMenuItem(
-                          value: session,
-                          child: Text('${session.sYear} (${DateFormat('MMM yy').format(session.startDate)} - ${DateFormat('MMM yy').format(session.endDate)})'),
-                        )).toList(),
+                        items: _financialSessions
+                            .map((session) => DropdownMenuItem(
+                                  value: session,
+                                  child: Text(
+                                      '${session.sYear} (${DateFormat('MMM yy').format(session.startDate)} - ${DateFormat('MMM yy').format(session.endDate)})'),
+                                ))
+                            .toList(),
                         onChanged: (val) {
                           setState(() => _selectedSession = val);
                         },
                       ),
-                      
+
                       const SizedBox(height: 48),
-                      
+
                       ElevatedButton(
-                        onPressed: (_selectedOrganization != null && _selectedSession != null) ? _continueToDashboard : null,
+                        onPressed: (_selectedOrganization != null &&
+                                _selectedSession != null)
+                            ? _continueToDashboard
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.loginGradientStart,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           elevation: 4,
                         ),
                         child: Text(
-                          AppLocalizations.of(context)?.get('continue_to_dashboard') ?? 'Continue to Dashboard',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          AppLocalizations.of(context)
+                                  ?.get('continue_to_dashboard') ??
+                              'Continue to Dashboard',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -297,7 +337,8 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(label,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
           initialValue: value,
@@ -309,7 +350,8 @@ class _WorkspaceSelectionScreenState extends ConsumerState<WorkspaceSelectionScr
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
           items: items,
           onChanged: onChanged,

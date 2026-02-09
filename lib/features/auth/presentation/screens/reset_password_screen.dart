@@ -9,7 +9,8 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({super.key});
 
   @override
-  ConsumerState<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
@@ -30,19 +31,19 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   Future<bool> _verifyOldPassword() async {
     try {
       // Supabase doesn't have a "verify password" without logging in or updating.
-      // But since we are likely already logged in (via recovery or session), 
+      // But since we are likely already logged in (via recovery or session),
       // we can try to re-authenticate or just rely on the user knowing it.
       // However, if the user requested it, they might want us to check it.
-      
+
       // OPTION A: Try to sign in with email and old password to verify.
       final email = _emailController.text.trim();
       final oldPassword = _oldPasswordController.text.trim();
-      
+
       final response = await SupabaseConfig.client.auth.signInWithPassword(
         email: email,
         password: oldPassword,
       );
-      
+
       return response.user != null;
     } catch (e) {
       debugPrint('Old password verification failed: $e');
@@ -56,8 +57,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Passwords do not match'),
-            backgroundColor: Colors.orange,),
+          content: Text('Passwords do not match'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -71,7 +73,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         if (!isValid) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Current password is incorrect'), backgroundColor: Colors.red),
+              const SnackBar(
+                  content: Text('Current password is incorrect'),
+                  backgroundColor: Colors.red),
             );
             setState(() => _isLoading = false);
             return;
@@ -92,7 +96,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Password updated successfully! Please log in with your new password.'),
+            content: Text(
+                'Password updated successfully! Please log in with your new password.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -143,94 +148,98 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               constraints: const BoxConstraints(maxWidth: 400),
               padding: const EdgeInsets.all(24),
               child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Credential Setup',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Please update the default password to secure your account.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 32),
-                
-                // Email Field (Disabled)
-                TextFormField(
-                  controller: _emailController,
-                  enabled: false,
-                  decoration: const InputDecoration(
-                    labelText: 'Email Address',
-                    prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
-                    filled: true,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _oldPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Old Password (Default)',
-                    prefixIcon: Icon(Icons.lock_clock),
-                    border: OutlineInputBorder(),
-                    hintText: 'Welcome@123',
-                  ),
-                  validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'New Password',
-                    prefixIcon: Icon(Icons.lock),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (val) {
-                     if (val == null || val.isEmpty) return 'Required';
-                     if (val.length < 6) return 'Password must be at least 6 characters';
-                     if (val == _oldPasswordController.text) return 'New password must be different';
-                     return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm New Password',
-                    prefixIcon: Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (val) =>
-                      val == null || val.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 24),
-                if (_isLoading)
-                  const CircularProgressIndicator()
-                else
-                  ElevatedButton(
-                    onPressed: _updatePassword,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.indigo,
-                      foregroundColor: Colors.white,
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Credential Setup',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    child: const Text('Update & Continue'),
-                  ),
-              ],
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please update the default password to secure your account.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Email Field (Disabled)
+                    TextFormField(
+                      controller: _emailController,
+                      enabled: false,
+                      decoration: const InputDecoration(
+                        labelText: 'Email Address',
+                        prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(),
+                        filled: true,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _oldPasswordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Old Password (Default)',
+                        prefixIcon: Icon(Icons.lock_clock),
+                        border: OutlineInputBorder(),
+                        hintText: 'Welcome@123',
+                      ),
+                      validator: (val) =>
+                          val == null || val.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'New Password',
+                        prefixIcon: Icon(Icons.lock),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (val) {
+                        if (val == null || val.isEmpty) return 'Required';
+                        if (val.length < 6)
+                          return 'Password must be at least 6 characters';
+                        if (val == _oldPasswordController.text)
+                          return 'New password must be different';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm New Password',
+                        prefixIcon: Icon(Icons.lock_outline),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (val) =>
+                          val == null || val.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 24),
+                    if (_isLoading)
+                      const CircularProgressIndicator()
+                    else
+                      ElevatedButton(
+                        onPressed: _updatePassword,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Update & Continue'),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-        ), // SingleChildScrollView
-      ), // Center
+          ), // SingleChildScrollView
+        ), // Center
       ), // Scrollbar
     ); // Scaffold
   }

@@ -14,11 +14,12 @@ class OrganizationModel extends Organization {
 
   factory OrganizationModel.fromJson(Map<String, dynamic> json) {
     int count = 0;
-    if (json['omtbl_stores'] is List && (json['omtbl_stores'] as List).isNotEmpty) {
-       final first = (json['omtbl_stores'] as List).first;
-       if (first is Map && first.containsKey('count')) {
-         count = first['count'] as int;
-       }
+    if (json['omtbl_stores'] is List &&
+        (json['omtbl_stores'] as List).isNotEmpty) {
+      final first = (json['omtbl_stores'] as List).first;
+      if (first is Map && first.containsKey('count')) {
+        count = first['count'] as int;
+      }
     }
     // Also support direct 'store_count' if we change query or cache structure
     if (json.containsKey('store_count')) {
@@ -30,8 +31,10 @@ class OrganizationModel extends Organization {
       name: json['name']?.toString() ?? 'Unknown',
       code: json['code']?.toString(),
       isActive: json['is_active'] as bool? ?? true,
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+          DateTime.now(),
       logoUrl: json['logo_url']?.toString(),
       storeCount: count,
     );

@@ -13,14 +13,16 @@ class ChartOfAccountFormScreen extends ConsumerStatefulWidget {
   const ChartOfAccountFormScreen({super.key, this.accountId});
 
   @override
-  ConsumerState<ChartOfAccountFormScreen> createState() => _ChartOfAccountFormScreenState();
+  ConsumerState<ChartOfAccountFormScreen> createState() =>
+      _ChartOfAccountFormScreenState();
 }
 
-class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScreen> {
+class _ChartOfAccountFormScreenState
+    extends ConsumerState<ChartOfAccountFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _codeController = TextEditingController();
-  
+
   String? _selectedParentId;
   int? _selectedCategoryId;
   int _level = 2;
@@ -32,7 +34,9 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
   void initState() {
     super.initState();
     if (widget.accountId != null) {
-      final account = ref.read(accountingProvider).accounts
+      final account = ref
+          .read(accountingProvider)
+          .accounts
           .where((a) => a.id == widget.accountId)
           .firstOrNull;
       if (account != null) {
@@ -61,20 +65,20 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
     try {
       final state = ref.read(accountingProvider);
       final orgId = ref.read(organizationProvider).selectedOrganization?.id;
-      
+
       // If editing, use the existing account's organizationId if the current one is null
       int? finalOrgId = orgId;
       if (finalOrgId == null && widget.accountId != null) {
-        final existingAccount = state.accounts
-            .where((a) => a.id == widget.accountId)
-            .firstOrNull;
+        final existingAccount =
+            state.accounts.where((a) => a.id == widget.accountId).firstOrNull;
         finalOrgId = existingAccount?.organizationId;
       }
 
       // Find the account type ID from the selected category
       int? typeId;
       if (_selectedCategoryId != null) {
-        final category = state.categories.firstWhere((c) => c.id == _selectedCategoryId);
+        final category =
+            state.categories.firstWhere((c) => c.id == _selectedCategoryId);
         typeId = category.accountTypeId;
       }
 
@@ -89,7 +93,13 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
         organizationId: finalOrgId ?? 0,
         isActive: _isActive,
         isSystem: _isSystem,
-        createdAt: widget.accountId == null ? DateTime.now() : (state.accounts.where((a) => a.id == widget.accountId).firstOrNull?.createdAt ?? DateTime.now()),
+        createdAt: widget.accountId == null
+            ? DateTime.now()
+            : (state.accounts
+                    .where((a) => a.id == widget.accountId)
+                    .firstOrNull
+                    ?.createdAt ??
+                DateTime.now()),
         updatedAt: DateTime.now(),
       );
 
@@ -99,7 +109,7 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
       } else {
         await notifier.updateAccount(account, organizationId: finalOrgId);
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account saved successfully')),
@@ -120,13 +130,16 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(accountingProvider);
-    
+
     // Filter parents based on level
-    final possibleParents = state.accounts.where((a) => a.level == _level - 1).toList();
+    final possibleParents =
+        state.accounts.where((a) => a.level == _level - 1).toList();
 
     // Safety check: ensure _selectedParentId is in the list
-    if (_selectedParentId != null && !possibleParents.any((p) => p.id == _selectedParentId)) {
-      final actualParent = state.accounts.where((a) => a.id == _selectedParentId).firstOrNull;
+    if (_selectedParentId != null &&
+        !possibleParents.any((p) => p.id == _selectedParentId)) {
+      final actualParent =
+          state.accounts.where((a) => a.id == _selectedParentId).firstOrNull;
       if (actualParent != null) {
         possibleParents.add(actualParent);
       }
@@ -155,20 +168,29 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
                         border: OutlineInputBorder(),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 2, child: Text('Level 2 (Group)')),
-                        DropdownMenuItem(value: 3, child: Text('Level 3 (Control)')),
-                        DropdownMenuItem(value: 4, child: Text('Level 4 (Ledger - Postable)')),
+                        DropdownMenuItem(
+                            value: 2, child: Text('Level 2 (Group)')),
+                        DropdownMenuItem(
+                            value: 3, child: Text('Level 3 (Control)')),
+                        DropdownMenuItem(
+                            value: 4,
+                            child: Text('Level 4 (Ledger - Postable)')),
                       ],
-                      onChanged: (widget.accountId != null || _isSystem) ? null : (val) {
-                        setState(() {
-                          _level = val!;
-                          _selectedParentId = null;
-                        });
-                      },
+                      onChanged: (widget.accountId != null || _isSystem)
+                          ? null
+                          : (val) {
+                              setState(() {
+                                _level = val!;
+                                _selectedParentId = null;
+                              });
+                            },
                     ),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<String>(
-                      initialValue: possibleParents.any((p) => p.id == _selectedParentId) ? _selectedParentId : null,
+                      initialValue:
+                          possibleParents.any((p) => p.id == _selectedParentId)
+                              ? _selectedParentId
+                              : null,
                       decoration: const InputDecoration(
                         labelText: 'Parent Account',
                         border: OutlineInputBorder(),
@@ -179,15 +201,19 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
                           child: Text('${a.accountCode} - ${a.accountTitle}'),
                         );
                       }).toList(),
-                      onChanged: _isSystem ? null : (val) {
-                        setState(() {
-                          _selectedParentId = val;
-                          if (val != null) {
-                            final parent = possibleParents.firstWhere((a) => a.id == val);
-                            _selectedCategoryId = parent.accountCategoryId;
-                          }
-                        });
-                      },
+                      onChanged: _isSystem
+                          ? null
+                          : (val) {
+                              setState(() {
+                                _selectedParentId = val;
+                                if (val != null) {
+                                  final parent = possibleParents
+                                      .firstWhere((a) => a.id == val);
+                                  _selectedCategoryId =
+                                      parent.accountCategoryId;
+                                }
+                              });
+                            },
                       validator: (val) => val == null ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
@@ -199,7 +225,8 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
                         border: OutlineInputBorder(),
                       ),
                       enabled: !_isSystem,
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -209,7 +236,8 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
                         hintText: 'e.g. Cash in Hand, Sales Revenue...',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<int>(
@@ -224,14 +252,18 @@ class _ChartOfAccountFormScreenState extends ConsumerState<ChartOfAccountFormScr
                           child: Text(c.categoryName),
                         );
                       }).toList(),
-                      onChanged: _isSystem ? null : (val) => setState(() => _selectedCategoryId = val),
+                      onChanged: _isSystem
+                          ? null
+                          : (val) => setState(() => _selectedCategoryId = val),
                       validator: (val) => val == null ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     SwitchListTile(
                       title: const Text('Is Active'),
                       value: _isActive,
-                      onChanged: _isSystem ? null : (val) => setState(() => _isActive = val),
+                      onChanged: _isSystem
+                          ? null
+                          : (val) => setState(() => _isActive = val),
                     ),
                     const SizedBox(height: 32),
                     SizedBox(

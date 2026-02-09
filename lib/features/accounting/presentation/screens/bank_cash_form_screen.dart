@@ -40,15 +40,17 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
       final account = currentState.bankCashAccounts
           .where((a) => a.id == widget.bankCashId)
           .firstOrNull;
-      
+
       if (account != null) {
         _populateForm(account);
         // Ensure dropdown options are loaded if empty (e.g. direct deep link/refresh)
         if (currentState.accounts.isEmpty) {
-           final org = ref.read(organizationProvider).selectedOrganization;
-           await ref.read(accountingProvider.notifier).loadAll(organizationId: org?.id);
-           // After load, ensure we setState to refresh dropdown
-           if (mounted) setState(() {});
+          final org = ref.read(organizationProvider).selectedOrganization;
+          await ref
+              .read(accountingProvider.notifier)
+              .loadAll(organizationId: org?.id);
+          // After load, ensure we setState to refresh dropdown
+          if (mounted) setState(() {});
         }
         return;
       }
@@ -56,14 +58,18 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
 
     // 2. Fallback: Load All and try again (slow path)
     final org = ref.read(organizationProvider).selectedOrganization;
-    await ref.read(accountingProvider.notifier).loadAll(organizationId: org?.id);
-    
+    await ref
+        .read(accountingProvider.notifier)
+        .loadAll(organizationId: org?.id);
+
     if (widget.bankCashId != null) {
-      final account = ref.read(accountingProvider).bankCashAccounts
+      final account = ref
+          .read(accountingProvider)
+          .bankCashAccounts
           .where((a) => a.id == widget.bankCashId)
           .firstOrNull;
       if (account != null) {
-         _populateForm(account);
+        _populateForm(account);
       }
     }
   }
@@ -90,7 +96,8 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCoaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a Chart of Account ledger')),
+        const SnackBar(
+            content: Text('Please select a Chart of Account ledger')),
       );
       return;
     }
@@ -117,7 +124,7 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
       } else {
         await notifier.updateBankCashAccount(account, organizationId: org?.id);
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Bank/Cash account saved successfully')),
@@ -138,27 +145,32 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(accountingProvider);
-    
+
     // Filter CoA: Level 4 and Category 'Bank & Cash'
     final bankCashCategoryId = state.categories
-        .where((c) => c.categoryName.toLowerCase().contains('bank') || 
-                      c.categoryName.toLowerCase().contains('cash'))
+        .where((c) =>
+            c.categoryName.toLowerCase().contains('bank') ||
+            c.categoryName.toLowerCase().contains('cash'))
         .map((c) => c.id)
         .toList();
 
     final filteredCoa = state.accounts.where((a) {
       final title = a.accountTitle.toLowerCase();
       final hasBankCashTitle = title.contains('bank') || title.contains('cash');
-      final matchesCategory = a.accountCategoryId != null && bankCashCategoryId.contains(a.accountCategoryId!);
-      
+      final matchesCategory = a.accountCategoryId != null &&
+          bankCashCategoryId.contains(a.accountCategoryId!);
+
       // Allow Level 3 or 4 accounts that match by category OR title
-      return (a.level == 3 || a.level == 4) && (matchesCategory || hasBankCashTitle);
+      return (a.level == 3 || a.level == 4) &&
+          (matchesCategory || hasBankCashTitle);
     }).toList()
       ..sort((a, b) => a.accountCode.compareTo(b.accountCode));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.bankCashId == null ? 'Add Bank/Cash Account' : 'Edit Bank/Cash Account'),
+        title: Text(widget.bankCashId == null
+            ? 'Add Bank/Cash Account'
+            : 'Edit Bank/Cash Account'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -175,10 +187,12 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
                       Text(
                         'Account Details',
                         style: TextStyle(
-                          fontSize: 18, 
-                          fontWeight: FontWeight.bold, 
-                          color: Theme.of(context).brightness == Brightness.light ? Colors.indigo : Colors.indigoAccent
-                        ),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? Colors.indigo
+                                    : Colors.indigoAccent),
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -186,14 +200,17 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
                         decoration: InputDecoration(
                           labelText: 'Account Name',
                           hintText: 'e.g. Main Cash, HBL Bank...',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           prefixIcon: const Icon(Icons.account_balance),
                           filled: true,
-                          fillColor: Theme.of(context).brightness == Brightness.light 
-                              ? Colors.grey.shade50 
-                              : Colors.white.withValues(alpha: 0.1),
+                          fillColor:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey.shade50
+                                  : Colors.white.withValues(alpha: 0.1),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
@@ -201,12 +218,14 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
                         decoration: InputDecoration(
                           labelText: 'Account Number',
                           hintText: 'e.g. 1234567890',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           prefixIcon: const Icon(Icons.numbers),
                           filled: true,
-                          fillColor: Theme.of(context).brightness == Brightness.light 
-                              ? Colors.grey.shade50 
-                              : Colors.white.withValues(alpha: 0.1),
+                          fillColor:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey.shade50
+                                  : Colors.white.withValues(alpha: 0.1),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -215,12 +234,14 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
                         decoration: InputDecoration(
                           labelText: 'Branch Name',
                           hintText: 'e.g. Downtown Branch',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           prefixIcon: const Icon(Icons.location_on),
                           filled: true,
-                          fillColor: Theme.of(context).brightness == Brightness.light 
-                              ? Colors.grey.shade50 
-                              : Colors.white.withValues(alpha: 0.1),
+                          fillColor:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey.shade50
+                                  : Colors.white.withValues(alpha: 0.1),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -229,20 +250,24 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
                         initialValue: _selectedCoaId,
                         decoration: InputDecoration(
                           labelText: 'Linked Ledger (Chart of Account)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           prefixIcon: const Icon(Icons.account_tree),
                           filled: true,
-                          fillColor: Theme.of(context).brightness == Brightness.light 
-                              ? Colors.grey.shade50 
-                              : Colors.white.withValues(alpha: 0.1),
+                          fillColor:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey.shade50
+                                  : Colors.white.withValues(alpha: 0.1),
                         ),
                         items: filteredCoa.map((coa) {
                           return DropdownMenuItem(
                             value: coa.id,
-                            child: Text('${coa.accountCode} - ${coa.accountTitle}'),
+                            child: Text(
+                                '${coa.accountCode} - ${coa.accountTitle}'),
                           );
                         }).toList(),
-                        onChanged: (val) => setState(() => _selectedCoaId = val),
+                        onChanged: (val) =>
+                            setState(() => _selectedCoaId = val),
                         validator: (val) => val == null ? 'Required' : null,
                       ),
                       if (filteredCoa.isEmpty && !state.isLoading)
@@ -261,19 +286,22 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
                       const SizedBox(height: 24),
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.light 
-                              ? Colors.grey.shade50 
-                              : Colors.white.withValues(alpha: 0.05),
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.grey.shade50
+                                  : Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Theme.of(context).brightness == Brightness.light 
-                                ? Colors.grey.shade200 
-                                : Colors.white.withValues(alpha: 0.12),
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? Colors.grey.shade200
+                                    : Colors.white.withValues(alpha: 0.12),
                           ),
                         ),
                         child: SwitchListTile(
                           title: const Text('Is Active'),
-                          subtitle: const Text('Inactive accounts won\'t appear in vouchers'),
+                          subtitle: const Text(
+                              'Inactive accounts won\'t appear in vouchers'),
                           value: _isActive,
                           activeThumbColor: Colors.indigo,
                           onChanged: (val) => setState(() => _isActive = val),
@@ -288,12 +316,18 @@ class _BankCashFormScreenState extends ConsumerState<BankCashFormScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.indigo,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                             elevation: 0,
                           ),
                           child: Text(
-                            widget.bankCashId == null ? 'CREATE ACCOUNT' : 'UPDATE ACCOUNT',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.1),
+                            widget.bankCashId == null
+                                ? 'CREATE ACCOUNT'
+                                : 'UPDATE ACCOUNT',
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.1),
                           ),
                         ),
                       ),

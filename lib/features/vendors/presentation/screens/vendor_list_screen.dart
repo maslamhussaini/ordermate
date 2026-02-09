@@ -9,7 +9,6 @@ import 'package:ordermate/features/vendors/domain/entities/vendor.dart';
 import 'package:ordermate/features/vendors/presentation/providers/vendor_provider.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
-
 class VendorListScreen extends ConsumerStatefulWidget {
   final bool showSuppliersOnly;
   const VendorListScreen({super.key, this.showSuppliersOnly = false});
@@ -108,7 +107,9 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
   Future<void> _removeDuplicates() async {
     final vendors = ref.read(vendorProvider).vendors;
     if (vendors.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No vendors to check.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No vendors to check.')));
       return;
     }
 
@@ -117,7 +118,8 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
 
     // Identify duplicates (Name + Address)
     for (final v in vendors) {
-      final key = '${v.name.trim().toLowerCase()}|${(v.address ?? '').trim().toLowerCase()}';
+      final key =
+          '${v.name.trim().toLowerCase()}|${(v.address ?? '').trim().toLowerCase()}';
       if (seenKeys.contains(key)) {
         duplicates.add(v);
       } else {
@@ -139,14 +141,16 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Duplicates?'),
-        content: Text('Found ${duplicates.length} duplicate entries based on Name and Address.\n\nAre you sure you want to delete them?'),
+        content: Text(
+            'Found ${duplicates.length} duplicate entries based on Name and Address.\n\nAre you sure you want to delete them?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Delete Duplicates'),
           ),
@@ -161,7 +165,7 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
       ImportProgress(total: duplicates.length),
     );
     var isCancelled = false;
-    
+
     if (!mounted) return;
 
     showDialog(
@@ -190,14 +194,14 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
         debugPrint('Failed to delete duplicate ${duplicates[i].name}: $e');
         failCount++;
       }
-      
+
       progressNotifier.value = ImportProgress(
         total: duplicates.length,
         processed: i + 1,
         success: successCount,
         failed: failCount,
       );
-      
+
       await Future.delayed(Duration.zero);
     }
 
@@ -206,12 +210,14 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) Navigator.of(context, rootNavigator: true).pop();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isCancelled 
-            ? 'Deletion Cancelled' 
-            : 'Removed $successCount duplicates. ($failCount failed)',),
+          content: Text(
+            isCancelled
+                ? 'Deletion Cancelled'
+                : 'Removed $successCount duplicates. ($failCount failed)',
+          ),
           backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
         ),
       );
@@ -271,9 +277,17 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
   Future<void> _downloadTemplate() async {
     try {
       final headers = [
-        ['Name', 'Contact Person', 'Phone', 'Email', 'Address', 'Is Supplier (true/false)'],
+        [
+          'Name',
+          'Contact Person',
+          'Phone',
+          'Email',
+          'Address',
+          'Is Supplier (true/false)'
+        ],
       ];
-      final path = await CsvService().saveCsvFile('vendor_template.csv', headers);
+      final path =
+          await CsvService().saveCsvFile('vendor_template.csv', headers);
       if (path != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Template saved to $path')),
@@ -294,10 +308,12 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
       if (rows == null || rows.isEmpty) return;
 
       var startIndex = 0;
-      if (rows.isNotEmpty && rows[0].isNotEmpty && rows[0][0].toString().toLowerCase() == 'name') {
+      if (rows.isNotEmpty &&
+          rows[0].isNotEmpty &&
+          rows[0][0].toString().toLowerCase() == 'name') {
         startIndex = 1;
       }
-      
+
       final totalItems = rows.length - startIndex;
       if (totalItems <= 0) return;
 
@@ -306,9 +322,9 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
       );
 
       var isCancelled = false;
-      
+
       if (!mounted) return;
-      
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -316,19 +332,19 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
           title: 'Importing Vendors',
           progressNotifier: progressNotifier,
           onStop: () {
-             isCancelled = true;
-             Navigator.of(context).pop();
+            isCancelled = true;
+            Navigator.of(context).pop();
           },
         ),
       );
-      
+
       final existingVendors = ref.read(vendorProvider).vendors;
       final existingKeys = existingVendors.map((v) {
         final n = v.name.trim().toLowerCase();
         final a = (v.address ?? '').trim().toLowerCase();
         return '$n|$a';
       }).toSet();
-      
+
       var successCount = 0;
       var failCount = 0;
       var duplicateCount = 0;
@@ -338,57 +354,67 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
 
         final row = rows[i];
         if (row.isEmpty) {
-           progressNotifier.value = ImportProgress(
-             total: totalItems,
-             processed: i - startIndex + 1,
-             success: successCount,
-             failed: failCount + duplicateCount,
-           );
-           continue;
+          progressNotifier.value = ImportProgress(
+            total: totalItems,
+            processed: i - startIndex + 1,
+            success: successCount,
+            failed: failCount + duplicateCount,
+          );
+          continue;
         }
-        
+
         try {
           // Expected: Name, Contact Person, Phone, Email, Address, Is Supplier
           // Indices: 0, 1, 2, 3, 4, 5
           final name = row.isNotEmpty ? row[0].toString().trim() : '';
-          if (name.isEmpty) { 
-             failCount++;
-             progressNotifier.value = ImportProgress(
-               total: totalItems,
-               processed: i - startIndex + 1,
-               success: successCount,
-               failed: failCount + duplicateCount,
-             );
-             continue; 
+          if (name.isEmpty) {
+            failCount++;
+            progressNotifier.value = ImportProgress(
+              total: totalItems,
+              processed: i - startIndex + 1,
+              success: successCount,
+              failed: failCount + duplicateCount,
+            );
+            continue;
           }
 
-          final contactPerson = row.length > 1 ? row[1].toString().trim() : null;
+          final contactPerson =
+              row.length > 1 ? row[1].toString().trim() : null;
           final phone = row.length > 2 ? row[2].toString().trim() : null;
           final email = row.length > 3 ? row[3].toString().trim() : null;
-          final address = row.length > 4 ? row[4].toString().trim() : ''; // Default empty string for key check if null
-          final isSupplierRaw = row.length > 5 ? row[5].toString().toLowerCase() : 'false';
+          final address = row.length > 4
+              ? row[4].toString().trim()
+              : ''; // Default empty string for key check if null
+          final isSupplierRaw =
+              row.length > 5 ? row[5].toString().toLowerCase() : 'false';
           final isSupplier = isSupplierRaw == 'true';
 
           final currentKey = '${name.toLowerCase()}|${address.toLowerCase()}';
-          
+
           if (existingKeys.contains(currentKey)) {
             duplicateCount++;
           } else {
-             await ref.read(vendorProvider.notifier).addVendor(
-              Vendor(
-                id: '',
-                name: name,
-                contactPerson: contactPerson,
-                phone: phone,
-                email: email,
-                address: address, // Ensure we pass potentially null if entity expects it, but here it expects? check entity
-                isSupplier: isSupplier,
-                createdAt: DateTime.now(),
-                updatedAt: DateTime.now(),
-                organizationId: ref.read(organizationProvider).selectedOrganization?.id ?? 0,
-                storeId: ref.read(organizationProvider).selectedStore?.id ?? 0,
-              ),
-            );
+            await ref.read(vendorProvider.notifier).addVendor(
+                  Vendor(
+                    id: '',
+                    name: name,
+                    contactPerson: contactPerson,
+                    phone: phone,
+                    email: email,
+                    address:
+                        address, // Ensure we pass potentially null if entity expects it, but here it expects? check entity
+                    isSupplier: isSupplier,
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                    organizationId: ref
+                            .read(organizationProvider)
+                            .selectedOrganization
+                            ?.id ??
+                        0,
+                    storeId:
+                        ref.read(organizationProvider).selectedStore?.id ?? 0,
+                  ),
+                );
             existingKeys.add(currentKey);
             successCount++;
           }
@@ -396,7 +422,7 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
           debugPrint('Row $i failed: $e');
           failCount++;
         }
-        
+
         // Update Progress
         progressNotifier.value = ImportProgress(
           total: totalItems,
@@ -405,27 +431,30 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
           failed: failCount,
           duplicate: duplicateCount,
         );
-        
+
         await Future.delayed(const Duration(milliseconds: 10));
       }
-      
-      if (mounted) {
-         if (!isCancelled) {
-            await Future.delayed(const Duration(milliseconds: 800));
-            if (mounted) Navigator.of(context, rootNavigator: true).pop();
-         }
-         
-         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
-             content: Text(isCancelled 
-                ? 'Import Cancelled' 
-                : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',),
-             backgroundColor: successCount > 0 ? Colors.green : (duplicateCount > 0 ? Colors.orange : Colors.red),
-           ),
-         );
-         ref.read(vendorProvider.notifier).loadVendors();
-      }
 
+      if (mounted) {
+        if (!isCancelled) {
+          await Future.delayed(const Duration(milliseconds: 800));
+          if (mounted) Navigator.of(context, rootNavigator: true).pop();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCancelled
+                  ? 'Import Cancelled'
+                  : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',
+            ),
+            backgroundColor: successCount > 0
+                ? Colors.green
+                : (duplicateCount > 0 ? Colors.orange : Colors.red),
+          ),
+        );
+        ref.read(vendorProvider.notifier).loadVendors();
+      }
     } catch (e) {
       if (mounted) {
         // Navigator.of(context).maybePop(); // Safe handled above mostly
@@ -494,7 +523,9 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: widget.showSuppliersOnly ? 'Search suppliers...' : 'Search vendors...',
+                hintText: widget.showSuppliersOnly
+                    ? 'Search suppliers...'
+                    : 'Search vendors...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -523,12 +554,17 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.store,
-                                    size: 64, color: Colors.grey.shade400,),
+                                Icon(
+                                  Icons.store,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   vendors.isEmpty
-                                      ? (widget.showSuppliersOnly ? 'No suppliers found.' : 'No vendors found.')
+                                      ? (widget.showSuppliersOnly
+                                          ? 'No suppliers found.'
+                                          : 'No vendors found.')
                                       : 'No results found.',
                                   style: TextStyle(
                                     color: Colors.grey.shade600,
@@ -654,14 +690,15 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
                   ],
                 ),
               ),
-            
+
             // Status Tags
             const SizedBox(height: 12),
             Row(
               children: [
                 if (vendor.isSupplier) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(20),
@@ -678,10 +715,12 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
                             color: Colors.blue.shade700,
                           ),
                         ),
-                        if (vendor.productCount != null && vendor.productCount! > 0) ...[
+                        if (vendor.productCount != null &&
+                            vendor.productCount! > 0) ...[
                           const SizedBox(width: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
                             decoration: BoxDecoration(
                               color: Colors.blue.shade200,
                               borderRadius: BorderRadius.circular(10),
@@ -702,12 +741,17 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
                   const SizedBox(width: 8),
                 ],
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: vendor.isActive ? Colors.green.shade50 : Colors.red.shade50,
+                    color: vendor.isActive
+                        ? Colors.green.shade50
+                        : Colors.red.shade50,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: vendor.isActive ? Colors.green.shade200 : Colors.red.shade200,
+                      color: vendor.isActive
+                          ? Colors.green.shade200
+                          : Colors.red.shade200,
                     ),
                   ),
                   child: Row(
@@ -722,9 +766,11 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
                       Text(
                         vendor.isActive ? 'Active' : 'Inactive',
                         style: TextStyle(
-                          fontWeight: FontWeight.w500, 
+                          fontWeight: FontWeight.w500,
                           fontSize: 12,
-                          color: vendor.isActive ? Colors.green.shade700 : Colors.red.shade700,
+                          color: vendor.isActive
+                              ? Colors.green.shade700
+                              : Colors.red.shade700,
                         ),
                       ),
                     ],
@@ -760,20 +806,20 @@ class _VendorListScreenState extends ConsumerState<VendorListScreen> {
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton.icon(
-                  onPressed: () {
-                    context.pushNamed(
-                      'product-create',
-                      extra: {'vendorId': vendor.id},
-                    );
-                  },
-                  icon: const Icon(Icons.add_shopping_cart, size: 18),
-                  label: const Text('Add Products'),
-                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blue,
-                    side: BorderSide(color: Colors.blue.shade200),
+                    onPressed: () {
+                      context.pushNamed(
+                        'product-create',
+                        extra: {'vendorId': vendor.id},
+                      );
+                    },
+                    icon: const Icon(Icons.add_shopping_cart, size: 18),
+                    label: const Text('Add Products'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      side: BorderSide(color: Colors.blue.shade200),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
+                  const SizedBox(width: 8),
                 ],
                 OutlinedButton.icon(
                   onPressed: () => context.push('/vendors/edit/${vendor.id}'),

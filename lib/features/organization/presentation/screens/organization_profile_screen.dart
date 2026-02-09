@@ -27,7 +27,8 @@ class _OrganizationProfileScreenState
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     Future.microtask(
-        () => ref.read(organizationProvider.notifier).loadOrganizations(),);
+      () => ref.read(organizationProvider.notifier).loadOrganizations(),
+    );
   }
 
   @override
@@ -62,9 +63,10 @@ class _OrganizationProfileScreenState
                 children: [
                   Icon(Icons.lock, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('Access Denied',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                  Text(
+                    'Access Denied',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 8),
                   Text('Only administrators can view this page.'),
                 ],
@@ -92,8 +94,10 @@ class _OrganizationProfileScreenState
                       controller: _tabController,
                       children: [
                         _buildDetailsTab(orgState.selectedOrganization!),
-                        _buildBranchesTab(orgState.stores,
-                            orgState.selectedOrganization!.id,),
+                        _buildBranchesTab(
+                          orgState.stores,
+                          orgState.selectedOrganization!.id,
+                        ),
                       ],
                     ),
         );
@@ -110,8 +114,10 @@ class _OrganizationProfileScreenState
           children: [
             const Icon(Icons.business, size: 64, color: Colors.blue),
             const SizedBox(height: 16),
-            const Text('No Organization Found',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+            const Text(
+              'No Organization Found',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             const Text('Create an organization to get started.'),
             const SizedBox(height: 24),
@@ -139,14 +145,17 @@ class _OrganizationProfileScreenState
           TextField(
             controller: _orgNameController,
             decoration: const InputDecoration(
-                labelText: 'Organization Name', border: OutlineInputBorder(),),
+              labelText: 'Organization Name',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _orgTaxController,
             decoration: const InputDecoration(
-                labelText: 'Tax Registration Number',
-                border: OutlineInputBorder(),),
+              labelText: 'Tax Registration Number',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 16),
           // CheckboxListTile(
@@ -176,7 +185,8 @@ class _OrganizationProfileScreenState
                     .updateOrganization(updated);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Updated Successfully')),);
+                    const SnackBar(content: Text('Updated Successfully')),
+                  );
                 }
               },
               child: const Text('Save Changes'),
@@ -228,12 +238,14 @@ class _OrganizationProfileScreenState
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Org Name'),),
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Org Name'),
+              ),
               const SizedBox(height: 8),
               TextField(
-                  controller: taxCtrl,
-                  decoration: const InputDecoration(labelText: 'Tax Reg #'),),
+                controller: taxCtrl,
+                decoration: const InputDecoration(labelText: 'Tax Reg #'),
+              ),
               CheckboxListTile(
                 title: const Text('Multiple Branches?'),
                 value: multiBranch,
@@ -243,16 +255,16 @@ class _OrganizationProfileScreenState
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtrl.text.isNotEmpty) {
                   Navigator.pop(context);
                   await ref
                       .read(organizationProvider.notifier)
-                      .createOrganization(
-                          nameCtrl.text, null, false, null,);
+                      .createOrganization(nameCtrl.text, null, false);
                 }
               },
               child: const Text('Create'),
@@ -275,18 +287,21 @@ class _OrganizationProfileScreenState
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Store Name'),),
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Store Name'),
+            ),
             const SizedBox(height: 8),
             TextField(
-                controller: addressCtrl,
-                decoration: const InputDecoration(labelText: 'Address'),),
+              controller: addressCtrl,
+              decoration: const InputDecoration(labelText: 'Address'),
+            ),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () async {
               if (nameCtrl.text.isNotEmpty) {

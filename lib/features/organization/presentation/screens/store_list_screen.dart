@@ -30,7 +30,8 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
     // If this screen shows ALL stores, we might need a specific method.
     // Let's assume we show stores for the *selected* organization if any, or we might need to fetch all.
     Future.microtask(
-        () => ref.read(organizationProvider.notifier).loadOrganizations(),);
+      () => ref.read(organizationProvider.notifier).loadOrganizations(),
+    );
   }
 
   Future<bool> _deleteStoreWithProgress(dynamic store) async {
@@ -56,7 +57,7 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
     if (confirm != true) return false;
 
     if (!mounted) return false;
-    
+
     // Show loading
     showDialog(
       context: context,
@@ -65,16 +66,20 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
     );
 
     try {
-      await ref.read(organizationProvider.notifier).deleteStore(store.id, store.organizationId);
+      await ref
+          .read(organizationProvider.notifier)
+          .deleteStore(store.id, store.organizationId);
       if (mounted) {
-         Navigator.pop(context); // Pop loading
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${store.name} deleted.')));
+        Navigator.pop(context); // Pop loading
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${store.name} deleted.')));
       }
       return true;
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
       return false;
     }
@@ -88,7 +93,8 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
       child: ExpansionTile(
         shape: Border.all(color: Colors.transparent),
         leading: CircleAvatar(
-          backgroundColor: isSelected ? Colors.green.shade50 : Colors.teal.shade50,
+          backgroundColor:
+              isSelected ? Colors.green.shade50 : Colors.teal.shade50,
           child: Icon(
             Icons.store,
             color: isSelected ? Colors.green : Colors.teal,
@@ -127,10 +133,13 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
               if (!isSelected) ...[
                 OutlinedButton.icon(
                   onPressed: () async {
-                    await ref.read(organizationProvider.notifier).selectStore(store);
+                    await ref
+                        .read(organizationProvider.notifier)
+                        .selectStore(store);
                     if (mounted) {
-                       context.goNamed('dashboard');
-                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Selected ${store.name}')));
+                      context.goNamed('dashboard');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Selected ${store.name}')));
                     }
                   },
                   icon: const Icon(Icons.check_circle_outline, size: 18),
@@ -144,7 +153,8 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
               ],
               OutlinedButton.icon(
                 onPressed: () {
-                   context.pushNamed(RouteNames.storeEdit, pathParameters: {'id': store.id.toString()});
+                  context.pushNamed(RouteNames.storeEdit,
+                      pathParameters: {'id': store.id.toString()});
                 },
                 icon: const Icon(Icons.edit, size: 18),
                 label: const Text('Edit'),
@@ -155,14 +165,18 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
-                onPressed: !isSelected ? () => _deleteStoreWithProgress(store) : null,
+                onPressed:
+                    !isSelected ? () => _deleteStoreWithProgress(store) : null,
                 icon: const Icon(Icons.delete, size: 18),
                 label: const Text('Delete'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red,
                   disabledForegroundColor: Colors.grey,
                   side: BorderSide(
-                      color: !isSelected ? Colors.red.shade200 : Colors.grey.shade300,),
+                    color: !isSelected
+                        ? Colors.red.shade200
+                        : Colors.grey.shade300,
+                  ),
                 ),
               ),
             ],
@@ -175,13 +189,15 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(organizationProvider);
-    final stores = state.stores; // These are stores of the selected organization
+    final stores =
+        state.stores; // These are stores of the selected organization
 
     // Filter Logic
     final filteredStores = stores.where((store) {
       final query = _searchQuery.toLowerCase();
       final matchesSearch = store.name.toLowerCase().contains(query) ||
-          (store.location != null && store.location!.toLowerCase().contains(query));
+          (store.location != null &&
+              store.location!.toLowerCase().contains(query));
       return matchesSearch;
     }).toList();
 
@@ -199,9 +215,13 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
             onPressed: () =>
                 // Assuming we want to refresh for the selected org.
                 // If we don't know the org ID here easily, we rely on provider state.
-                state.selectedOrganization != null 
-                  ? ref.read(organizationProvider.notifier).loadStores(state.selectedOrganization!.id)
-                  : ref.read(organizationProvider.notifier).loadOrganizations(),
+                state.selectedOrganization != null
+                    ? ref
+                        .read(organizationProvider.notifier)
+                        .loadStores(state.selectedOrganization!.id)
+                    : ref
+                        .read(organizationProvider.notifier)
+                        .loadOrganizations(),
           ),
           TextButton.icon(
             icon: const Icon(Icons.add, color: Colors.white),
@@ -215,28 +235,28 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
         children: [
           // Search Bar
           Padding(
-             padding: const EdgeInsets.all(16.0),
-             child: TextField(
-               controller: _searchController,
-               decoration: InputDecoration(
-                 hintText: 'Search branches...',
-                 prefixIcon: const Icon(Icons.search),
-                 border: OutlineInputBorder(
-                   borderRadius: BorderRadius.circular(12),
-                   borderSide: BorderSide.none,
-                 ),
-                 filled: true,
-                 fillColor: Colors.grey.shade200,
-                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-               ),
-               onChanged: (value) {
-                 setState(() {
-                   _searchQuery = value;
-                 });
-               },
-             ),
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search branches...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade200,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
           ),
-          
+
           Expanded(
             child: state.isLoading && stores.isEmpty
                 ? const Center(child: CircularProgressIndicator())
@@ -245,29 +265,35 @@ class _StoreListScreenState extends ConsumerState<StoreListScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.store, size: 64, color: Colors.grey.shade400),
+                            Icon(Icons.store,
+                                size: 64, color: Colors.grey.shade400),
                             const SizedBox(height: 16),
                             if (state.selectedOrganization != null) ...[
-                                const Text('No branches found', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: () => context.pushNamed(RouteNames.storeCreate),
-                                  child: const Text('Create Branch'),
-                                )
-                             ] else
-                                const Text('Select an Organization first', style: TextStyle(color: Colors.grey)),
+                              const Text('No branches found',
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 16)),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () =>
+                                    context.pushNamed(RouteNames.storeCreate),
+                                child: const Text('Create Branch'),
+                              )
+                            ] else
+                              const Text('Select an Organization first',
+                                  style: TextStyle(color: Colors.grey)),
                           ],
                         ),
                       )
                     : ListView.builder(
-                            itemCount: filteredStores.length,
-                            padding: const EdgeInsets.only(bottom: 80),
-                            itemBuilder: (context, index) {
-                              final store = filteredStores[index];
-                              final isSelected = state.selectedStore?.id == store.id;
-                              return _buildStoreItem(store, isSelected);
-                            },
-                          ),
+                        itemCount: filteredStores.length,
+                        padding: const EdgeInsets.only(bottom: 80),
+                        itemBuilder: (context, index) {
+                          final store = filteredStores[index];
+                          final isSelected =
+                              state.selectedStore?.id == store.id;
+                          return _buildStoreItem(store, isSelected);
+                        },
+                      ),
           ),
         ],
       ),

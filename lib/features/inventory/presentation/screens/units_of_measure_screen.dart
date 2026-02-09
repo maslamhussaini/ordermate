@@ -9,7 +9,8 @@ class UnitsOfMeasureScreen extends ConsumerStatefulWidget {
   const UnitsOfMeasureScreen({super.key});
 
   @override
-  ConsumerState<UnitsOfMeasureScreen> createState() => _UnitsOfMeasureScreenState();
+  ConsumerState<UnitsOfMeasureScreen> createState() =>
+      _UnitsOfMeasureScreenState();
 }
 
 class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
@@ -19,9 +20,10 @@ class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(inventoryProvider.notifier).loadUnitsOfMeasure());
+    Future.microtask(
+        () => ref.read(inventoryProvider.notifier).loadUnitsOfMeasure());
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -44,11 +46,14 @@ class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () async {
                 try {
-                  await ref.read(inventoryProvider.notifier).deleteUnitOfMeasure(uom.id);
+                  await ref
+                      .read(inventoryProvider.notifier)
+                      .deleteUnitOfMeasure(uom.id);
                   if (context.mounted) Navigator.pop(context);
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text('Error: $e')));
                   }
                 }
               },
@@ -66,8 +71,9 @@ class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
     final items = state.unitsOfMeasure;
 
     final filteredItems = items.where((u) {
-       final query = _searchQuery.toLowerCase();
-       return u.name.toLowerCase().contains(query) || u.symbol.toLowerCase().contains(query);
+      final query = _searchQuery.toLowerCase();
+      return u.name.toLowerCase().contains(query) ||
+          u.symbol.toLowerCase().contains(query);
     }).toList();
 
     return Scaffold(
@@ -76,9 +82,10 @@ class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(inventoryProvider.notifier).loadUnitsOfMeasure(),
+            onPressed: () =>
+                ref.read(inventoryProvider.notifier).loadUnitsOfMeasure(),
           ),
-           TextButton.icon(
+          TextButton.icon(
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text('New', style: TextStyle(color: Colors.white)),
             onPressed: () => context.push('/inventory/units-of-measure/create'),
@@ -88,7 +95,7 @@ class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
       ),
       body: Column(
         children: [
-           // Search Bar
+          // Search Bar
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -117,12 +124,15 @@ class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
                 : state.error != null && items.isEmpty
                     ? Center(child: Text('Error: ${state.error}'))
                     : filteredItems.isEmpty
-                      ? Center(
-                             child: Column(
-                               mainAxisAlignment: MainAxisAlignment.center,
-                               children: [
-                                 Icon(Icons.scale_outlined,
-                                    size: 64, color: Colors.grey.shade400,),
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.scale_outlined,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   items.isEmpty
@@ -136,14 +146,14 @@ class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
                               ],
                             ),
                           )
-                      : ListView.builder(
-                          itemCount: filteredItems.length,
-                          padding: const EdgeInsets.only(bottom: 80),
-                          itemBuilder: (context, index) {
-                            final item = filteredItems[index];
-                            return _buildListItem(item);
-                          },
-                        ),
+                        : ListView.builder(
+                            itemCount: filteredItems.length,
+                            padding: const EdgeInsets.only(bottom: 80),
+                            itemBuilder: (context, index) {
+                              final item = filteredItems[index];
+                              return _buildListItem(item);
+                            },
+                          ),
           ),
         ],
       ),
@@ -160,20 +170,25 @@ class _UnitsOfMeasureScreenState extends ConsumerState<UnitsOfMeasureScreen> {
           backgroundColor: Colors.blue.shade50,
           child: Text(
             item.symbol.isNotEmpty ? item.symbol : '?',
-            style: TextStyle(fontSize: 12, color: Colors.blue.shade800, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                fontSize: 12,
+                color: Colors.blue.shade800,
+                fontWeight: FontWeight.bold),
           ),
         ),
         title: Text(
           item.name,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        subtitle: Text('Type: ${item.type ?? 'General'} | Decimals: ${item.isDecimalAllowed ? 'Yes' : 'No'}'),
+        subtitle: Text(
+            'Type: ${item.type ?? 'General'} | Decimals: ${item.isDecimalAllowed ? 'Yes' : 'No'}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.teal),
-              onPressed: () => context.push('/inventory/units-of-measure/edit/${item.id}'),
+              onPressed: () =>
+                  context.push('/inventory/units-of-measure/edit/${item.id}'),
             ),
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),

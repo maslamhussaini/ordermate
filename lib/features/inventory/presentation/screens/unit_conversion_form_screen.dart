@@ -11,10 +11,12 @@ class UnitConversionFormScreen extends ConsumerStatefulWidget {
   const UnitConversionFormScreen({super.key, this.conversionId});
 
   @override
-  ConsumerState<UnitConversionFormScreen> createState() => _UnitConversionFormScreenState();
+  ConsumerState<UnitConversionFormScreen> createState() =>
+      _UnitConversionFormScreenState();
 }
 
-class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScreen> {
+class _UnitConversionFormScreenState
+    extends ConsumerState<UnitConversionFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _factorController = TextEditingController();
   int? _fromUnitId;
@@ -24,7 +26,8 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(inventoryProvider.notifier).loadUnitsOfMeasure());
+    Future.microtask(
+        () => ref.read(inventoryProvider.notifier).loadUnitsOfMeasure());
     if (widget.conversionId != null) {
       _loadConversion();
     }
@@ -35,9 +38,14 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
     if (id == null) return;
 
     final conversion = ref.read(inventoryProvider).unitConversions.firstWhere(
-      (c) => c.id == id,
-      orElse: () => const UnitConversion(id: 0, fromUnitId: 0, toUnitId: 0, conversionFactor: 1, organizationId: 0),
-    );
+          (c) => c.id == id,
+          orElse: () => const UnitConversion(
+              id: 0,
+              fromUnitId: 0,
+              toUnitId: 0,
+              conversionFactor: 1,
+              organizationId: 0),
+        );
     if (conversion.id != 0) {
       _factorController.text = conversion.conversionFactor.toString();
       _fromUnitId = conversion.fromUnitId;
@@ -68,15 +76,20 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
         fromUnitId: _fromUnitId!,
         toUnitId: _toUnitId!,
         conversionFactor: double.parse(_factorController.text),
-        organizationId: ref.read(organizationProvider).selectedOrganizationId ?? 0,
+        organizationId:
+            ref.read(organizationProvider).selectedOrganizationId ?? 0,
       );
 
       if (widget.conversionId == null) {
-        await ref.read(inventoryProvider.notifier).addUnitConversion(conversion);
+        await ref
+            .read(inventoryProvider.notifier)
+            .addUnitConversion(conversion);
       } else {
-        await ref.read(inventoryProvider.notifier).updateUnitConversion(conversion);
+        await ref
+            .read(inventoryProvider.notifier)
+            .updateUnitConversion(conversion);
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Conversion saved successfully')),
@@ -100,7 +113,8 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.conversionId == null ? 'New Conversion' : 'Edit Conversion'),
+        title: Text(
+            widget.conversionId == null ? 'New Conversion' : 'Edit Conversion'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -122,10 +136,10 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
                   );
                 }).toList(),
                 onChanged: (val) => setState(() => _fromUnitId = val),
-                 validator: (val) => val == null ? 'Required' : null,
+                validator: (val) => val == null ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-               DropdownButtonFormField<int>(
+              DropdownButtonFormField<int>(
                 initialValue: _toUnitId,
                 decoration: const InputDecoration(
                   labelText: 'To Unit',
@@ -150,7 +164,8 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.numbers),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a factor';
@@ -166,8 +181,11 @@ class _UnitConversionFormScreenState extends ConsumerState<UnitConversionFormScr
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _saveConversion,
-                  icon: _isLoading 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.save),
                   label: Text(_isLoading ? 'Saving...' : 'Save Conversion'),
                   style: ElevatedButton.styleFrom(

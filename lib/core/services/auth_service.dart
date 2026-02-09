@@ -6,16 +6,17 @@ class AuthService {
   // Check if user is logged in via Supabase or Offline Mode
   static bool? _testIsLoggedIn;
   static set testIsLoggedIn(bool? val) => _testIsLoggedIn = val;
-  
-  static bool get isLoggedIn => 
-      _testIsLoggedIn ?? (SupabaseConfig.currentUser != null || SupabaseConfig.isOfflineLoggedIn);
+
+  static bool get isLoggedIn =>
+      _testIsLoggedIn ??
+      (SupabaseConfig.currentUser != null || SupabaseConfig.isOfflineLoggedIn);
 
   // TODO: Fetch actual role from user profile/metadata
   static UserRole? _testRole;
   static set testRole(UserRole? role) => _testRole = role;
 
-  static UserRole get role => _testRole ?? UserRole.admin; 
-  
+  static UserRole get role => _testRole ?? UserRole.admin;
+
   static String? get currentUserId => SupabaseConfig.currentUser?.id;
 
   static Set<Permission> permissionsFor(String module) {

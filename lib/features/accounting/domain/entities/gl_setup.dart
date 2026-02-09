@@ -70,8 +70,10 @@ class GLSetup extends Equatable {
       cashAccountId: cashAccountId ?? this.cashAccountId,
       taxOutputAccountId: taxOutputAccountId ?? this.taxOutputAccountId,
       taxInputAccountId: taxInputAccountId ?? this.taxInputAccountId,
-      salesDiscountAccountId: salesDiscountAccountId ?? this.salesDiscountAccountId,
-      purchaseDiscountAccountId: purchaseDiscountAccountId ?? this.purchaseDiscountAccountId,
+      salesDiscountAccountId:
+          salesDiscountAccountId ?? this.salesDiscountAccountId,
+      purchaseDiscountAccountId:
+          purchaseDiscountAccountId ?? this.purchaseDiscountAccountId,
     );
   }
 }

@@ -75,7 +75,9 @@ class OrderItem extends Equatable {
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
       uomId: (json['uom_id'] as num?)?.toInt(),
       uomSymbol: json['uom_symbol'] as String?,
     );

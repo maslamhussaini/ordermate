@@ -18,15 +18,13 @@ class SupabaseLocationRepository implements LocationRepository {
         longitude: location.longitude,
         accuracy: location.accuracy,
       );
-      
+
       final json = model.toJson();
       // Remove ID to let Supabase generate it if it's default UUID
       if (json['id'].isEmpty) json.remove('id');
       json.remove('created_at'); // Let DB use default
 
-      await SupabaseConfig.client
-          .from('omtbl_location_history')
-          .insert(json);
+      await SupabaseConfig.client.from('omtbl_location_history').insert(json);
     } catch (e) {
       debugPrint('Error saving location: $e');
       rethrow;
@@ -41,9 +39,8 @@ class SupabaseLocationRepository implements LocationRepository {
     int? organizationId,
   }) async {
     try {
-      var query = SupabaseConfig.client
-          .from('omtbl_location_history')
-          .select('''
+      var query =
+          SupabaseConfig.client.from('omtbl_location_history').select('''
             *,
             omtbl_businesspartners!user_id (name)
           ''');
@@ -62,7 +59,7 @@ class SupabaseLocationRepository implements LocationRepository {
       }
 
       final response = await query.order('created_at', ascending: false);
-      
+
       return (response as List).map((json) {
         // Enriched with user name for display if needed
         final history = LocationHistoryModel.fromJson(json);

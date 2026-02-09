@@ -7,11 +7,13 @@ import 'package:ordermate/features/settings/domain/models/pdf_settings.dart'; //
 import 'package:ordermate/core/network/supabase_client.dart';
 
 final currentUserIdProvider = StreamProvider<String?>((ref) {
-  return SupabaseConfig.client.auth.onAuthStateChange.map((event) => event.session?.user.id);
+  return SupabaseConfig.client.auth.onAuthStateChange
+      .map((event) => event.session?.user.id);
 });
 
 // Provider to hold the current theme mode and visual settings
-final settingsProvider = StateNotifierProvider<SettingsNotifier, SettingsState>((ref) {
+final settingsProvider =
+    StateNotifierProvider<SettingsNotifier, SettingsState>((ref) {
   final userIdAsync = ref.watch(currentUserIdProvider);
   return SettingsNotifier(userIdAsync.value);
 });
@@ -71,12 +73,13 @@ class SettingsState {
 
 class SettingsNotifier extends StateNotifier<SettingsState> {
   final String? userId;
-  
+
   SettingsNotifier(this.userId) : super(const SettingsState()) {
     _loadPreference();
   }
 
-  String _key(String baseKey) => userId == null ? baseKey : '${userId}_$baseKey';
+  String _key(String baseKey) =>
+      userId == null ? baseKey : '${userId}_$baseKey';
 
   static const _themeKey = 'theme_mode_preference';
   static const _fontScaleKey = 'font_scale_preference';
@@ -92,13 +95,13 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   Future<void> _loadPreference() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Load Theme
     final savedMode = prefs.getString(_key(_themeKey));
     ThemeMode mode = ThemeMode.system;
     if (savedMode == 'light') mode = ThemeMode.light;
     if (savedMode == 'dark') mode = ThemeMode.dark;
-    
+
     // Load Font Scale
     final savedScale = prefs.getDouble(_key(_fontScaleKey)) ?? 1.0;
 
@@ -111,17 +114,16 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final bio = prefs.getBool(_key(_bioKey)) ?? false;
     final font = prefs.getString(_key(_fontFamilyKey)) ?? 'Montserrat';
     final color = prefs.getString(_key(_themeColorKey)) ?? 'classic';
-    
+
     // Load PDF Settings
     final pdfJson = prefs.getString(_key(_pdfSettingsKey));
-    final pdfSettings = pdfJson != null 
-        ? PdfSettings.fromJson(pdfJson) 
-        : const PdfSettings();
+    final pdfSettings =
+        pdfJson != null ? PdfSettings.fromJson(pdfJson) : const PdfSettings();
     final offline = prefs.getBool(_key(_offlineKey)) ?? false;
 
     if (mounted) {
       state = SettingsState(
-        themeMode: mode, 
+        themeMode: mode,
         textScaleFactor: savedScale,
         notificationsEnabled: notifs,
         language: lang,
@@ -151,9 +153,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   }
 
   Future<void> setNotificationsEnabled(bool enabled) async {
-     state = state.copyWith(notificationsEnabled: enabled);
-     final prefs = await SharedPreferences.getInstance();
-     await prefs.setBool(_key(_notifKey), enabled);
+    state = state.copyWith(notificationsEnabled: enabled);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_key(_notifKey), enabled);
   }
 
   Future<void> setLanguage(String lang) async {

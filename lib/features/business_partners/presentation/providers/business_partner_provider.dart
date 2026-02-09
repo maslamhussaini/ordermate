@@ -87,7 +87,8 @@ class BusinessPartnerState {
 
 // Notifier
 class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
-  BusinessPartnerNotifier(this.ref, this.repository, this.localRepository, {this.storeId})
+  BusinessPartnerNotifier(this.ref, this.repository, this.localRepository,
+      {this.storeId})
       : super(const BusinessPartnerState());
 
   final Ref ref;
@@ -102,7 +103,8 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     List<BusinessPartner> localData = [];
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      localData = await localRepository.getLocalPartners(isCustomer: true, storeId: storeId, organizationId: orgId);
+      localData = await localRepository.getLocalPartners(
+          isCustomer: true, storeId: storeId, organizationId: orgId);
     } catch (localE) {
       debugPrint('Local load failed: $localE');
     }
@@ -118,8 +120,9 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     // Online: Try server, use if has data, else keep local
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      final remoteCustomers = await repository.getPartners(isCustomer: true, storeId: storeId, organizationId: orgId);
-      // We might want to MERGE or just REPLACE? 
+      final remoteCustomers = await repository.getPartners(
+          isCustomer: true, storeId: storeId, organizationId: orgId);
+      // We might want to MERGE or just REPLACE?
       // If filtering by store, remote returns exact match.
       // Usually replace state with remote result.
       state = state.copyWith(isLoading: false, customers: remoteCustomers);
@@ -136,7 +139,8 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     List<BusinessPartner> localData = [];
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      localData = await localRepository.getLocalPartners(isVendor: true, storeId: storeId, organizationId: orgId);
+      localData = await localRepository.getLocalPartners(
+          isVendor: true, storeId: storeId, organizationId: orgId);
     } catch (localE) {
       debugPrint('Local load failed: $localE');
     }
@@ -152,7 +156,8 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     // Online: Try server
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      final remoteVendors = await repository.getPartners(isVendor: true, storeId: storeId, organizationId: orgId);
+      final remoteVendors = await repository.getPartners(
+          isVendor: true, storeId: storeId, organizationId: orgId);
       state = state.copyWith(isLoading: false, vendors: remoteVendors);
     } catch (e) {
       debugPrint('Server load failed, using local cache: $e');
@@ -167,7 +172,8 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     List<BusinessPartner> localData = [];
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      localData = await localRepository.getLocalPartners(isEmployee: true, storeId: storeId, organizationId: orgId);
+      localData = await localRepository.getLocalPartners(
+          isEmployee: true, storeId: storeId, organizationId: orgId);
     } catch (localE) {
       debugPrint('Local load failed: $localE');
     }
@@ -183,7 +189,8 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     // Online: Try server
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      final remoteEmployees = await repository.getPartners(isEmployee: true, storeId: storeId, organizationId: orgId);
+      final remoteEmployees = await repository.getPartners(
+          isEmployee: true, storeId: storeId, organizationId: orgId);
       state = state.copyWith(isLoading: false, employees: remoteEmployees);
     } catch (e) {
       debugPrint('Server load failed, using local cache: $e');
@@ -284,7 +291,8 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
 
   Future<void> loadRoles({int? organizationId}) async {
     try {
-      final orgId = organizationId ?? ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          ref.read(organizationProvider).selectedOrganizationId;
       final list = await repository.getRoles(organizationId: orgId);
       if (!mounted) return;
       state = state.copyWith(roles: list);
@@ -294,7 +302,10 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     }
   }
 
-  Future<void> addRole(String name, int organizationId, int? departmentId, {
+  Future<void> addRole(
+    String name,
+    int organizationId,
+    int? departmentId, {
     bool canRead = false,
     bool canWrite = false,
     bool canEdit = false,
@@ -304,8 +315,12 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
   }) async {
     try {
       await repository.addRole(name, organizationId, departmentId,
-          canRead: canRead, canWrite: canWrite, canEdit: canEdit, canPrint: canPrint,
-          storeId: storeId, syear: syear);
+          canRead: canRead,
+          canWrite: canWrite,
+          canEdit: canEdit,
+          canPrint: canPrint,
+          storeId: storeId,
+          syear: syear);
       await loadRoles(organizationId: organizationId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -313,7 +328,10 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     }
   }
 
-  Future<void> updateRole(int id, String name, int? departmentId, {
+  Future<void> updateRole(
+    int id,
+    String name,
+    int? departmentId, {
     bool canRead = false,
     bool canWrite = false,
     bool canEdit = false,
@@ -324,8 +342,12 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
       await repository.updateRole(id, name, departmentId,
-          canRead: canRead, canWrite: canWrite, canEdit: canEdit, canPrint: canPrint,
-          storeId: storeId, syear: syear);
+          canRead: canRead,
+          canWrite: canWrite,
+          canEdit: canEdit,
+          canPrint: canPrint,
+          storeId: storeId,
+          syear: syear);
       await loadRoles(organizationId: orgId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -481,13 +503,24 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       await repository.deletePartner(id);
       // Repository handles offline fallback internaly now.
       // If we are here, it's deleted (synced or locally).
-      
+
       // We can trigger a refresh to be safe, but we already updated UI.
       // _refreshLists() might be overkill if we trust the optimistic delete.
       // But let's do it in background to sync up any other changes.
-      _refreshLists(BusinessPartner(id: id, name: '', phone: '', address: '', isCustomer: isCustomer, isVendor: isVendor, isEmployee: isEmployee, isActive: false, createdAt: DateTime.now(), updatedAt: DateTime.now(), organizationId: 0, storeId: 0)); 
+      _refreshLists(BusinessPartner(
+          id: id,
+          name: '',
+          phone: '',
+          address: '',
+          isCustomer: isCustomer,
+          isVendor: isVendor,
+          isEmployee: isEmployee,
+          isActive: false,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          organizationId: 0,
+          storeId: 0));
       ref.read(dashboardProvider.notifier).refresh();
-
     } catch (e) {
       // Revert if completely failed
       state = previousState.copyWith(error: 'Delete failed: $e');
@@ -513,15 +546,16 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
   Future<void> loadFormPrivileges({int? roleId, String? employeeId}) async {
     Future.microtask(() => state = state.copyWith(isLoading: true));
     try {
-      final privileges = await repository.getFormPrivileges(roleId: roleId, employeeId: employeeId);
-      
+      final privileges = await repository.getFormPrivileges(
+          roleId: roleId, employeeId: employeeId);
+
       // Sort: Employee-specific rows first, then role-based rows
       privileges.sort((a, b) {
         if (a['employee_id'] != null && b['employee_id'] == null) return -1;
         if (a['employee_id'] == null && b['employee_id'] != null) return 1;
         return 0;
       });
-      
+
       state = state.copyWith(formPrivileges: privileges, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
@@ -538,6 +572,7 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       rethrow;
     }
   }
+
   Future<void> createAppUser({
     required String partnerId,
     required String email,
@@ -564,10 +599,11 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     }
   }
 
-  Future<void> importAppUsersFromEmployees(List<BusinessPartner> employees) async {
+  Future<void> importAppUsersFromEmployees(
+      List<BusinessPartner> employees) async {
     if (employees.isEmpty) return;
     state = state.copyWith(isLoading: true);
-    
+
     int successCount = 0;
     List<String> errors = [];
 
@@ -577,7 +613,7 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
           partnerId: emp.id,
           email: emp.email ?? '',
           fullName: emp.name,
-          roleId: emp.roleId ?? 0, 
+          roleId: emp.roleId ?? 0,
           organizationId: emp.organizationId,
           storeId: emp.storeId,
           password: emp.password,
@@ -613,10 +649,11 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     }
   }
 
-  Future<void> saveStoreAccess({int? roleId, String? employeeId, required List<int> storeIds}) async {
+  Future<void> saveStoreAccess(
+      {int? roleId, String? employeeId, required List<int> storeIds}) async {
     final orgId = ref.read(organizationProvider).selectedOrganizationId;
     if (orgId == null) return;
-    
+
     state = state.copyWith(isLoading: true);
     try {
       if (roleId != null) {
@@ -633,7 +670,8 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
     }
   }
 
-  Future<void> sendCredentials(BusinessPartner employee, String password) async {
+  Future<void> sendCredentials(
+      BusinessPartner employee, String password) async {
     state = state.copyWith(isLoading: true);
     try {
       await repository.sendEmployeeCredentials(employee, password);
@@ -661,22 +699,24 @@ final businessPartnerProvider =
     StateNotifierProvider<BusinessPartnerNotifier, BusinessPartnerState>((ref) {
   final repository = ref.watch(businessPartnerRepositoryProvider);
   final localRepository = ref.watch(businessPartnerLocalRepositoryProvider);
-  
+
   // Watch organization to trigger refresh and get storeId
-  final storeId = ref.watch(organizationProvider.select((s) => s.selectedStore?.id));
-  
-  final notifier = BusinessPartnerNotifier(ref, repository, localRepository, storeId: storeId);
-  
+  final storeId =
+      ref.watch(organizationProvider.select((s) => s.selectedStore?.id));
+
+  final notifier = BusinessPartnerNotifier(ref, repository, localRepository,
+      storeId: storeId);
+
   // Trigger initial load if needed, or rely on UI to call loadCustomers etc.
   // Since switching store invalidates old data, we *should* reload if we want fresh state.
   // But unlike ProductNotifier which has single list, BusinessPartner has 3 lists.
   // We can let UI trigger load, BUT current state will be from previous store if we don't clear it.
   // But wait, creating a NEW Notifier instance resets state to initial empty state.
-  // So simply creating it is enough to "clear" old data. 
+  // So simply creating it is enough to "clear" old data.
   // The UI will likely see empty list and trigger load in initState/build.
   // However, if the UI only triggers load in initState, rebuilding provider won't re-trigger initState unless widget tree rebuilds significantly.
   // It is safer to trigger loads here if we know what to load, OR rely on the fact that provider rebuild forces consumers to re-subscribe.
   // For now, let's just return notifier.
-  
+
   return notifier;
 });

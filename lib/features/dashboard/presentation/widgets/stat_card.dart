@@ -22,10 +22,11 @@ class StatCard extends StatefulWidget {
   State<StatCard> createState() => _StatCardState();
 }
 
-class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin {
+class _StatCardState extends State<StatCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   late Animation<double> _scaleAnimation;
-  
+
   Offset _mousePos = Offset.zero;
   bool _isHovered = false;
 
@@ -71,7 +72,7 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Calculate light background from color
     final bgColor = widget.color.withValues(alpha: isDark ? 0.15 : 0.12);
     // final iconBoxColor = widget.color.withValues(alpha: isDark ? 0.3 : 0.1); // Unused
@@ -132,10 +133,11 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
                       // Diagonal Background Band (From Image)
                       Positioned.fill(
                         child: CustomPaint(
-                          painter: _DiagonalPainter(widget.color.withValues(alpha: 0.05)),
+                          painter: _DiagonalPainter(
+                              widget.color.withValues(alpha: 0.05)),
                         ),
                       ),
-                      
+
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: Row(
@@ -151,11 +153,14 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
                                   Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: isDark ? widget.color.withValues(alpha: 0.2) : Colors.white,
+                                      color: isDark
+                                          ? widget.color.withValues(alpha: 0.2)
+                                          : Colors.white,
                                       borderRadius: BorderRadius.circular(12),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: widget.color.withValues(alpha: 0.1),
+                                          color: widget.color
+                                              .withValues(alpha: 0.1),
                                           blurRadius: 10,
                                           spreadRadius: 1,
                                         ),
@@ -172,7 +177,9 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
                                   Text(
                                     widget.title.toUpperCase(),
                                     style: TextStyle(
-                                      color: isDark ? Colors.white70 : Colors.black87,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black87,
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 0.8,
@@ -183,11 +190,13 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
                                 ],
                               ),
                             ),
-                            
+
                             // RIGHT: Value
                             TweenAnimationBuilder<int>(
                               duration: const Duration(seconds: 1),
-                              tween: IntTween(begin: 0, end: int.tryParse(widget.value) ?? 0),
+                              tween: IntTween(
+                                  begin: 0,
+                                  end: int.tryParse(widget.value) ?? 0),
                               builder: (context, val, _) {
                                 return Text(
                                   '$val',
@@ -198,7 +207,8 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
                                     height: 1,
                                     shadows: [
                                       Shadow(
-                                        color: widget.color.withValues(alpha: 0.2),
+                                        color:
+                                            widget.color.withValues(alpha: 0.2),
                                         offset: const Offset(2, 2),
                                         blurRadius: 4,
                                       ),

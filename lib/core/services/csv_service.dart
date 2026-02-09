@@ -22,7 +22,7 @@ class CsvService {
     } else if (csvContent.contains('\r')) {
       eol = '\r';
     }
-    
+
     // Use detected EOL or default
     return const CsvToListConverter().convert(csvContent, eol: eol);
   }
@@ -34,13 +34,14 @@ class CsvService {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
-        withData: true, // Needed for Web, but helpful to ensure bytes are available
+        withData:
+            true, // Needed for Web, but helpful to ensure bytes are available
       );
 
       if (result == null || result.files.isEmpty) return null;
 
       final file = result.files.first;
-      
+
       String content;
       if (file.bytes != null) {
         content = const Utf8Decoder().convert(file.bytes!);
@@ -60,13 +61,14 @@ class CsvService {
 
   /// Saves a CSV file.
   /// On Desktop, prompts for location.
-  /// On Mobile, simply saves to App Documents or Downloads (requires permission logic usually, 
+  /// On Mobile, simply saves to App Documents or Downloads (requires permission logic usually,
   /// but for now we'll basic save).
   Future<String?> saveCsvFile(String fileName, List<List<dynamic>> rows) async {
     final csvContent = generateCsv(rows);
-    
+
     // Desktop: Save Dialog
-    if (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
       final outputFile = await FilePicker.platform.saveFile(
         dialogTitle: 'Save CSV Template',
         fileName: fileName,
@@ -80,8 +82,8 @@ class CsvService {
         return outputFile;
       }
       return null;
-    } 
-    
+    }
+
     // Mobile (Simplified for now - strictly responding to User's Windows Context)
     // Fallback or todo for mobile specific directory handling
     final directory = await getApplicationDocumentsDirectory();
@@ -89,6 +91,5 @@ class CsvService {
     final file = File(path);
     await file.writeAsString(csvContent);
     return path;
-    
   }
 }

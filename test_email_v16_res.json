@@ -1,0 +1,8 @@
+﻿{
+    "error":  "SMTP Read Timeout",
+    "debug_logs":  [
+                       "Sending email to: ${email}",
+                       "Error: ${error.message}"
+                   ],
+    "debug_status":  "failed"
+}

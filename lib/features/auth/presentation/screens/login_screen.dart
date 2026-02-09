@@ -52,14 +52,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _checkBiometricAvailability() async {
-     final auth = ref.read(authServiceProvider);
-     final enabled = await auth.isBiometricEnabled();
-     final available = await auth.isBiometricAvailable();
-     if (mounted) {
-       setState(() {
-         _canCheckBiometrics = enabled && available;
-       });
-     }
+    final auth = ref.read(authServiceProvider);
+    final enabled = await auth.isBiometricEnabled();
+    final available = await auth.isBiometricAvailable();
+    if (mounted) {
+      setState(() {
+        _canCheckBiometrics = enabled && available;
+      });
+    }
   }
 
   void _showBiometricDialog() {
@@ -75,27 +75,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               // Logo
               Container(
-                 height: 60,
-                 width: 60,
-                 decoration: BoxDecoration(
-                   color: AppColors.loginGradientStart.withValues(alpha: 0.1),
-                   shape: BoxShape.circle,
-                 ),
-                 padding: const EdgeInsets.all(12),
-                 child: Image.asset('assets/icons/app_icon.png'),
+                height: 60,
+                width: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.loginGradientStart.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(12),
+                child: Image.asset('assets/icons/app_icon.png'),
               ),
               const SizedBox(height: 16),
               // Title
               const Text(
                 'ORDER MATE',
                 style: TextStyle(
-                  fontSize: 20, 
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2
-                ),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2),
               ),
-               const SizedBox(height: 30),
-              
+              const SizedBox(height: 30),
+
               // Fingerprint Button
               InkWell(
                 onTap: () {
@@ -107,25 +106,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.loginGradientStart, width: 2),
+                    border: Border.all(
+                        color: AppColors.loginGradientStart, width: 2),
                   ),
-                  child: const Icon(
-                    Icons.fingerprint, 
-                    size: 64, 
-                    color: AppColors.loginGradientStart
-                  ),
+                  child: const Icon(Icons.fingerprint,
+                      size: 64, color: AppColors.loginGradientStart),
                 ),
               ),
               const SizedBox(height: 16),
               const SizedBox(height: 16),
-              Text(AppLocalizations.of(context)?.get('tap_to_authenticate') ?? 'Tap to Authenticate'),
+              Text(AppLocalizations.of(context)?.get('tap_to_authenticate') ??
+                  'Tap to Authenticate'),
 
               const SizedBox(height: 30),
-              
+
               // Cancel Button
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(AppLocalizations.of(context)?.get('cancel') ?? 'Cancel', style: const TextStyle(color: Colors.grey)),
+                child: Text(
+                    AppLocalizations.of(context)?.get('cancel') ?? 'Cancel',
+                    style: const TextStyle(color: Colors.grey)),
               ),
             ],
           ),
@@ -139,9 +139,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!manualTrigger) {
       await Future.delayed(const Duration(milliseconds: 500));
     }
-    
+
     final authService = ref.read(authServiceProvider);
-    
+
     // If auto-trigger (init state), check if enabled first
     if (!manualTrigger) {
       final isEnabled = await authService.isBiometricEnabled();
@@ -150,31 +150,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     // Authenticate
     final isAuthenticated = await authService.authenticateWithBiometrics();
-    
+
     if (isAuthenticated && mounted) {
       // Find last user credentials
       try {
-         final db = await DatabaseHelper.instance.database;
-         final result = await db.query('local_users', limit: 1); // Get any user for now or last one
-         
-         if (!mounted) return;
+        final db = await DatabaseHelper.instance.database;
+        final result = await db.query('local_users',
+            limit: 1); // Get any user for now or last one
 
-         if (result.isNotEmpty) {
-           final user = result.first;
-           _emailController.text = user['email'] as String;
-           _passwordController.text = user['password'] as String;
-           
-           ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Biometric verified. Logging in...')),
-           );
-           _signIn(fromBiometric: true); // Auto-login
-         } else {
-            if (manualTrigger) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No saved user found. Please login closely first to enable.')),
-              );
-            }
-         }
+        if (!mounted) return;
+
+        if (result.isNotEmpty) {
+          final user = result.first;
+          _emailController.text = user['email'] as String;
+          _passwordController.text = user['password'] as String;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Biometric verified. Logging in...')),
+          );
+          _signIn(fromBiometric: true); // Auto-login
+        } else {
+          if (manualTrigger) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text(
+                      'No saved user found. Please login closely first to enable.')),
+            );
+          }
+        }
       } catch (e) {
         // ignore
       }
@@ -190,34 +193,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // TEST BYPASS
     if (email == 'test@test.com' && password == 'test') {
       final db = await DatabaseHelper.instance.database;
-      
+
       // Inject Mock User
-      await db.insert('local_users', {
-        'id': 'test-user-id',
-        'email': 'test@test.com',
-        'password': 'test',
-        'full_name': 'Test User',
-        'table_prefix': 'omtbl_',
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      await db.insert(
+          'local_users',
+          {
+            'id': 'test-user-id',
+            'email': 'test@test.com',
+            'password': 'test',
+            'full_name': 'Test User',
+            'table_prefix': 'omtbl_',
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace);
 
       // Inject Mock Org
-      await db.insert('local_organizations', {
-        'id': 999,
-        'name': 'Test Organization',
-        'code': 'TEST',
-        'is_active': 1,
-        'is_synced': 1 
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
-      
+      await db.insert(
+          'local_organizations',
+          {
+            'id': 999,
+            'name': 'Test Organization',
+            'code': 'TEST',
+            'is_active': 1,
+            'is_synced': 1
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore);
+
       // Inject Mock Store
-      await db.insert('local_stores', {
-        'id': 999,
-        'organization_id': 999,
-        'name': 'Test Store',
-        'location': 'Test Loc',
-        'is_active': 1,
-        'is_synced': 1
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert(
+          'local_stores',
+          {
+            'id': 999,
+            'organization_id': 999,
+            'name': 'Test Store',
+            'location': 'Test Loc',
+            'is_active': 1,
+            'is_synced': 1
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore);
 
       if (mounted) {
         setState(() {
@@ -250,13 +262,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       } else {
         await _attemptOnlineLogin(email, password);
       }
-      
+
       // If we got here, login was successful (offline or online)
       if (mounted && !fromBiometric) {
         // Ask to enable biometric if applicable
         await _suggestBiometric();
       }
-
     } catch (e) {
       if (mounted) {
         final message = e.toString().replaceAll('Exception: ', '');
@@ -285,42 +296,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _suggestBiometric() async {
-     final authService = ref.read(authServiceProvider);
-     final isAvailable = await authService.isBiometricAvailable();
-     final isEnabled = await authService.isBiometricEnabled();
+    final authService = ref.read(authServiceProvider);
+    final isAvailable = await authService.isBiometricAvailable();
+    final isEnabled = await authService.isBiometricEnabled();
 
-     debugPrint('Biometric Suggestion Check: Available=$isAvailable, Enabled=$isEnabled');
+    debugPrint(
+        'Biometric Suggestion Check: Available=$isAvailable, Enabled=$isEnabled');
 
-     if (isAvailable && !isEnabled) {
-       if (!mounted) return;
-       
-       final shouldEnable = await showDialog<bool>(
-         context: context,
-         builder: (ctx) => AlertDialog(
-           title: const Text('Enable Biometric Login?'),
-           content: const Text('Do you want to use your fingerprint/face to login next time?'),
-           actions: [
-             TextButton(
-               onPressed: () => Navigator.pop(ctx, false), 
-               child: const Text('No')
-             ),
-             TextButton(
-               onPressed: () => Navigator.pop(ctx, true), 
-               child: const Text('Yes')
-             ),
-           ],
-         ),
-       );
+    if (isAvailable && !isEnabled) {
+      if (!mounted) return;
 
-       if (shouldEnable == true) {
-         await authService.setBiometricEnabled(true);
-         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Biometric login enabled!')),
-           );
-         }
-       }
-     }
+      final shouldEnable = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Enable Biometric Login?'),
+          content: const Text(
+              'Do you want to use your fingerprint/face to login next time?'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('No')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Yes')),
+          ],
+        ),
+      );
+
+      if (shouldEnable == true) {
+        await authService.setBiometricEnabled(true);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Biometric login enabled!')),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _attemptOfflineLogin(String email, String password) async {
@@ -353,8 +364,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
         SupabaseConfig.isOfflineLoggedIn = true;
-        
-        // Populate local user info for cache consistency if needed? 
+
+        // Populate local user info for cache consistency if needed?
         // Logic already relies on local_users so we are good.
 
         setState(() {
@@ -383,7 +394,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // ---------------------------------------------------------
         // ASYNC TASKS (Non-Blocking) - Run these in background to speed up login button
         // ---------------------------------------------------------
-        
+
         // 1. User Self-Healing & Local Cache
         unawaited((() async {
           try {
@@ -393,7 +404,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 .or('id.eq.$userId,auth_id.eq.$userId,email.eq.$userEmail')
                 .maybeSingle();
 
-            String fullName = response.user!.userMetadata?['full_name'] ?? 'Unknown User';
+            String fullName =
+                response.user!.userMetadata?['full_name'] ?? 'Unknown User';
             String role = 'admin';
 
             if (userCheck != null) {
@@ -401,7 +413,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               role = userCheck['role'] ?? role;
 
               if (userCheck['id'] != userId || userCheck['auth_id'] != userId) {
-                debugPrint('LoginScreen: Linking existing user $userEmail to Auth ID $userId');
+                debugPrint(
+                    'LoginScreen: Linking existing user $userEmail to Auth ID $userId');
                 await SupabaseConfig.client.from('omtbl_users').update({
                   'auth_id': userId,
                   'is_active': true,
@@ -409,7 +422,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 }).eq('email', userEmail);
               }
             } else {
-              debugPrint('LoginScreen: Creating new profile record for $userEmail');
+              debugPrint(
+                  'LoginScreen: Creating new profile record for $userEmail');
               await SupabaseConfig.client.from('omtbl_users').insert({
                 'id': userId,
                 'auth_id': userId,
@@ -430,7 +444,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 'password': password,
                 'id': userId,
                 'full_name': fullName,
-                'table_prefix': response.user!.userMetadata?['table_prefix'] ?? 'omtbl_',
+                'table_prefix':
+                    response.user!.userMetadata?['table_prefix'] ?? 'omtbl_',
               },
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
@@ -439,7 +454,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           }
         })());
 
-        // 2. BACKGROUND LOCATION CAPTURE 
+        // 2. BACKGROUND LOCATION CAPTURE
         unawaited((() async {
           try {
             final sessionNotifier = ref.read(sessionProvider.notifier);
@@ -447,13 +462,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             if (permission == LocationPermission.denied) {
               permission = await Geolocator.requestPermission();
             }
-            if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+            if (permission == LocationPermission.whileInUse ||
+                permission == LocationPermission.always) {
               final position = await Geolocator.getCurrentPosition(
                 desiredAccuracy: LocationAccuracy.low,
                 timeLimit: const Duration(seconds: 5),
               );
-              sessionNotifier.setLoginLocation(position.latitude, position.longitude);
-              debugPrint('Login Location captured in background: ${position.latitude}, ${position.longitude}');
+              sessionNotifier.setLoginLocation(
+                  position.latitude, position.longitude);
+              debugPrint(
+                  'Login Location captured in background: ${position.latitude}, ${position.longitude}');
             }
           } catch (e) {
             debugPrint('Background location capture failed: $e');
@@ -461,35 +479,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         })());
 
         // ---------------------------------------------------------
-        // CRITICAL UI PATH (Blocking) 
+        // CRITICAL UI PATH (Blocking)
         // ---------------------------------------------------------
         if (mounted) {
           await _fetchOrganizations();
-          
+
           if (!mounted) return;
 
           if (_selectedOrganization != null) {
-             try {
-               ref.read(syncServiceProvider).syncAll();
-             } catch (e) {
-               debugPrint('Initial Sync failed: $e');
-             }
+            try {
+              ref.read(syncServiceProvider).syncAll();
+            } catch (e) {
+              debugPrint('Initial Sync failed: $e');
+            }
           }
 
           if (_organizations.isEmpty) {
-             context.goNamed('organization-create');
+            context.goNamed('organization-create');
           } else {
-             setState(() {
-               _isAuthenticated = true;
-               _isLoading = false;
-             });
+            setState(() {
+              _isAuthenticated = true;
+              _isLoading = false;
+            });
           }
         }
       }
     } on AuthException catch (e) {
       if (e.message.contains('SocketException') ||
           e.message.contains('host lookup')) {
-        debugPrint('AuthException indicates network issue, falling back to offline login');
+        debugPrint(
+            'AuthException indicates network issue, falling back to offline login');
         await _attemptOfflineLogin(email, password);
         return;
       }
@@ -500,7 +519,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           errorString.contains('ClientException') ||
           errorString.contains('Failed host lookup') ||
           errorString.contains('Network request failed')) {
-        debugPrint('Network error detected during online login: $e. Falling back to offline login.');
+        debugPrint(
+            'Network error detected during online login: $e. Falling back to offline login.');
         await _attemptOfflineLogin(email, password);
       } else {
         rethrow;
@@ -570,14 +590,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // We can create an instance of Repositories here or use the newly authenticated client.
       final repo = OrganizationRepositoryImpl();
       final orgs = await repo.getOrganizations();
-      
+
       if (!mounted) return;
       setState(() {
         _organizations = orgs;
         if (orgs.isNotEmpty) {
-           _selectedOrganization = orgs.first;
-           _fetchStores(orgs.first.id);
-           _fetchFinancialSessions(orgs.first.id);
+          _selectedOrganization = orgs.first;
+          _fetchStores(orgs.first.id);
+          _fetchFinancialSessions(orgs.first.id);
         }
       });
     } catch (e) {
@@ -587,82 +607,89 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _fetchStores(int orgId) async {
     try {
-       final repo = OrganizationRepositoryImpl();
-       final stores = await repo.getStores(orgId);
-       
-       if (!mounted) return;
-       setState(() {
-         _stores = stores;
-         if (stores.isNotEmpty) {
-           _selectedStore = stores.first;
-         } else {
-           _selectedStore = null;
-         }
-       });
+      final repo = OrganizationRepositoryImpl();
+      final stores = await repo.getStores(orgId);
+
+      if (!mounted) return;
+      setState(() {
+        _stores = stores;
+        if (stores.isNotEmpty) {
+          _selectedStore = stores.first;
+        } else {
+          _selectedStore = null;
+        }
+      });
     } catch (e) {
-       debugPrint('Error fetching stores: $e');
+      debugPrint('Error fetching stores: $e');
     }
   }
 
   Future<void> _fetchFinancialSessions(int orgId) async {
     try {
-       final localRepo = LocalAccountingRepository();
-       final repo = AccountingRepositoryImpl(localRepo);
-       var sessions = await repo.getFinancialSessions(organizationId: orgId);
-       
-       if (sessions.isEmpty) {
-         final currentYear = DateTime.now().year;
-         final session = FinancialSession(
-           sYear: currentYear,
-           startDate: DateTime(currentYear, 1, 1),
-           endDate: DateTime(currentYear, 12, 31),
-           narration: 'Default Year',
-           inUse: true,
-           isActive: true,
-           isClosed: false,
-           organizationId: orgId,
-         );
-         await localRepo.saveFinancialSession(FinancialSessionModel(
-           sYear: session.sYear,
-           startDate: session.startDate,
-           endDate: session.endDate,
-           narration: session.narration,
-           inUse: session.inUse,
-           isActive: session.isActive,
-           isClosed: false,
-           organizationId: session.organizationId,
-         ));
-         sessions = [session];
-       }
+      final localRepo = LocalAccountingRepository();
+      final repo = AccountingRepositoryImpl(localRepo);
+      var sessions = await repo.getFinancialSessions(organizationId: orgId);
 
-       if (!mounted) return;
-       setState(() {
-         _financialSessions = sessions;
-         if (sessions.isNotEmpty) {
-           _selectedSession = sessions.firstWhere((s) => s.inUse, orElse: () => sessions.first);
-         } else {
-           _selectedSession = null;
-         }
-       });
+      if (sessions.isEmpty) {
+        final currentYear = DateTime.now().year;
+        final session = FinancialSession(
+          sYear: currentYear,
+          startDate: DateTime(currentYear, 1, 1),
+          endDate: DateTime(currentYear, 12, 31),
+          narration: 'Default Year',
+          inUse: true,
+          isActive: true,
+          isClosed: false,
+          organizationId: orgId,
+        );
+        await localRepo.saveFinancialSession(FinancialSessionModel(
+          sYear: session.sYear,
+          startDate: session.startDate,
+          endDate: session.endDate,
+          narration: session.narration,
+          inUse: session.inUse,
+          isActive: session.isActive,
+          isClosed: false,
+          organizationId: session.organizationId,
+        ));
+        sessions = [session];
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _financialSessions = sessions;
+        if (sessions.isNotEmpty) {
+          _selectedSession =
+              sessions.firstWhere((s) => s.inUse, orElse: () => sessions.first);
+        } else {
+          _selectedSession = null;
+        }
+      });
     } catch (e) {
-       debugPrint('Error fetching cycles: $e');
+      debugPrint('Error fetching cycles: $e');
     }
   }
 
   Future<void> _continueToDashboard() async {
-     if (_selectedOrganization != null) {
-       ref.read(organizationProvider.notifier).selectOrganization(_selectedOrganization!);
-       if (_selectedStore != null) {
-         ref.read(organizationProvider.notifier).selectStore(_selectedStore!);
-       }
-       if (_selectedSession != null) {
-         ref.read(organizationProvider.notifier).selectFinancialYear(_selectedSession!.sYear);
-       }
-     }
-     
-     // Sync Auth Provider (Triggers Router Redirect to /dashboard)
-     final fullName = SupabaseConfig.client.auth.currentUser?.userMetadata?['full_name'] ?? 'User';
-     ref.read(authProvider.notifier).login(UserRole.admin, fullName: fullName);
+    if (_selectedOrganization != null) {
+      ref
+          .read(organizationProvider.notifier)
+          .selectOrganization(_selectedOrganization!);
+      if (_selectedStore != null) {
+        ref.read(organizationProvider.notifier).selectStore(_selectedStore!);
+      }
+      if (_selectedSession != null) {
+        ref
+            .read(organizationProvider.notifier)
+            .selectFinancialYear(_selectedSession!.sYear);
+      }
+    }
+
+    // Sync Auth Provider (Triggers Router Redirect to /dashboard)
+    final fullName =
+        SupabaseConfig.client.auth.currentUser?.userMetadata?['full_name'] ??
+            'User';
+    ref.read(authProvider.notifier).login(UserRole.admin, fullName: fullName);
   }
 
   final _loginScrollController = ScrollController();
@@ -671,121 +698,131 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     // If authenticated, show Context Selection instead of Login Form
     if (_isAuthenticated) {
-       return Scaffold(
-         body: Center(
-           child: ConstrainedBox(
-             constraints: const BoxConstraints(maxWidth: 500),
-             child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Scrollbar(
+      return Scaffold(
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Scrollbar(
+                controller: _loginScrollController,
+                child: SingleChildScrollView(
                   controller: _loginScrollController,
-                  child: SingleChildScrollView(
-                    controller: _loginScrollController,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Icon(Icons.business, 
-                          size: 64, 
-                          color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white70 
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Icon(Icons.business,
+                          size: 64,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white70
                               : AppColors.loginGradientStart),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)?.get('select_workspace') ?? 'Select Workspace',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headlineMedium,
+                      const SizedBox(height: 16),
+                      Text(
+                        AppLocalizations.of(context)?.get('select_workspace') ??
+                            'Select Workspace',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Organization Dropdown
+                      DropdownButtonFormField<dynamic>(
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)
+                                  ?.get('organization') ??
+                              'Organization',
+                          prefixIcon: const Icon(Icons.domain),
                         ),
-                        const SizedBox(height: 32),
-                        
-                        // Organization Dropdown
-                        DropdownButtonFormField<dynamic>(
-                           decoration: InputDecoration(
-                             labelText: AppLocalizations.of(context)?.get('organization') ?? 'Organization',
-                             prefixIcon: const Icon(Icons.domain),
-                           ),
-                            initialValue: _selectedOrganization,
-                           items: _organizations.map((org) {
-                             return DropdownMenuItem(
-                               value: org,
-                               child: Text(org.name),
-                             );
-                           }).toList(),
-                           onChanged: (val) {
-                              setState(() {
-                                _selectedOrganization = val;
-                              });
-                              if (val != null) {
-                                _fetchStores(val.id);
-                                _fetchFinancialSessions(val.id);
-                              }
-                           },
+                        initialValue: _selectedOrganization,
+                        items: _organizations.map((org) {
+                          return DropdownMenuItem(
+                            value: org,
+                            child: Text(org.name),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedOrganization = val;
+                          });
+                          if (val != null) {
+                            _fetchStores(val.id);
+                            _fetchFinancialSessions(val.id);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Store Dropdown
+                      DropdownButtonFormField<dynamic>(
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)
+                                  ?.get('store_branch') ??
+                              'Store / Branch',
+                          prefixIcon: const Icon(Icons.store),
                         ),
-                        const SizedBox(height: 16),
-                        
-                        // Store Dropdown
-                        DropdownButtonFormField<dynamic>(
-                           decoration: InputDecoration(
-                             labelText: AppLocalizations.of(context)?.get('store_branch') ?? 'Store / Branch',
-                             prefixIcon: const Icon(Icons.store),
-                           ),
-                            initialValue: _selectedStore,
-                           items: _stores.map((store) {
-                             return DropdownMenuItem(
-                               value: store,
-                               child: Text(store.name),
-                             );
-                           }).toList(),
-                           onChanged: (val) {
-                              setState(() {
-                                 _selectedStore = val;
-                              });
-                           },
+                        initialValue: _selectedStore,
+                        items: _stores.map((store) {
+                          return DropdownMenuItem(
+                            value: store,
+                            child: Text(store.name),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedStore = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Financial Year Dropdown
+                      DropdownButtonFormField<FinancialSession>(
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)
+                                  ?.get('financial_year') ??
+                              'Financial Year',
+                          prefixIcon: const Icon(Icons.calendar_today),
                         ),
-                        const SizedBox(height: 16),
-                        
-                        // Financial Year Dropdown
-                        DropdownButtonFormField<FinancialSession>(
-                           decoration: InputDecoration(
-                             labelText: AppLocalizations.of(context)?.get('financial_year') ?? 'Financial Year',
-                             prefixIcon: const Icon(Icons.calendar_today),
-                           ),
-                            initialValue: _selectedSession,
-                           items: _financialSessions.map((session) {
-                             return DropdownMenuItem(
-                               value: session,
-                               child: Text('${session.sYear} (${DateFormat('MM/yy').format(session.startDate)} - ${DateFormat('MM/yy').format(session.endDate)})'),
-                             );
-                           }).toList(),
-                           onChanged: (val) {
-                              setState(() {
-                                 _selectedSession = val;
-                              });
-                           },
+                        initialValue: _selectedSession,
+                        items: _financialSessions.map((session) {
+                          return DropdownMenuItem(
+                            value: session,
+                            child: Text(
+                                '${session.sYear} (${DateFormat('MM/yy').format(session.startDate)} - ${DateFormat('MM/yy').format(session.endDate)})'),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedSession = val;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 32),
+                      ElevatedButton(
+                        onPressed: _continueToDashboard,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.loginGradientStart,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                         
-                        const SizedBox(height: 32),
-                        ElevatedButton(
-                          onPressed: _continueToDashboard,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.loginGradientStart,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                           child: Text(AppLocalizations.of(context)?.get('continue_to_dashboard') ?? 'Continue to Dashboard'),
-                        ),
-                      ],
-                    ),
+                        child: Text(AppLocalizations.of(context)
+                                ?.get('continue_to_dashboard') ??
+                            'Continue to Dashboard'),
+                      ),
+                    ],
                   ),
                 ),
-             ),
-           ),
-         ),
-       );
+              ),
+            ),
+          ),
+        ),
+      );
     }
-  
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       body: Stack(
         children: [
@@ -858,7 +895,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).cardTheme.color ?? Colors.white,
+                            color: Theme.of(context).cardTheme.color ??
+                                Colors.white,
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
@@ -872,19 +910,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                AppLocalizations.of(context)?.get('sign_in') ?? 'Sign In',
+                                AppLocalizations.of(context)?.get('sign_in') ??
+                                    'Sign In',
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: isDark ? Colors.white : const Color(0xFF1E3C57),
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF1E3C57),
+                                    ),
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                AppLocalizations.of(context)?.get('welcome_back') ?? 'Welcome back! Please enter your details.',
+                                AppLocalizations.of(context)
+                                        ?.get('welcome_back') ??
+                                    'Welcome back! Please enter your details.',
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: isDark ? Colors.grey.shade400 : Colors.grey,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? Colors.grey.shade400
+                                          : Colors.grey,
+                                    ),
                               ),
                               const SizedBox(height: 32),
 
@@ -893,7 +944,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 controller: _emailController,
                                 style: Theme.of(context).textTheme.bodyLarge,
                                 decoration: InputDecoration(
-                                  labelText: AppLocalizations.of(context)?.get('email') ?? 'Email',
+                                  labelText: AppLocalizations.of(context)
+                                          ?.get('email') ??
+                                      'Email',
                                   prefixIcon: const Icon(Icons.email_outlined),
                                   border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12)),
@@ -907,14 +960,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 obscureText: _obscurePassword,
                                 style: Theme.of(context).textTheme.bodyLarge,
                                 decoration: InputDecoration(
-                                  labelText: AppLocalizations.of(context)?.get('password') ?? 'Password',
+                                  labelText: AppLocalizations.of(context)
+                                          ?.get('password') ??
+                                      'Password',
                                   prefixIcon: const Icon(Icons.lock_outline),
                                   suffixIcon: IconButton(
                                     icon: Icon(_obscurePassword
                                         ? Icons.visibility
                                         : Icons.visibility_off),
-                                    onPressed: () => setState(
-                                        () => _obscurePassword = !_obscurePassword),
+                                    onPressed: () => setState(() =>
+                                        _obscurePassword = !_obscurePassword),
                                   ),
                                   border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12)),
@@ -925,7 +980,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
                                   onPressed: _forgotPassword,
-                                  child: Text(AppLocalizations.of(context)?.get('forgot_password') ?? 'Forgot Password?'),
+                                  child: Text(AppLocalizations.of(context)
+                                          ?.get('forgot_password') ??
+                                      'Forgot Password?'),
                                 ),
                               ),
 
@@ -936,7 +993,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.loginGradientStart,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12)),
                                   elevation: 2,
@@ -946,26 +1004,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         height: 20,
                                         width: 20,
                                         child: CircularProgressIndicator(
-                                            color: Colors.white, strokeWidth: 2))
-                                    : Text(AppLocalizations.of(context)?.get('sign_in').toUpperCase() ?? 'SIGN IN',
+                                            color: Colors.white,
+                                            strokeWidth: 2))
+                                    : Text(
+                                        AppLocalizations.of(context)
+                                                ?.get('sign_in')
+                                                .toUpperCase() ??
+                                            'SIGN IN',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16)),
                               ),
-                              
+
                               // Custom Biometric Button
                               if (_canCheckBiometrics) ...[
-                                 const SizedBox(height: 16),
-                                 OutlinedButton.icon(
-                                   onPressed: _showBiometricDialog,
-                                   icon: const Icon(Icons.fingerprint, color: AppColors.loginGradientStart),
-                                   label: Text(AppLocalizations.of(context)?.get('login_with_biometrics') ?? 'Login with Biometrics', style: const TextStyle(color: AppColors.loginGradientStart)),
-                                   style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      side: const BorderSide(color: AppColors.loginGradientStart),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                   ),
-                                 ),
+                                const SizedBox(height: 16),
+                                OutlinedButton.icon(
+                                  onPressed: _showBiometricDialog,
+                                  icon: const Icon(Icons.fingerprint,
+                                      color: AppColors.loginGradientStart),
+                                  label: Text(
+                                      AppLocalizations.of(context)
+                                              ?.get('login_with_biometrics') ??
+                                          'Login with Biometrics',
+                                      style: const TextStyle(
+                                          color: AppColors.loginGradientStart)),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    side: const BorderSide(
+                                        color: AppColors.loginGradientStart),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                ),
                               ],
 
                               const SizedBox(height: 24),
@@ -973,9 +1046,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    AppLocalizations.of(context)?.get('no_account') ?? "Don't have an account?",
+                                    AppLocalizations.of(context)
+                                            ?.get('no_account') ??
+                                        "Don't have an account?",
                                     style: TextStyle(
-                                      color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                                      color: isDark
+                                          ? Colors.grey.shade400
+                                          : Colors.grey.shade700,
                                       fontSize: 14,
                                     ),
                                   ),
@@ -984,9 +1061,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     onTap: () => context.push('/register'),
                                     borderRadius: BorderRadius.circular(4),
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 4, vertical: 2),
                                       child: Text(
-                                        AppLocalizations.of(context)?.get('sign_up') ?? 'Sign Up',
+                                        AppLocalizations.of(context)
+                                                ?.get('sign_up') ??
+                                            'Sign Up',
                                         style: const TextStyle(
                                           color: AppColors.loginGradientStart,
                                           fontWeight: FontWeight.bold,

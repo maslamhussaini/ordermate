@@ -29,11 +29,12 @@ class _BrandFormScreenState extends ConsumerState<BrandFormScreen> {
   void _loadBrand() {
     final id = int.tryParse(widget.brandId ?? '');
     if (id == null) return;
-    
+
     final brand = ref.read(inventoryProvider).brands.firstWhere(
-      (b) => b.id == id,
-      orElse: () => Brand(id: 0, name: '', createdAt: DateTime.now(), organizationId: 0),
-    );
+          (b) => b.id == id,
+          orElse: () => Brand(
+              id: 0, name: '', createdAt: DateTime.now(), organizationId: 0),
+        );
     if (brand.id != 0) {
       _nameController.text = brand.name;
     }
@@ -52,16 +53,19 @@ class _BrandFormScreenState extends ConsumerState<BrandFormScreen> {
 
     try {
       if (widget.brandId == null) {
-        await ref.read(inventoryProvider.notifier).addBrand(_nameController.text.trim());
+        await ref
+            .read(inventoryProvider.notifier)
+            .addBrand(_nameController.text.trim());
       } else {
         final id = int.tryParse(widget.brandId!);
         if (id != null) {
-          final existing = ref.read(inventoryProvider).brands.firstWhere((b) => b.id == id);
+          final existing =
+              ref.read(inventoryProvider).brands.firstWhere((b) => b.id == id);
           final updated = existing.copyWith(name: _nameController.text.trim());
           await ref.read(inventoryProvider.notifier).updateBrand(updated);
         }
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Brand saved successfully')),
@@ -110,8 +114,11 @@ class _BrandFormScreenState extends ConsumerState<BrandFormScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _saveBrand,
-                  icon: _isLoading 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.save),
                   label: Text(_isLoading ? 'Saving...' : 'Save Brand'),
                   style: ElevatedButton.styleFrom(

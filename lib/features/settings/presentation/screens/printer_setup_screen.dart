@@ -22,16 +22,24 @@ class _PrinterSetupScreenState extends State<PrinterSetupScreen> {
 
   Future<void> _startScan() async {
     setState(() => _isScanning = true);
-    
+
     // Simulate finding devices
     await Future.delayed(const Duration(seconds: 2));
-    
+
     if (mounted) {
       setState(() {
         _isScanning = false;
         _devices = [
-          {'name': 'POS-58 (Simulated)', 'address': '00:11:22:33:44:55', 'type': 'Bluetooth'},
-          {'name': 'Epson TM-T88 (Simulated)', 'address': '192.168.1.100', 'type': 'WiFi'},
+          {
+            'name': 'POS-58 (Simulated)',
+            'address': '00:11:22:33:44:55',
+            'type': 'Bluetooth'
+          },
+          {
+            'name': 'Epson TM-T88 (Simulated)',
+            'address': '192.168.1.100',
+            'type': 'WiFi'
+          },
         ];
       });
     }
@@ -46,7 +54,11 @@ class _PrinterSetupScreenState extends State<PrinterSetupScreen> {
           if (_isScanning)
             const Padding(
               padding: EdgeInsets.all(16.0),
-              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+              child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white)),
             )
           else
             IconButton(
@@ -72,21 +84,30 @@ class _PrinterSetupScreenState extends State<PrinterSetupScreen> {
                     itemBuilder: (context, index) {
                       final device = _devices[index];
                       final isSelected = _selectedDeviceName == device['name'];
-                      
+
                       return ListTile(
                         leading: Icon(
-                          device['type'] == 'Bluetooth' ? Icons.bluetooth : Icons.wifi,
-                          color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                          device['type'] == 'Bluetooth'
+                              ? Icons.bluetooth
+                              : Icons.wifi,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey,
                         ),
                         title: Text(device['name']),
                         subtitle: Text(device['address']),
-                        trailing: isSelected ? const Icon(Icons.check_circle, color: Colors.green) : null,
+                        trailing: isSelected
+                            ? const Icon(Icons.check_circle,
+                                color: Colors.green)
+                            : null,
                         onTap: () {
                           setState(() {
                             _selectedDeviceName = device['name'];
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Printer connected: ${device['name']}')),
+                            SnackBar(
+                                content: Text(
+                                    'Printer connected: ${device['name']}')),
                           );
                         },
                       );
@@ -104,7 +125,8 @@ class _PrinterSetupScreenState extends State<PrinterSetupScreen> {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please select a printer first')),
+                    const SnackBar(
+                        content: Text('Please select a printer first')),
                   );
                 }
               },

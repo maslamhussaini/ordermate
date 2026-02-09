@@ -8,10 +8,12 @@ class Breadcrumbs extends StatelessWidget {
 
   const Breadcrumbs({super.key, required this.state, required this.routes});
 
-  List<({String title, String fullPath})> _getBreadcrumbs(String location, List<AppRoute> currentRoutes, String parentPath) {
+  List<({String title, String fullPath})> _getBreadcrumbs(
+      String location, List<AppRoute> currentRoutes, String parentPath) {
     for (final r in currentRoutes) {
       // Construct full path
-      String currentPath = r.path.startsWith('/') ? r.path : '$parentPath/${r.path}';
+      String currentPath =
+          r.path.startsWith('/') ? r.path : '$parentPath/${r.path}';
       currentPath = currentPath.replaceAll('//', '/');
 
       // Check for match
@@ -24,8 +26,8 @@ class Breadcrumbs extends StatelessWidget {
       }
 
       if (isMatch) {
-         final childCrumbs = _getBreadcrumbs(location, r.children, currentPath);
-         return [(title: r.title, fullPath: currentPath), ...childCrumbs];
+        final childCrumbs = _getBreadcrumbs(location, r.children, currentPath);
+        return [(title: r.title, fullPath: currentPath), ...childCrumbs];
       }
     }
     return [];
@@ -50,14 +52,16 @@ class Breadcrumbs extends StatelessWidget {
                   style: TextStyle(
                     color: isLast ? Colors.white : Colors.white70,
                     fontWeight: isLast ? FontWeight.bold : FontWeight.normal,
-                    decoration: isLast ? TextDecoration.none : TextDecoration.underline,
+                    decoration:
+                        isLast ? TextDecoration.none : TextDecoration.underline,
                   ),
                 ),
               ),
               if (!isLast)
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+                  child:
+                      Icon(Icons.chevron_right, size: 16, color: Colors.grey),
                 ),
             ],
           );

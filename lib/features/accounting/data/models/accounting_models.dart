@@ -29,14 +29,18 @@ class ChartOfAccountModel extends ChartOfAccount {
       accountTypeId: json['account_type_id'] as int?,
       accountCategoryId: json['account_category_id'] as int?,
       organizationId: (json['organization_id'] as int?) ?? 0,
-      isActive: json['is_active'] == true || json['is_active'] == 1 || (json['is_active'] == null),
+      isActive: json['is_active'] == true ||
+          json['is_active'] == 1 ||
+          (json['is_active'] == null),
       isSystem: json['is_system'] == true || json['is_system'] == 1,
-      createdAt: json['created_at'] is int 
+      createdAt: json['created_at'] is int
           ? DateTime.fromMillisecondsSinceEpoch(json['created_at'] as int)
-          : DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
-      updatedAt: json['updated_at'] is int 
+          : DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+              DateTime.now(),
+      updatedAt: json['updated_at'] is int
           ? DateTime.fromMillisecondsSinceEpoch(json['updated_at'] as int)
-          : DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+          : DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
+              DateTime.now(),
     );
   }
 
@@ -60,6 +64,7 @@ class ChartOfAccountModel extends ChartOfAccount {
     return map;
   }
 }
+
 class TransactionModel extends Transaction {
   const TransactionModel({
     required super.id,
@@ -101,7 +106,9 @@ class TransactionModel extends Transaction {
       offsetModuleAccount: json['offset_module_account'] as String?,
       paymentMode: json['payment_mode'] as String?,
       referenceNumber: json['reference_number'] as String?,
-      referenceDate: json['reference_date'] == null ? null : DateTime.parse(json['reference_date'] as String),
+      referenceDate: json['reference_date'] == null
+          ? null
+          : DateTime.parse(json['reference_date'] as String),
       referenceBank: json['reference_bank'] as String?,
       invoiceId: json['invoice_id'] as String?,
     );
@@ -179,8 +186,11 @@ class AccountTypeModel extends AccountType {
   factory AccountTypeModel.fromJson(Map<String, dynamic> json) {
     return AccountTypeModel(
       id: (json['id'] ?? 0) as int,
-      typeName: (json['account_type'] ?? json['type_name'] ?? 'Unknown Type') as String,
-      status: json['status'] == true || json['status'] == 1 || (json['status'] == null),
+      typeName: (json['account_type'] ?? json['type_name'] ?? 'Unknown Type')
+          as String,
+      status: json['status'] == true ||
+          json['status'] == 1 ||
+          (json['status'] == null),
       isSystem: json['is_system'] == true || json['is_system'] == 1,
       organizationId: (json['organization_id'] as int?) ?? 0,
     );
@@ -210,9 +220,14 @@ class AccountCategoryModel extends AccountCategory {
   factory AccountCategoryModel.fromJson(Map<String, dynamic> json) {
     return AccountCategoryModel(
       id: (json['id'] ?? 0) as int,
-      categoryName: (json['category_name'] ?? json['account_category'] ?? json['name'] ?? 'Unknown Category') as String,
+      categoryName: (json['category_name'] ??
+          json['account_category'] ??
+          json['name'] ??
+          'Unknown Category') as String,
       accountTypeId: (json['account_type_id'] ?? json['type_id'] ?? 1) as int,
-      status: json['status'] == true || json['status'] == 1 || (json['status'] == null), // Default true
+      status: json['status'] == true ||
+          json['status'] == 1 ||
+          (json['status'] == null), // Default true
       isSystem: json['is_system'] == true || json['is_system'] == 1,
       organizationId: (json['organization_id'] as int?) ?? 0,
     );
@@ -246,12 +261,16 @@ class BankCashModel extends BankCash {
     return BankCashModel(
       id: json['id']?.toString() ?? '',
       name: (json['bank_name'] ?? json['name'] ?? '').toString(),
-      chartOfAccountId: (json['account_id'] ?? json['chart_of_account_id'] ?? '').toString(),
+      chartOfAccountId:
+          (json['account_id'] ?? json['chart_of_account_id'] ?? '').toString(),
       accountNumber: json['account_number']?.toString(),
       branchName: json['branch_name']?.toString(),
       organizationId: (json['organization_id'] as int?) ?? 0,
       storeId: (json['store_id'] as int?) ?? 0,
-      status: json['is_active'] == true || json['is_active'] == 1 || json['status'] == 1 || json['status'] == true,
+      status: json['is_active'] == true ||
+          json['is_active'] == 1 ||
+          json['status'] == 1 ||
+          json['status'] == true,
     );
   }
 
@@ -341,10 +360,10 @@ class FinancialSessionModel extends FinancialSession {
   factory FinancialSessionModel.fromJson(Map<String, dynamic> json) {
     return FinancialSessionModel(
       sYear: (json['syear'] ?? json['s_year'] ?? json['year']) as int,
-      startDate: json['start_date'] is int 
+      startDate: json['start_date'] is int
           ? DateTime.fromMillisecondsSinceEpoch(json['start_date'] as int)
           : DateTime.parse(json['start_date'] as String),
-      endDate: json['end_date'] is int 
+      endDate: json['end_date'] is int
           ? DateTime.fromMillisecondsSinceEpoch(json['end_date'] as int)
           : DateTime.parse(json['end_date'] as String),
       narration: json['narration'] as String?,
@@ -367,7 +386,7 @@ class FinancialSessionModel extends FinancialSession {
       'organization_id': organizationId,
     };
   }
-  
+
   Map<String, dynamic> toLocalMap() {
     return {
       'syear': sYear,
@@ -393,11 +412,16 @@ class InvoiceTypeModel extends InvoiceType {
 
   factory InvoiceTypeModel.fromJson(Map<String, dynamic> json) {
     return InvoiceTypeModel(
-      idInvoiceType: (json['id_invoice_type'] ?? json['type_id'] ?? json['id'] ?? '').toString(),
+      idInvoiceType:
+          (json['id_invoice_type'] ?? json['type_id'] ?? json['id'] ?? '')
+              .toString(),
       description: (json['description'] ?? json['name'] ?? '').toString(),
       forUsed: (json['for_used'] ?? json['usage'] ?? '').toString(),
       organizationId: (json['organization_id'] as int?) ?? 0,
-      isActive: json['is_active'] == true || json['is_active'] == 1 || json['status'] == 1 || json['status'] == true,
+      isActive: json['is_active'] == true ||
+          json['is_active'] == 1 ||
+          json['status'] == 1 ||
+          json['status'] == true,
     );
   }
 
@@ -436,12 +460,12 @@ class InvoiceModel extends Invoice {
     return InvoiceModel(
       id: json['id'] as String,
       invoiceNumber: json['invoice_number'] as String,
-      invoiceDate: json['invoice_date'] is int 
+      invoiceDate: json['invoice_date'] is int
           ? DateTime.fromMillisecondsSinceEpoch(json['invoice_date'] as int)
           : DateTime.parse(json['invoice_date'] as String),
-      dueDate: json['due_date'] == null 
-          ? null 
-          : (json['due_date'] is int 
+      dueDate: json['due_date'] == null
+          ? null
+          : (json['due_date'] is int
               ? DateTime.fromMillisecondsSinceEpoch(json['due_date'] as int)
               : DateTime.parse(json['due_date'] as String)),
       idInvoiceType: json['id_invoice_type'] as String,
@@ -454,8 +478,12 @@ class InvoiceModel extends Invoice {
       organizationId: (json['organization_id'] as int?) ?? 0,
       storeId: (json['store_id'] as int?) ?? 0,
       sYear: json['syear'] as int?,
-      createdAt: json['created_at'] == null ? null : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null ? null : DateTime.parse(json['updated_at'] as String),
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
     );
   }
 

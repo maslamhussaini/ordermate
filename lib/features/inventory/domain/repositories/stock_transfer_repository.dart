@@ -1,4 +1,3 @@
-
 import 'package:ordermate/features/inventory/domain/entities/stock_transfer.dart';
 
 abstract class StockTransferRepository {

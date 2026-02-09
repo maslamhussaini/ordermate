@@ -11,11 +11,15 @@ class EmailService {
   EmailService._internal();
 
   // SMTP Credentials - Fetched via getters to ensure they are read AFTER dotenv.load()
-  String get smtpUsername => (dotenv.env['SMTP_EMAIL'] ?? dotenv.env['GMAIL_USERNAME'] ?? '').trim(); 
-  String get smtpPassword => (dotenv.env['SMTP_PASSWORD'] ?? dotenv.env['GMAIL_APP_PASSWORD'] ?? '').replaceAll(' ', '').trim(); 
+  String get smtpUsername =>
+      (dotenv.env['SMTP_EMAIL'] ?? dotenv.env['GMAIL_USERNAME'] ?? '').trim();
+  String get smtpPassword =>
+      (dotenv.env['SMTP_PASSWORD'] ?? dotenv.env['GMAIL_APP_PASSWORD'] ?? '')
+          .replaceAll(' ', '')
+          .trim();
 
   String get _smtpUsername => smtpUsername;
-  String get _smtpPassword => smtpPassword; 
+  String get _smtpPassword => smtpPassword;
 
   Future<bool> _sendWebEmail({
     required String email,
@@ -29,8 +33,10 @@ class EmailService {
           'email': email,
           'subject': subject,
           'html': html,
-          'smtp_username': _smtpUsername,
-          'smtp_password': _smtpPassword,
+          'smtp_settings': {
+            'username': _smtpUsername,
+            'password': _smtpPassword,
+          },
         },
       );
       return response.status == 200;
@@ -63,7 +69,8 @@ class EmailService {
       ..from = mailer.Address(_smtpUsername, 'OrderMate App')
       ..recipients.add(recipientEmail)
       ..subject = subject
-      ..text = 'Your OrderMate App verification code is: $otp. It is valid for 10 minutes.'
+      ..text =
+          'Your OrderMate App verification code is: $otp. It is valid for 10 minutes.'
       ..html = html;
 
     try {
@@ -79,7 +86,8 @@ class EmailService {
     }
   }
 
-  Future<bool> sendWelcomeEmail(String recipientEmail, String employeeName, String role) async {
+  Future<bool> sendWelcomeEmail(
+      String recipientEmail, String employeeName, String role) async {
     const subject = 'Welcome to OrderMate - Your Account is Ready';
     final html = """
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -115,7 +123,8 @@ class EmailService {
     }
   }
 
-  Future<bool> sendCredentialsEmail(String recipientEmail, String employeeName, String password, String loginUrl) async {
+  Future<bool> sendCredentialsEmail(String recipientEmail, String employeeName,
+      String password, String loginUrl) async {
     const subject = 'OrderMate App - Your Login Credentials';
     final html = """
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px; margin: auto;">

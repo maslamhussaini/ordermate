@@ -45,18 +45,20 @@ class LocationTrackingNotifier extends StateNotifier<LocationTrackingState> {
   final Ref _ref;
   Timer? _trackingTimer;
 
-  LocationTrackingNotifier(this._repository, this._ref) : super(LocationTrackingState());
+  LocationTrackingNotifier(this._repository, this._ref)
+      : super(LocationTrackingState());
 
   void startTracking() {
     if (state.isTracking) return;
-    
+
     state = state.copyWith(isTracking: true);
-    
+
     // Initial capture
     _captureLocation();
-    
+
     // Periodic capture every 5 minutes
-    _trackingTimer = Timer.periodic(const Duration(minutes: 5), (_) => _captureLocation());
+    _trackingTimer =
+        Timer.periodic(const Duration(minutes: 5), (_) => _captureLocation());
     debugPrint('Location tracking started (every 5 mins)');
   }
 
@@ -75,16 +77,18 @@ class LocationTrackingNotifier extends StateNotifier<LocationTrackingState> {
         return;
       }
       if (user.businessPartnerId == null) {
-        debugPrint('Skip location capture: User ${user.email} not linked to a Business Partner (Employee) record');
+        debugPrint(
+            'Skip location capture: User ${user.email} not linked to a Business Partner (Employee) record');
         return;
       }
       if (user.organizationId == null) {
-        debugPrint('Skip location capture: No active organization context for user');
+        debugPrint(
+            'Skip location capture: No active organization context for user');
         return;
       }
 
       final position = await LocationHelper.getCurrentPosition();
-      
+
       final history = LocationHistory(
         id: const Uuid().v4(),
         createdAt: DateTime.now(),
@@ -97,13 +101,15 @@ class LocationTrackingNotifier extends StateNotifier<LocationTrackingState> {
       );
 
       await _repository.saveLocation(history);
-      debugPrint('Location captured and saved: ${position.latitude}, ${position.longitude}');
+      debugPrint(
+          'Location captured and saved: ${position.latitude}, ${position.longitude}');
     } catch (e) {
       debugPrint('Location capture failed: $e');
     }
   }
 
-  Future<void> loadHistory({DateTime? start, DateTime? end, String? userId}) async {
+  Future<void> loadHistory(
+      {DateTime? start, DateTime? end, String? userId}) async {
     state = state.copyWith(isLoading: true);
     try {
       final user = await _ref.read(userProfileProvider.future);
@@ -126,7 +132,9 @@ class LocationTrackingNotifier extends StateNotifier<LocationTrackingState> {
   }
 }
 
-final locationTrackingProvider = StateNotifierProvider<LocationTrackingNotifier, LocationTrackingState>((ref) {
+final locationTrackingProvider =
+    StateNotifierProvider<LocationTrackingNotifier, LocationTrackingState>(
+        (ref) {
   final repo = ref.watch(locationRepositoryProvider);
   return LocationTrackingNotifier(repo, ref);
 });

@@ -24,7 +24,7 @@ class AccountingRepositoryImpl implements AccountingRepository {
   Future<List<ChartOfAccount>> getChartOfAccounts({int? organizationId}) async {
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-       return _localRepo.getChartOfAccounts(organizationId: organizationId);
+      return _localRepo.getChartOfAccounts(organizationId: organizationId);
     }
 
     try {
@@ -32,10 +32,17 @@ class AccountingRepositoryImpl implements AccountingRepository {
       if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
       }
-      final response = await query.order('account_code').timeout(const Duration(seconds: 15));
-      
-      final accounts = (response as List).map((e) => ChartOfAccountModel.fromJson(e)).toList().cast<ChartOfAccount>();
-      await _localRepo.cacheChartOfAccounts(accounts.map((e) => e as ChartOfAccountModel).toList(), organizationId: organizationId);
+      final response = await query
+          .order('account_code')
+          .timeout(const Duration(seconds: 15));
+
+      final accounts = (response as List)
+          .map((e) => ChartOfAccountModel.fromJson(e))
+          .toList()
+          .cast<ChartOfAccount>();
+      await _localRepo.cacheChartOfAccounts(
+          accounts.map((e) => e as ChartOfAccountModel).toList(),
+          organizationId: organizationId);
       return accounts;
     } catch (e) {
       return _localRepo.getChartOfAccounts(organizationId: organizationId);
@@ -96,7 +103,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_chart_of_accounts').update(model.toJson()).eq('id', model.id);
+      await _supabase
+          .from('omtbl_chart_of_accounts')
+          .update(model.toJson())
+          .eq('id', model.id);
       await _localRepo.saveChartOfAccount(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveChartOfAccount(model, isSynced: false);
@@ -109,11 +119,18 @@ class AccountingRepositoryImpl implements AccountingRepository {
     try {
       var query = _supabase.from('omtbl_account_types').select();
       if (organizationId != null) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
-      final response = await query.order('id').timeout(const Duration(seconds: 15));
-      final types = (response as List).map((e) => AccountTypeModel.fromJson(e)).toList().cast<AccountType>();
-      await _localRepo.cacheAccountTypes(types.map((e) => e as AccountTypeModel).toList(), organizationId: organizationId);
+      final response =
+          await query.order('id').timeout(const Duration(seconds: 15));
+      final types = (response as List)
+          .map((e) => AccountTypeModel.fromJson(e))
+          .toList()
+          .cast<AccountType>();
+      await _localRepo.cacheAccountTypes(
+          types.map((e) => e as AccountTypeModel).toList(),
+          organizationId: organizationId);
       return types;
     } catch (e) {
       return _localRepo.getAccountTypes(organizationId: organizationId);
@@ -156,7 +173,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_account_types').update(model.toJson()).eq('id', model.id);
+      await _supabase
+          .from('omtbl_account_types')
+          .update(model.toJson())
+          .eq('id', model.id);
       await _localRepo.saveAccountType(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveAccountType(model, isSynced: false);
@@ -164,18 +184,27 @@ class AccountingRepositoryImpl implements AccountingRepository {
   }
 
   @override
-  Future<List<AccountCategory>> getAccountCategories({int? organizationId}) async {
+  Future<List<AccountCategory>> getAccountCategories(
+      {int? organizationId}) async {
     if (SupabaseConfig.isOfflineLoggedIn) {
       return _localRepo.getAccountCategories(organizationId: organizationId);
     }
     try {
       var query = _supabase.from('omtbl_account_categories').select();
       if (organizationId != null) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
-      final response = await query.order('category_name').timeout(const Duration(seconds: 15));
-      final categories = (response as List).map((e) => AccountCategoryModel.fromJson(e)).toList().cast<AccountCategory>();
-      await _localRepo.cacheAccountCategories(categories.map((e) => e as AccountCategoryModel).toList(), organizationId: organizationId);
+      final response = await query
+          .order('category_name')
+          .timeout(const Duration(seconds: 15));
+      final categories = (response as List)
+          .map((e) => AccountCategoryModel.fromJson(e))
+          .toList()
+          .cast<AccountCategory>();
+      await _localRepo.cacheAccountCategories(
+          categories.map((e) => e as AccountCategoryModel).toList(),
+          organizationId: organizationId);
       return categories;
     } catch (e) {
       return _localRepo.getAccountCategories(organizationId: organizationId);
@@ -220,7 +249,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_account_categories').update(model.toJson()).eq('id', model.id);
+      await _supabase
+          .from('omtbl_account_categories')
+          .update(model.toJson())
+          .eq('id', model.id);
       await _localRepo.saveAccountCategory(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveAccountCategory(model, isSynced: false);
@@ -230,14 +262,16 @@ class AccountingRepositoryImpl implements AccountingRepository {
 
   @override
   Future<void> bulkCreateAccountTypes(List<AccountType> types) async {
-    final models = types.map((e) => AccountTypeModel(
-      id: e.id,
-      typeName: e.typeName,
-      status: e.status,
-      isSystem: e.isSystem,
-      organizationId: e.organizationId,
-    )).toList();
-    
+    final models = types
+        .map((e) => AccountTypeModel(
+              id: e.id,
+              typeName: e.typeName,
+              status: e.status,
+              isSystem: e.isSystem,
+              organizationId: e.organizationId,
+            ))
+        .toList();
+
     if (SupabaseConfig.isOfflineLoggedIn) {
       for (var model in models) {
         await _localRepo.saveAccountType(model, isSynced: false);
@@ -246,8 +280,11 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_account_types').upsert(models.map((e) => e.toJson()).toList());
-      await _localRepo.cacheAccountTypes(models, organizationId: models.firstOrNull?.organizationId);
+      await _supabase
+          .from('omtbl_account_types')
+          .upsert(models.map((e) => e.toJson()).toList());
+      await _localRepo.cacheAccountTypes(models,
+          organizationId: models.firstOrNull?.organizationId);
     } catch (e) {
       for (var model in models) {
         await _localRepo.saveAccountType(model, isSynced: false);
@@ -256,16 +293,19 @@ class AccountingRepositoryImpl implements AccountingRepository {
   }
 
   @override
-  Future<void> bulkCreateAccountCategories(List<AccountCategory> categories) async {
-    final models = categories.map((e) => AccountCategoryModel(
-      id: e.id,
-      categoryName: e.categoryName,
-      accountTypeId: e.accountTypeId,
-      status: e.status,
-      isSystem: e.isSystem,
-      organizationId: e.organizationId,
-    )).toList();
-    
+  Future<void> bulkCreateAccountCategories(
+      List<AccountCategory> categories) async {
+    final models = categories
+        .map((e) => AccountCategoryModel(
+              id: e.id,
+              categoryName: e.categoryName,
+              accountTypeId: e.accountTypeId,
+              status: e.status,
+              isSystem: e.isSystem,
+              organizationId: e.organizationId,
+            ))
+        .toList();
+
     if (SupabaseConfig.isOfflineLoggedIn) {
       for (var model in models) {
         await _localRepo.saveAccountCategory(model, isSynced: false);
@@ -274,8 +314,11 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_account_categories').upsert(models.map((e) => e.toJson()).toList());
-      await _localRepo.cacheAccountCategories(models, organizationId: models.firstOrNull?.organizationId);
+      await _supabase
+          .from('omtbl_account_categories')
+          .upsert(models.map((e) => e.toJson()).toList());
+      await _localRepo.cacheAccountCategories(models,
+          organizationId: models.firstOrNull?.organizationId);
     } catch (e) {
       for (var model in models) {
         await _localRepo.saveAccountCategory(model, isSynced: false);
@@ -286,21 +329,23 @@ class AccountingRepositoryImpl implements AccountingRepository {
 
   @override
   Future<void> bulkCreateChartOfAccounts(List<ChartOfAccount> accounts) async {
-    final models = accounts.map((e) => ChartOfAccountModel(
-      id: e.id,
-      accountCode: e.accountCode,
-      accountTitle: e.accountTitle,
-      parentId: e.parentId,
-      level: e.level,
-      accountTypeId: e.accountTypeId,
-      accountCategoryId: e.accountCategoryId,
-      organizationId: e.organizationId,
-      isActive: e.isActive,
-      isSystem: e.isSystem,
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-    )).toList();
-    
+    final models = accounts
+        .map((e) => ChartOfAccountModel(
+              id: e.id,
+              accountCode: e.accountCode,
+              accountTitle: e.accountTitle,
+              parentId: e.parentId,
+              level: e.level,
+              accountTypeId: e.accountTypeId,
+              accountCategoryId: e.accountCategoryId,
+              organizationId: e.organizationId,
+              isActive: e.isActive,
+              isSystem: e.isSystem,
+              createdAt: e.createdAt,
+              updatedAt: e.updatedAt,
+            ))
+        .toList();
+
     if (SupabaseConfig.isOfflineLoggedIn) {
       for (var model in models) {
         await _localRepo.saveChartOfAccount(model, isSynced: false);
@@ -309,8 +354,11 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_chart_of_accounts').upsert(models.map((e) => e.toJson()).toList());
-      await _localRepo.cacheChartOfAccounts(models, organizationId: models.firstOrNull?.organizationId);
+      await _supabase
+          .from('omtbl_chart_of_accounts')
+          .upsert(models.map((e) => e.toJson()).toList());
+      await _localRepo.cacheChartOfAccounts(models,
+          organizationId: models.firstOrNull?.organizationId);
     } catch (e) {
       for (var model in models) {
         await _localRepo.saveChartOfAccount(model, isSynced: false);
@@ -323,11 +371,17 @@ class AccountingRepositoryImpl implements AccountingRepository {
     try {
       var query = _supabase.from('omtbl_payment_terms').select();
       if (organizationId != null) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
       final response = await query.order('payment_term');
-      final terms = (response as List).map((e) => PaymentTermModel.fromJson(e)).toList().cast<PaymentTerm>();
-      await _localRepo.cachePaymentTerms(terms.map((e) => e as PaymentTermModel).toList(), organizationId: organizationId);
+      final terms = (response as List)
+          .map((e) => PaymentTermModel.fromJson(e))
+          .toList()
+          .cast<PaymentTerm>();
+      await _localRepo.cachePaymentTerms(
+          terms.map((e) => e as PaymentTermModel).toList(),
+          organizationId: organizationId);
       return terms;
     } catch (e) {
       return _localRepo.getPaymentTerms(organizationId: organizationId);
@@ -374,7 +428,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_payment_terms').update(model.toJson()).eq('id', model.id);
+      await _supabase
+          .from('omtbl_payment_terms')
+          .update(model.toJson())
+          .eq('id', model.id);
       await _localRepo.savePaymentTerm(model, isSynced: true);
     } catch (e) {
       await _localRepo.savePaymentTerm(model, isSynced: false);
@@ -411,7 +468,7 @@ class AccountingRepositoryImpl implements AccountingRepository {
       await _localRepo.saveTransaction(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveTransaction(model, isSynced: false);
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -440,7 +497,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_transactions').update(model.toJson()).eq('id', model.id);
+      await _supabase
+          .from('omtbl_transactions')
+          .update(model.toJson())
+          .eq('id', model.id);
       await _localRepo.saveTransaction(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveTransaction(model, isSynced: false);
@@ -461,7 +521,7 @@ class AccountingRepositoryImpl implements AccountingRepository {
       // If we fail to delete online, we should probably not delete local yet or mark for deletion?
       // For now, mirroring other delete methods which try best effort.
       // But unlike inserts, we can't easily "queue" a delete with just save.
-      // However, usually we might assume connectivity check. 
+      // However, usually we might assume connectivity check.
       // If error is connectivity, we might want to soft delete or similar.
       // For consistency with other methods here:
       await _localRepo.deleteTransaction(id);
@@ -485,26 +545,33 @@ class AccountingRepositoryImpl implements AccountingRepository {
       // Given the user wants to be able to delete, I'll delete local regardless so UI updates.
       // But really we should rethrow if online fails so user knows it's not fully gone?
       // Let's stick to safe pattern: rethrow if online fails so we don't have zombie data coming back.
-       rethrow;
+      rethrow;
     }
   }
 
   @override
-  Future<List<Transaction>> getTransactions({int? organizationId, int? storeId, int? sYear}) async {
+  Future<List<Transaction>> getTransactions(
+      {int? organizationId, int? storeId, int? sYear}) async {
     try {
       var query = _supabase.from('omtbl_transactions').select();
-      if (organizationId != null) query = query.eq('organization_id', organizationId);
+      if (organizationId != null)
+        query = query.eq('organization_id', organizationId);
       if (storeId != null) query = query.eq('store_id', storeId);
       if (sYear != null) query = query.eq('syear', sYear);
       final response = await query.order('voucher_date', ascending: false);
-      final txs = (response as List).map((e) => TransactionModel.fromJson(e)).toList();
-      
+      final txs =
+          (response as List).map((e) => TransactionModel.fromJson(e)).toList();
+
       // CACHE LOCALLY
-      await _localRepo.cacheTransactions(txs, organizationId: organizationId, storeId: storeId);
-      
+      await _localRepo.cacheTransactions(txs,
+          organizationId: organizationId, storeId: storeId);
+
       return txs.cast<Transaction>();
     } catch (e) {
-      return _localRepo.getTransactions(organizationId: organizationId, storeId: storeId, sYear: sYear).then((list) => list.cast<Transaction>());
+      return _localRepo
+          .getTransactions(
+              organizationId: organizationId, storeId: storeId, sYear: sYear)
+          .then((list) => list.cast<Transaction>());
     }
   }
 
@@ -516,16 +583,24 @@ class AccountingRepositoryImpl implements AccountingRepository {
         query = query.eq('organization_id', organizationId);
       }
       final response = await query.order('bank_name');
-      
-      // DEBUG LOG
-      print('DEBUGGING_BANK_CASH: Fetched ${response.length} accounts: ${response.map((e) => "${e['bank_name']} (Org: ${e['organization_id']})").toList()}');
 
-      final accounts = (response as List).map((e) => BankCashModel.fromJson(e)).toList().cast<BankCash>();
-      await _localRepo.cacheBankCashAccounts(accounts.map((e) => BankCashModel.fromEntity(e)).toList(), organizationId: organizationId);
+      // DEBUG LOG
+      print(
+          'DEBUGGING_BANK_CASH: Fetched ${response.length} accounts: ${response.map((e) => "${e['bank_name']} (Org: ${e['organization_id']})").toList()}');
+
+      final accounts = (response as List)
+          .map((e) => BankCashModel.fromJson(e))
+          .toList()
+          .cast<BankCash>();
+      await _localRepo.cacheBankCashAccounts(
+          accounts.map((e) => BankCashModel.fromEntity(e)).toList(),
+          organizationId: organizationId);
       return accounts;
     } catch (e) {
       print('DEBUGGING_BANK_CASH: Error fetching accounts: $e');
-      return _localRepo.getBankCashAccounts(organizationId: organizationId).then((list) => list.cast<BankCash>());
+      return _localRepo
+          .getBankCashAccounts(organizationId: organizationId)
+          .then((list) => list.cast<BankCash>());
     }
   }
 
@@ -574,7 +649,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_bank_cash').update(model.toJson()).eq('id', model.id);
+      await _supabase
+          .from('omtbl_bank_cash')
+          .update(model.toJson())
+          .eq('id', model.id);
       await _localRepo.saveBankCashAccount(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveBankCashAccount(model, isSynced: false);
@@ -603,20 +681,28 @@ class AccountingRepositoryImpl implements AccountingRepository {
   @override
   Future<List<VoucherPrefix>> getVoucherPrefixes({int? organizationId}) async {
     try {
-      var query = _supabase.from('omtbl_voucher_prefixes').select('id, prefix_code, description, voucher_type, organization_id, status, is_system');
+      var query = _supabase.from('omtbl_voucher_prefixes').select(
+          'id, prefix_code, description, voucher_type, organization_id, status, is_system');
       if (organizationId != null) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
       final response = await query.order('prefix_code');
-      final prefixes = (response as List).map((e) => VoucherPrefixModel.fromJson(e)).toList().cast<VoucherPrefix>();
-      await _localRepo.cacheVoucherPrefixes(prefixes.map((e) => e as VoucherPrefixModel).toList(), organizationId: organizationId);
+      final prefixes = (response as List)
+          .map((e) => VoucherPrefixModel.fromJson(e))
+          .toList()
+          .cast<VoucherPrefix>();
+      await _localRepo.cacheVoucherPrefixes(
+          prefixes.map((e) => e as VoucherPrefixModel).toList(),
+          organizationId: organizationId);
       return prefixes;
     } catch (e) {
       print('Error fetching voucher prefixes: $e');
-      return _localRepo.getVoucherPrefixes(organizationId: organizationId).then((list) => list.cast<VoucherPrefix>());
+      return _localRepo
+          .getVoucherPrefixes(organizationId: organizationId)
+          .then((list) => list.cast<VoucherPrefix>());
     }
   }
-
 
   @override
   Future<void> createVoucherPrefix(VoucherPrefix prefix) async {
@@ -656,13 +742,17 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_voucher_prefixes').update(model.toJson()).eq('id', model.id);
+      await _supabase
+          .from('omtbl_voucher_prefixes')
+          .update(model.toJson())
+          .eq('id', model.id);
       await _localRepo.saveVoucherPrefix(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveVoucherPrefix(model, isSynced: false);
       rethrow;
     }
   }
+
   @override
   Future<void> deleteChartOfAccount(String id) async {
     // Check if used locally first (optional optimization)
@@ -712,16 +802,23 @@ class AccountingRepositoryImpl implements AccountingRepository {
       rethrow;
     }
   }
+
   @override
-  Future<List<FinancialSession>> getFinancialSessions({int? organizationId}) async {
+  Future<List<FinancialSession>> getFinancialSessions(
+      {int? organizationId}) async {
     try {
       var query = _supabase.from('omtbl_financial_sessions').select();
       if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
       }
       final response = await query;
-      final sessions = (response as List).map((e) => FinancialSessionModel.fromJson(e)).toList().cast<FinancialSession>();
-      await _localRepo.cacheFinancialSessions(sessions.cast<FinancialSessionModel>(), organizationId: organizationId);
+      final sessions = (response as List)
+          .map((e) => FinancialSessionModel.fromJson(e))
+          .toList()
+          .cast<FinancialSession>();
+      await _localRepo.cacheFinancialSessions(
+          sessions.cast<FinancialSessionModel>(),
+          organizationId: organizationId);
       return sessions;
     } catch (e) {
       return _localRepo.getFinancialSessions(organizationId: organizationId);
@@ -772,7 +869,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_financial_sessions').update(model.toJson()).eq('syear', model.sYear);
+      await _supabase
+          .from('omtbl_financial_sessions')
+          .update(model.toJson())
+          .eq('syear', model.sYear);
       await _localRepo.saveFinancialSession(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveFinancialSession(model, isSynced: false);
@@ -795,8 +895,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getUnpaidInvoices(String customerId, {int? organizationId}) {
-    return _localRepo.getUnpaidInvoices(customerId, organizationId: organizationId);
+  Future<List<Map<String, dynamic>>> getUnpaidInvoices(String customerId,
+      {int? organizationId}) {
+    return _localRepo.getUnpaidInvoices(customerId,
+        organizationId: organizationId);
   }
 
   @override
@@ -832,14 +934,22 @@ class AccountingRepositoryImpl implements AccountingRepository {
     try {
       var query = _supabase.from('omtbl_invoice_types').select();
       if (organizationId != null) {
-        query = query.or('organization_id.eq.$organizationId,organization_id.is.null');
+        query = query
+            .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
       final response = await query.order('id_invoice_type');
-      final types = (response as List).map((e) => InvoiceTypeModel.fromJson(e)).toList().cast<InvoiceType>();
-      await _localRepo.cacheInvoiceTypes(types.map((e) => e as InvoiceTypeModel).toList(), organizationId: organizationId);
+      final types = (response as List)
+          .map((e) => InvoiceTypeModel.fromJson(e))
+          .toList()
+          .cast<InvoiceType>();
+      await _localRepo.cacheInvoiceTypes(
+          types.map((e) => e as InvoiceTypeModel).toList(),
+          organizationId: organizationId);
       return types;
     } catch (e) {
-      return _localRepo.getInvoiceTypes(organizationId: organizationId).then((list) => list.cast<InvoiceType>());
+      return _localRepo
+          .getInvoiceTypes(organizationId: organizationId)
+          .then((list) => list.cast<InvoiceType>());
     }
   }
 
@@ -866,20 +976,30 @@ class AccountingRepositoryImpl implements AccountingRepository {
   }
 
   @override
-  Future<List<Invoice>> getInvoices({int? organizationId, int? storeId, int? sYear}) async {
+  Future<List<Invoice>> getInvoices(
+      {int? organizationId, int? storeId, int? sYear}) async {
     try {
       var query = _supabase.from('omtbl_invoices').select();
-      if (organizationId != null) query = query.eq('organization_id', organizationId);
+      if (organizationId != null)
+        query = query.eq('organization_id', organizationId);
       if (storeId != null) query = query.eq('store_id', storeId);
       if (sYear != null) query = query.eq('syear', sYear);
       final response = await query.order('invoice_date', ascending: false);
-      final invoices = (response as List).map((e) => InvoiceModel.fromJson(e)).toList().cast<Invoice>();
-      await _localRepo.cacheInvoices(invoices.map((e) => e as InvoiceModel).toList(), organizationId: organizationId);
+      final invoices = (response as List)
+          .map((e) => InvoiceModel.fromJson(e))
+          .toList()
+          .cast<Invoice>();
+      await _localRepo.cacheInvoices(
+          invoices.map((e) => e as InvoiceModel).toList(),
+          organizationId: organizationId);
       return invoices;
     } catch (e) {
       // Note: LocalRepo needs to be updated to support sYear too, or we filter here if strictly necessary
       // For now passing it if supported or ignoring silently if not (checking local repo next step)
-      return _localRepo.getInvoices(organizationId: organizationId, storeId: storeId, sYear: sYear).then((list) => list.cast<Invoice>()); 
+      return _localRepo
+          .getInvoices(
+              organizationId: organizationId, storeId: storeId, sYear: sYear)
+          .then((list) => list.cast<Invoice>());
     }
   }
 
@@ -937,7 +1057,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_invoices').update(model.toJson()).eq('id', model.id);
+      await _supabase
+          .from('omtbl_invoices')
+          .update(model.toJson())
+          .eq('id', model.id);
       await _localRepo.saveInvoice(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveInvoice(model, isSynced: false);
@@ -946,18 +1069,20 @@ class AccountingRepositoryImpl implements AccountingRepository {
   }
 
   @override
-  Future<void> createInvoiceWithItems(Invoice invoice, List<InvoiceItem> items) async {
+  Future<void> createInvoiceWithItems(
+      Invoice invoice, List<InvoiceItem> items) async {
     await createInvoice(invoice);
     await createInvoiceItems(items);
   }
 
   @override
-  Future<void> updateInvoiceWithItems(Invoice invoice, List<InvoiceItem> items) async {
+  Future<void> updateInvoiceWithItems(
+      Invoice invoice, List<InvoiceItem> items) async {
     await updateInvoice(invoice);
     await deleteInvoiceItems(invoice.id);
     await createInvoiceItems(items);
   }
-  
+
   @override
   Future<void> deleteInvoice(String id) async {
     if (SupabaseConfig.isOfflineLoggedIn) {
@@ -985,8 +1110,9 @@ class AccountingRepositoryImpl implements AccountingRepository {
           .from('omtbl_invoice_items')
           .select()
           .eq('invoice_id', invoiceId);
-      
-      final items = (response as List).map((e) => InvoiceItemModel.fromJson(e)).toList();
+
+      final items =
+          (response as List).map((e) => InvoiceItemModel.fromJson(e)).toList();
       await _localRepo.cacheInvoiceItems(items, invoiceId);
       return items;
     } catch (e) {
@@ -996,21 +1122,23 @@ class AccountingRepositoryImpl implements AccountingRepository {
 
   @override
   Future<List<InvoiceItem>> getInvoiceItemsByOrg(int organizationId) async {
-     try {
-       // Join with invoices to filter by organization
-       final response = await _supabase
-           .from('omtbl_invoice_items')
-           .select('*, omtbl_invoices!inner(organization_id)')
-           .eq('omtbl_invoices.organization_id', organizationId);
-       
-       final items = (response as List).map((e) => InvoiceItemModel.fromJson(e)).toList();
-       await _localRepo.bulkCacheInvoiceItems(items, organizationId: organizationId);
-       return items;
-     } catch (e) {
-       // local repository doesn't have by-org getter for items yet, return empty or all?
-       // For sync purposes, we usually just want to fill the cache.
-       return [];
-     }
+    try {
+      // Join with invoices to filter by organization
+      final response = await _supabase
+          .from('omtbl_invoice_items')
+          .select('*, omtbl_invoices!inner(organization_id)')
+          .eq('omtbl_invoices.organization_id', organizationId);
+
+      final items =
+          (response as List).map((e) => InvoiceItemModel.fromJson(e)).toList();
+      await _localRepo.bulkCacheInvoiceItems(items,
+          organizationId: organizationId);
+      return items;
+    } catch (e) {
+      // local repository doesn't have by-org getter for items yet, return empty or all?
+      // For sync purposes, we usually just want to fill the cache.
+      return [];
+    }
   }
 
   @override
@@ -1022,7 +1150,9 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_invoice_items').upsert(models.map((e) => e.toJson()).toList());
+      await _supabase
+          .from('omtbl_invoice_items')
+          .upsert(models.map((e) => e.toJson()).toList());
       await _localRepo.saveInvoiceItems(models, isSynced: true);
     } catch (e) {
       await _localRepo.saveInvoiceItems(models, isSynced: false);
@@ -1037,7 +1167,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_invoice_items').delete().eq('invoice_id', invoiceId);
+      await _supabase
+          .from('omtbl_invoice_items')
+          .delete()
+          .eq('invoice_id', invoiceId);
       await _localRepo.deleteInvoiceItems(invoiceId);
     } catch (e) {
       await _localRepo.deleteInvoiceItems(invoiceId);
@@ -1057,11 +1190,11 @@ class AccountingRepositoryImpl implements AccountingRepository {
           .eq('organization_id', organizationId)
           .maybeSingle()
           .timeout(const Duration(seconds: 10));
-      
+
       if (response == null) {
         return _localRepo.getGLSetup(organizationId);
       }
-      
+
       final setup = GLSetupModel.fromJson(response);
       await _localRepo.saveGLSetup(setup, isSynced: true);
       return setup;
@@ -1073,7 +1206,7 @@ class AccountingRepositoryImpl implements AccountingRepository {
   @override
   Future<void> saveGLSetup(GLSetup setup) async {
     final model = GLSetupModel.fromEntity(setup);
-    
+
     if (SupabaseConfig.isOfflineLoggedIn) {
       await _localRepo.saveGLSetup(model, isSynced: false);
       return;
@@ -1089,28 +1222,32 @@ class AccountingRepositoryImpl implements AccountingRepository {
   }
 
   @override
-  Future<DailyBalance?> getLatestDailyBalance(String accountId, {int? organizationId}) async {
+  Future<DailyBalance?> getLatestDailyBalance(String accountId,
+      {int? organizationId}) async {
     try {
       var query = _supabase
           .from('omtbl_daily_balances')
           .select()
           .eq('account_id', accountId);
-      
+
       if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
       }
 
-      final response = await query.order('date', ascending: false).limit(1).maybeSingle();
-      
+      final response =
+          await query.order('date', ascending: false).limit(1).maybeSingle();
+
       if (response == null) {
-        return _localRepo.getLatestDailyBalance(accountId, organizationId: organizationId);
+        return _localRepo.getLatestDailyBalance(accountId,
+            organizationId: organizationId);
       }
-      
+
       final balance = DailyBalanceModel.fromJson(response);
       await _localRepo.saveDailyBalance(balance);
       return balance;
     } catch (e) {
-      return _localRepo.getLatestDailyBalance(accountId, organizationId: organizationId);
+      return _localRepo.getLatestDailyBalance(accountId,
+          organizationId: organizationId);
     }
   }
 

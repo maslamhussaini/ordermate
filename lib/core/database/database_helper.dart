@@ -4,7 +4,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:flutter/foundation.dart';
 
 class DatabaseHelper {
-
   DatabaseHelper._init();
   static final DatabaseHelper instance = DatabaseHelper._init();
   static const int _databaseVersion = 75;
@@ -17,7 +16,6 @@ class DatabaseHelper {
     _database = await _dbOpenFuture;
     return _database!;
   }
-
 
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
@@ -96,8 +94,8 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 2) {
-       // 1. Create Business Partners Table
-       await db.execute('''
+      // 1. Create Business Partners Table
+      await db.execute('''
         CREATE TABLE IF NOT EXISTS local_businesspartners(
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
@@ -133,24 +131,28 @@ class DatabaseHelper {
         )
       ''');
 
-       // 2. Enhance Orders Table
-       try {
-         await db.execute('ALTER TABLE local_orders ADD COLUMN order_number TEXT');
-         await db.execute('ALTER TABLE local_orders ADD COLUMN business_partner_name TEXT');
-         await db.execute('ALTER TABLE local_orders ADD COLUMN created_by TEXT');
-       } catch (e) {
-         // Columns might already exist if re-running dev builds
-       }
+      // 2. Enhance Orders Table
+      try {
+        await db
+            .execute('ALTER TABLE local_orders ADD COLUMN order_number TEXT');
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN business_partner_name TEXT');
+        await db.execute('ALTER TABLE local_orders ADD COLUMN created_by TEXT');
+      } catch (e) {
+        // Columns might already exist if re-running dev builds
+      }
     }
 
     if (oldVersion < 3) {
-       // 3. User Table Enhancements (Fix for DatabaseException on v2 users)
-       try {
-         await db.execute('ALTER TABLE local_users ADD COLUMN organization_name TEXT');
-         await db.execute('ALTER TABLE local_users ADD COLUMN table_prefix TEXT');
-       } catch (e) {
-         // Columns might already exist
-       }
+      // 3. User Table Enhancements (Fix for DatabaseException on v2 users)
+      try {
+        await db.execute(
+            'ALTER TABLE local_users ADD COLUMN organization_name TEXT');
+        await db
+            .execute('ALTER TABLE local_users ADD COLUMN table_prefix TEXT');
+      } catch (e) {
+        // Columns might already exist
+      }
     }
 
     if (oldVersion < 4) {
@@ -224,13 +226,15 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 6) {
-       // 9. Add is_synced to local_products
-       try {
-         await db.execute('ALTER TABLE local_products ADD COLUMN is_synced INTEGER DEFAULT 1');
-         await db.execute('ALTER TABLE local_products ADD COLUMN items_payload TEXT'); // Just in case for complex products later, mostly for consistency
-       } catch (e) {
-         // ignore
-       }
+      // 9. Add is_synced to local_products
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN items_payload TEXT'); // Just in case for complex products later, mostly for consistency
+      } catch (e) {
+        // ignore
+      }
     }
 
     if (oldVersion < 7) {
@@ -291,10 +295,11 @@ class DatabaseHelper {
           is_synced INTEGER DEFAULT 1
         )
       ''');
-      
+
       // Ensure local_products has items_payload if missed
       try {
-        await db.execute('ALTER TABLE local_products ADD COLUMN items_payload TEXT');
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN items_payload TEXT');
       } catch (e) {
         // ignore
       }
@@ -313,8 +318,10 @@ class DatabaseHelper {
     if (oldVersion < 9) {
       // 13. Add missing relation columns to products
       try {
-        await db.execute('ALTER TABLE local_products ADD COLUMN product_type_id TEXT');
-        await db.execute('ALTER TABLE local_products ADD COLUMN business_partner_id TEXT');
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN product_type_id TEXT');
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN business_partner_id TEXT');
       } catch (e) {
         // Ignore if already exists (safeguard)
       }
@@ -322,54 +329,61 @@ class DatabaseHelper {
     if (oldVersion < 10) {
       // 14. Enrich Business Partners
       try {
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN business_type_name TEXT');
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN business_type_id INTEGER'); 
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN role_id INTEGER');
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN role_name TEXT');
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN store_id INTEGER');
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN latitude REAL');
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN longitude REAL');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN business_type_name TEXT');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN business_type_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN role_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN role_name TEXT');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN store_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN latitude REAL');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN longitude REAL');
       } catch (e) {
         // ignore
       }
     }
-    
+
     if (oldVersion < 11) {
       try {
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN is_supplier INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN is_supplier INTEGER DEFAULT 0');
       } catch (e) {
         // ignore
       }
     }
-    
 
     if (oldVersion < 12) {
-       // 15. Local Location & Business Type Tables
-       await db.execute('''
+      // 15. Local Location & Business Type Tables
+      await db.execute('''
          CREATE TABLE IF NOT EXISTS local_cities(
            id INTEGER PRIMARY KEY,
            city_name TEXT NOT NULL,
            status INTEGER DEFAULT 1
          )
        ''');
-       
-       await db.execute('''
+
+      await db.execute('''
          CREATE TABLE IF NOT EXISTS local_states(
            id INTEGER PRIMARY KEY,
            state_name TEXT NOT NULL,
            status INTEGER DEFAULT 1
          )
        ''');
-       
-       await db.execute('''
+
+      await db.execute('''
          CREATE TABLE IF NOT EXISTS local_countries(
            id INTEGER PRIMARY KEY,
            country_name TEXT NOT NULL,
            status INTEGER DEFAULT 1
          )
        ''');
-       
-       await db.execute('''
+
+      await db.execute('''
         CREATE TABLE IF NOT EXISTS local_business_types(
           id INTEGER PRIMARY KEY,
           business_type TEXT NOT NULL, 
@@ -381,10 +395,14 @@ class DatabaseHelper {
 
       // 16. Add Location IDs to Business Partners (Merged from duplicate block)
       try {
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN city_id INTEGER');
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN state_id INTEGER');
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN country_id INTEGER');
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN postal_code TEXT');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN city_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN state_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN country_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN postal_code TEXT');
       } catch (e) {
         // ignore
       }
@@ -393,15 +411,16 @@ class DatabaseHelper {
     if (oldVersion < 13) {
       // 17. Add store_default_currency to local stores
       try {
-        await db.execute('ALTER TABLE local_stores ADD COLUMN store_default_currency TEXT DEFAULT "USD"');
+        await db.execute(
+            'ALTER TABLE local_stores ADD COLUMN store_default_currency TEXT DEFAULT "USD"');
       } catch (e) {
         // ignore
       }
     }
 
     if (oldVersion < 16) {
-       // 20. Departments
-       await db.execute('''
+      // 20. Departments
+      await db.execute('''
          CREATE TABLE IF NOT EXISTS local_departments(
            id INTEGER PRIMARY KEY,
            name TEXT NOT NULL,
@@ -413,70 +432,78 @@ class DatabaseHelper {
          )
        ''');
 
-       // Add department columns to local_businesspartners
-       try {
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN department_id INTEGER');
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN department_name TEXT');
-       } catch (e) {
-         // ignore
-       }
+      // Add department columns to local_businesspartners
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN department_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN department_name TEXT');
+      } catch (e) {
+        // ignore
+      }
     }
-
 
     if (oldVersion < 14) {
-       try {
-         await db.execute('ALTER TABLE local_products ADD COLUMN store_id INTEGER');
-       } catch (e) {
-         // ignore
-       }
-       try {
-         await db.execute('ALTER TABLE local_orders ADD COLUMN store_id INTEGER');
-       } catch (e) {
-         // ignore
-       }
+      try {
+        await db
+            .execute('ALTER TABLE local_products ADD COLUMN store_id INTEGER');
+      } catch (e) {
+        // ignore
+      }
+      try {
+        await db
+            .execute('ALTER TABLE local_orders ADD COLUMN store_id INTEGER');
+      } catch (e) {
+        // ignore
+      }
     }
     if (oldVersion < 17) {
-       // 21. Add Address fields to Local Stores
-       try {
-         await db.execute('ALTER TABLE local_stores ADD COLUMN store_city TEXT');
-         await db.execute('ALTER TABLE local_stores ADD COLUMN store_country TEXT');
-         await db.execute('ALTER TABLE local_stores ADD COLUMN store_postal_code TEXT');
-       } catch (e) {
-         // ignore
-       }
+      // 21. Add Address fields to Local Stores
+      try {
+        await db.execute('ALTER TABLE local_stores ADD COLUMN store_city TEXT');
+        await db
+            .execute('ALTER TABLE local_stores ADD COLUMN store_country TEXT');
+        await db.execute(
+            'ALTER TABLE local_stores ADD COLUMN store_postal_code TEXT');
+      } catch (e) {
+        // ignore
+      }
     }
-    
+
     if (oldVersion < 18) {
-       // 22. Add is_active to Business Partners and Products, and phone to Stores
-       try {
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN is_active INTEGER DEFAULT 1');
-       } catch (e) { /* ignore */ }
-       
-       try {
-         await db.execute('ALTER TABLE local_products ADD COLUMN is_active INTEGER DEFAULT 1');
-       } catch (e) { /* ignore */ }
-       
-       try {
-         await db.execute('ALTER TABLE local_stores ADD COLUMN phone TEXT');
-       } catch (e) { /* ignore */ }
+      // 22. Add is_active to Business Partners and Products, and phone to Stores
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN is_active INTEGER DEFAULT 1');
+      } catch (e) {/* ignore */}
+
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN is_active INTEGER DEFAULT 1');
+      } catch (e) {/* ignore */}
+
+      try {
+        await db.execute('ALTER TABLE local_stores ADD COLUMN phone TEXT');
+      } catch (e) {/* ignore */}
     }
 
     if (oldVersion < 19) {
-       // 23. Retry Add is_active (Force Retry)
-       try {
-         await db.execute('ALTER TABLE local_businesspartners ADD COLUMN is_active INTEGER DEFAULT 1');
-       } catch (e) { /* ignore */ }
-       
-        try {
-         await db.execute('ALTER TABLE local_stores ADD COLUMN phone TEXT');
-       } catch (e) { /* ignore */ }
+      // 23. Retry Add is_active (Force Retry)
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN is_active INTEGER DEFAULT 1');
+      } catch (e) {/* ignore */}
+
+      try {
+        await db.execute('ALTER TABLE local_stores ADD COLUMN phone TEXT');
+      } catch (e) {/* ignore */}
     }
 
     if (oldVersion < 20) {
       // 24. Final safeguard for phone and Fix Orphaned Records
       try {
         await db.execute('ALTER TABLE local_stores ADD COLUMN phone TEXT');
-      } catch (e) { /* ignore */ }
+      } catch (e) {/* ignore */}
 
       // Assign orphan records to the first store if available
       try {
@@ -484,11 +511,17 @@ class DatabaseHelper {
         if (stores.isNotEmpty) {
           final firstStoreId = stores.first['id'];
           // Products
-          await db.rawUpdate('UPDATE local_products SET store_id = ? WHERE store_id IS NULL', [firstStoreId]);
+          await db.rawUpdate(
+              'UPDATE local_products SET store_id = ? WHERE store_id IS NULL',
+              [firstStoreId]);
           // Orders
-          await db.rawUpdate('UPDATE local_orders SET store_id = ? WHERE store_id IS NULL', [firstStoreId]);
+          await db.rawUpdate(
+              'UPDATE local_orders SET store_id = ? WHERE store_id IS NULL',
+              [firstStoreId]);
           // Business Partners
-          await db.rawUpdate('UPDATE local_businesspartners SET store_id = ? WHERE store_id IS NULL', [firstStoreId]);
+          await db.rawUpdate(
+              'UPDATE local_businesspartners SET store_id = ? WHERE store_id IS NULL',
+              [firstStoreId]);
         }
       } catch (e) {
         // ignore
@@ -497,7 +530,8 @@ class DatabaseHelper {
 
     if (oldVersion < 21) {
       try {
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN is_supplier INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN is_supplier INTEGER DEFAULT 0');
       } catch (e) {
         // ignore
       }
@@ -509,11 +543,15 @@ class DatabaseHelper {
         if (stores.isNotEmpty) {
           final firstStoreId = stores.first['id'];
           // Assign orphaned records to first store
-          await db.update('local_businesspartners', {'store_id': firstStoreId}, where: 'store_id IS NULL');
-          await db.update('local_products', {'store_id': firstStoreId}, where: 'store_id IS NULL');
-          await db.update('local_orders', {'store_id': firstStoreId}, where: 'store_id IS NULL');
-          
-          debugPrint('Database: Migrated orphaned records to store $firstStoreId');
+          await db.update('local_businesspartners', {'store_id': firstStoreId},
+              where: 'store_id IS NULL');
+          await db.update('local_products', {'store_id': firstStoreId},
+              where: 'store_id IS NULL');
+          await db.update('local_orders', {'store_id': firstStoreId},
+              where: 'store_id IS NULL');
+
+          debugPrint(
+              'Database: Migrated orphaned records to store $firstStoreId');
         }
       } catch (e) {
         debugPrint('Database: Orphaned records migration error: $e');
@@ -522,55 +560,71 @@ class DatabaseHelper {
 
     if (oldVersion < 23) {
       try {
-        await db.execute('ALTER TABLE local_roles ADD COLUMN updated_at INTEGER');
-      } catch (e) { /* ignore */ }
+        await db
+            .execute('ALTER TABLE local_roles ADD COLUMN updated_at INTEGER');
+      } catch (e) {/* ignore */}
     }
 
     if (oldVersion < 24) {
       // Version 24: Comprehensive Field Parity with Supabase
-      
+
       // 1. Business Partners: organization_id, manager_id, auth_user_id
       try {
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN organization_id INTEGER');
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN manager_id TEXT');
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN auth_user_id TEXT');
-      } catch (e) { /* ignore */ }
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN organization_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN manager_id TEXT');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN auth_user_id TEXT');
+      } catch (e) {/* ignore */}
 
       // 2. Products: organization_id
       try {
-        await db.execute('ALTER TABLE local_products ADD COLUMN organization_id INTEGER');
-      } catch (e) { /* ignore */ }
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN organization_id INTEGER');
+      } catch (e) {/* ignore */}
 
       // 3. Orders: organization_id, order_type
       try {
-        await db.execute('ALTER TABLE local_orders ADD COLUMN organization_id INTEGER');
-        await db.execute('ALTER TABLE local_orders ADD COLUMN order_type TEXT DEFAULT "SO"');
-      } catch (e) { /* ignore */ }
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN organization_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN order_type TEXT DEFAULT "SO"');
+      } catch (e) {/* ignore */}
 
       // 4. App Users: profile details
       try {
-        await db.execute('ALTER TABLE local_app_users ADD COLUMN full_name TEXT');
+        await db
+            .execute('ALTER TABLE local_app_users ADD COLUMN full_name TEXT');
         await db.execute('ALTER TABLE local_app_users ADD COLUMN phone TEXT');
         await db.execute('ALTER TABLE local_app_users ADD COLUMN role TEXT');
-        await db.execute('ALTER TABLE local_app_users ADD COLUMN updated_at INTEGER');
-      } catch (e) { /* ignore */ }
+        await db.execute(
+            'ALTER TABLE local_app_users ADD COLUMN updated_at INTEGER');
+      } catch (e) {/* ignore */}
 
       // 5. Profile Cache (local_users): organization_id, store_id, phone
       try {
-        await db.execute('ALTER TABLE local_users ADD COLUMN organization_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_users ADD COLUMN organization_id INTEGER');
         await db.execute('ALTER TABLE local_users ADD COLUMN store_id INTEGER');
         await db.execute('ALTER TABLE local_users ADD COLUMN phone TEXT');
-      } catch (e) { /* ignore */ }
+      } catch (e) {/* ignore */}
 
       // 6. Metadata Tables: Timestamps
       try {
-        await db.execute('ALTER TABLE local_roles ADD COLUMN created_at INTEGER');
-        await db.execute('ALTER TABLE local_business_types ADD COLUMN created_at INTEGER');
-        await db.execute('ALTER TABLE local_business_types ADD COLUMN updated_at INTEGER');
-        await db.execute('ALTER TABLE local_brands ADD COLUMN updated_at INTEGER');
-        await db.execute('ALTER TABLE local_categories ADD COLUMN updated_at INTEGER');
-        await db.execute('ALTER TABLE local_product_types ADD COLUMN updated_at INTEGER');
-      } catch (e) { /* ignore */ }
+        await db
+            .execute('ALTER TABLE local_roles ADD COLUMN created_at INTEGER');
+        await db.execute(
+            'ALTER TABLE local_business_types ADD COLUMN created_at INTEGER');
+        await db.execute(
+            'ALTER TABLE local_business_types ADD COLUMN updated_at INTEGER');
+        await db
+            .execute('ALTER TABLE local_brands ADD COLUMN updated_at INTEGER');
+        await db.execute(
+            'ALTER TABLE local_categories ADD COLUMN updated_at INTEGER');
+        await db.execute(
+            'ALTER TABLE local_product_types ADD COLUMN updated_at INTEGER');
+      } catch (e) {/* ignore */}
 
       // 7. Add local_privileges table
       try {
@@ -582,27 +636,44 @@ class DatabaseHelper {
             status INTEGER DEFAULT 1
           )
         ''');
-      } catch (e) { /* ignore */ }
+      } catch (e) {/* ignore */}
     }
-
-
 
     if (oldVersion < 25) {
       // Version 25: Maintenance & Schema Fixes - Ensure parity across all tables
       final tables = [
-        'local_roles', 'local_departments', 'local_business_types', 
-        'local_brands', 'local_categories', 'local_product_types',
-        'local_app_users', 'local_businesspartners', 'local_products', 'local_orders'
+        'local_roles',
+        'local_departments',
+        'local_business_types',
+        'local_brands',
+        'local_categories',
+        'local_product_types',
+        'local_app_users',
+        'local_businesspartners',
+        'local_products',
+        'local_orders'
       ];
 
       for (var table in tables) {
-        try { await db.execute('ALTER TABLE $table ADD COLUMN updated_at INTEGER'); } catch (_) { /* ignore */ }
-        try { await db.execute('ALTER TABLE $table ADD COLUMN created_at INTEGER'); } catch (_) { /* ignore */ }
-        
+        try {
+          await db.execute('ALTER TABLE $table ADD COLUMN updated_at INTEGER');
+        } catch (_) {/* ignore */}
+        try {
+          await db.execute('ALTER TABLE $table ADD COLUMN created_at INTEGER');
+        } catch (_) {/* ignore */}
+
         // Specific columns for specific tables
-        if (table == 'local_businesspartners' || table == 'local_products' || table == 'local_orders' || 
-            table == 'local_roles' || table == 'local_brands' || table == 'local_categories' || table == 'local_product_types') {
-          try { await db.execute('ALTER TABLE $table ADD COLUMN organization_id INTEGER'); } catch (_) {}
+        if (table == 'local_businesspartners' ||
+            table == 'local_products' ||
+            table == 'local_orders' ||
+            table == 'local_roles' ||
+            table == 'local_brands' ||
+            table == 'local_categories' ||
+            table == 'local_product_types') {
+          try {
+            await db.execute(
+                'ALTER TABLE $table ADD COLUMN organization_id INTEGER');
+          } catch (_) {}
         }
       }
     }
@@ -641,9 +712,12 @@ class DatabaseHelper {
     if (oldVersion < 27) {
       // 27. Product UOM Support
       try {
-        await db.execute('ALTER TABLE local_products ADD COLUMN uom_id INTEGER');
-        await db.execute('ALTER TABLE local_products ADD COLUMN uom_symbol TEXT');
-        await db.execute('ALTER TABLE local_products ADD COLUMN base_quantity REAL DEFAULT 1.0');
+        await db
+            .execute('ALTER TABLE local_products ADD COLUMN uom_id INTEGER');
+        await db
+            .execute('ALTER TABLE local_products ADD COLUMN uom_symbol TEXT');
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN base_quantity REAL DEFAULT 1.0');
       } catch (e) {
         debugPrint('Migration to v27 note: $e (likely columns already exist)');
       }
@@ -732,11 +806,16 @@ class DatabaseHelper {
         ''');
 
         // Column updates
-        await db.execute('ALTER TABLE local_businesspartners ADD COLUMN chart_of_account_id TEXT');
-        await db.execute('ALTER TABLE local_orders ADD COLUMN payment_term_id INTEGER');
-        await db.execute('ALTER TABLE local_orders ADD COLUMN dispatch_status TEXT DEFAULT "pending"');
-        await db.execute('ALTER TABLE local_orders ADD COLUMN dispatch_date INTEGER');
-        await db.execute('ALTER TABLE local_orders ADD COLUMN is_invoiced INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN chart_of_account_id TEXT');
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN payment_term_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN dispatch_status TEXT DEFAULT "pending"');
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN dispatch_date INTEGER');
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN is_invoiced INTEGER DEFAULT 0');
       } catch (e) {
         debugPrint('Migration to v28 error: $e');
       }
@@ -744,16 +823,21 @@ class DatabaseHelper {
     if (oldVersion < 29) {
       // 29. Accounting Sync Enhancements
       try {
-        await db.execute('ALTER TABLE local_voucher_prefixes ADD COLUMN voucher_type TEXT');
-        await db.execute('ALTER TABLE local_voucher_prefixes ADD COLUMN is_synced INTEGER DEFAULT 1');
-        await db.execute('ALTER TABLE local_payment_terms ADD COLUMN is_synced INTEGER DEFAULT 1');
-        await db.execute('ALTER TABLE local_account_types ADD COLUMN is_synced INTEGER DEFAULT 1');
-        await db.execute('ALTER TABLE local_account_categories ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_voucher_prefixes ADD COLUMN voucher_type TEXT');
+        await db.execute(
+            'ALTER TABLE local_voucher_prefixes ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_payment_terms ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_account_types ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN is_synced INTEGER DEFAULT 1');
       } catch (e) {
         debugPrint('Migration to v29 error: $e');
       }
     }
-    
+
     if (oldVersion < 30) {
       // 30. Fix missing tables for users affected by incomplete _createDB
       await db.execute('''
@@ -773,8 +857,8 @@ class DatabaseHelper {
           )
         ''');
 
-        // Also ensure other potentially missed tables from v28 exists
-         await db.execute('''
+      // Also ensure other potentially missed tables from v28 exists
+      await db.execute('''
           CREATE TABLE IF NOT EXISTS local_account_types (
             id INTEGER PRIMARY KEY,
             account_type TEXT NOT NULL,
@@ -783,7 +867,7 @@ class DatabaseHelper {
             updated_at INTEGER
           )
         ''');
-        await db.execute('''
+      await db.execute('''
           CREATE TABLE IF NOT EXISTS local_account_categories (
             id INTEGER PRIMARY KEY,
             category_name TEXT NOT NULL,
@@ -791,16 +875,17 @@ class DatabaseHelper {
             created_at INTEGER
           )
         ''');
-        // Ensure column exists
-        try {
-          await db.execute('ALTER TABLE local_businesspartners ADD COLUMN chart_of_account_id TEXT');
-        } catch (_) { /* ignore */ }
+      // Ensure column exists
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN chart_of_account_id TEXT');
+      } catch (_) {/* ignore */}
     }
 
     if (oldVersion < 31) {
       // 31. Critical Emergency Fix: Ensure base tables exist with full schema
       // This fixes cases where users had a partially created v30 database or missing tables after clean.
-      
+
       await db.execute('''
         CREATE TABLE IF NOT EXISTS local_products(
           id TEXT PRIMARY KEY,
@@ -848,74 +933,143 @@ class DatabaseHelper {
       ''');
 
       // Also verify legacy metadata tables that might have been skipped in partial v30
-      await db.execute('CREATE TABLE IF NOT EXISTS local_brands(id INTEGER PRIMARY KEY, name TEXT, status INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER, is_synced INTEGER DEFAULT 1)');
-      await db.execute('CREATE TABLE IF NOT EXISTS local_categories(id INTEGER PRIMARY KEY, name TEXT, status INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER, is_synced INTEGER DEFAULT 1)');
-      await db.execute('CREATE TABLE IF NOT EXISTS local_product_types(id INTEGER PRIMARY KEY, name TEXT, status INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER, is_synced INTEGER DEFAULT 1)');
-      await db.execute('CREATE TABLE IF NOT EXISTS local_units_of_measure(id INTEGER PRIMARY KEY, unit_name TEXT, unit_symbol TEXT, unit_type TEXT, status INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER, organization_id INTEGER, is_synced INTEGER DEFAULT 1)');
+      await db.execute(
+          'CREATE TABLE IF NOT EXISTS local_brands(id INTEGER PRIMARY KEY, name TEXT, status INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER, is_synced INTEGER DEFAULT 1)');
+      await db.execute(
+          'CREATE TABLE IF NOT EXISTS local_categories(id INTEGER PRIMARY KEY, name TEXT, status INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER, is_synced INTEGER DEFAULT 1)');
+      await db.execute(
+          'CREATE TABLE IF NOT EXISTS local_product_types(id INTEGER PRIMARY KEY, name TEXT, status INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER, is_synced INTEGER DEFAULT 1)');
+      await db.execute(
+          'CREATE TABLE IF NOT EXISTS local_units_of_measure(id INTEGER PRIMARY KEY, unit_name TEXT, unit_symbol TEXT, unit_type TEXT, status INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER, organization_id INTEGER, is_synced INTEGER DEFAULT 1)');
     }
 
     if (oldVersion < 32) {
       // 32. Schema Parity Fix: Ensure missing columns are added to existing tables
-      
+
       // Organizations & Stores
-      try { await db.execute('ALTER TABLE local_organizations ADD COLUMN logo_url TEXT'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_stores ADD COLUMN store_city TEXT'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_stores ADD COLUMN store_country TEXT'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_stores ADD COLUMN store_postal_code TEXT'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_stores ADD COLUMN store_default_currency TEXT DEFAULT "USD"'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_stores ADD COLUMN phone TEXT'); } catch (_) { /* ignore */ }
-      
+      try {
+        await db.execute(
+            'ALTER TABLE local_organizations ADD COLUMN logo_url TEXT');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute('ALTER TABLE local_stores ADD COLUMN store_city TEXT');
+      } catch (_) {/* ignore */}
+      try {
+        await db
+            .execute('ALTER TABLE local_stores ADD COLUMN store_country TEXT');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute(
+            'ALTER TABLE local_stores ADD COLUMN store_postal_code TEXT');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute(
+            'ALTER TABLE local_stores ADD COLUMN store_default_currency TEXT DEFAULT "USD"');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute('ALTER TABLE local_stores ADD COLUMN phone TEXT');
+      } catch (_) {/* ignore */}
+
       // Orders: Lat/Lng, Notes, Types
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN latitude REAL'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN longitude REAL'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN login_latitude REAL'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN login_longitude REAL'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN notes TEXT'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN business_partner_id TEXT'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN business_partner_name TEXT'); } catch (_) { /* ignore */ }
-      
+      try {
+        await db.execute('ALTER TABLE local_orders ADD COLUMN latitude REAL');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute('ALTER TABLE local_orders ADD COLUMN longitude REAL');
+      } catch (_) {/* ignore */}
+      try {
+        await db
+            .execute('ALTER TABLE local_orders ADD COLUMN login_latitude REAL');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN login_longitude REAL');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute('ALTER TABLE local_orders ADD COLUMN notes TEXT');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN business_partner_id TEXT');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute(
+            'ALTER TABLE local_orders ADD COLUMN business_partner_name TEXT');
+      } catch (_) {/* ignore */}
+
       // Products: Description
-      try { await db.execute('ALTER TABLE local_products ADD COLUMN description TEXT'); } catch (_) { /* ignore */ }
-      
+      try {
+        await db
+            .execute('ALTER TABLE local_products ADD COLUMN description TEXT');
+      } catch (_) {/* ignore */}
+
       // Metadata tables missing updated_at
-      try { await db.execute('ALTER TABLE local_brands ADD COLUMN updated_at INTEGER'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_categories ADD COLUMN updated_at INTEGER'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_product_types ADD COLUMN updated_at INTEGER'); } catch (_) { /* ignore */ }
-      
+      try {
+        await db
+            .execute('ALTER TABLE local_brands ADD COLUMN updated_at INTEGER');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute(
+            'ALTER TABLE local_categories ADD COLUMN updated_at INTEGER');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute(
+            'ALTER TABLE local_product_types ADD COLUMN updated_at INTEGER');
+      } catch (_) {/* ignore */}
+
       // Ensure local_users has organization_id and store_id
-      try { await db.execute('ALTER TABLE local_users ADD COLUMN organization_id INTEGER'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_users ADD COLUMN store_id INTEGER'); } catch (_) { /* ignore */ }
-      try { await db.execute('ALTER TABLE local_users ADD COLUMN phone TEXT'); } catch (_) { /* ignore */ }
+      try {
+        await db.execute(
+            'ALTER TABLE local_users ADD COLUMN organization_id INTEGER');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute('ALTER TABLE local_users ADD COLUMN store_id INTEGER');
+      } catch (_) {/* ignore */}
+      try {
+        await db.execute('ALTER TABLE local_users ADD COLUMN phone TEXT');
+      } catch (_) {/* ignore */}
     }
-    
+
     if (oldVersion < 34) {
       // 34. Robust Sync Column Verification
       final syncTables = [
-        'local_products', 'local_orders', 'local_businesspartners', 
-        'local_brands', 'local_categories', 'local_product_types',
-        'local_units_of_measure', 'local_unit_conversions', 'local_app_users',
-        'local_chart_of_accounts', 'local_bank_cash', 'local_transactions',
-        'local_voucher_prefixes', 'local_payment_terms', 'local_account_types',
+        'local_products',
+        'local_orders',
+        'local_businesspartners',
+        'local_brands',
+        'local_categories',
+        'local_product_types',
+        'local_units_of_measure',
+        'local_unit_conversions',
+        'local_app_users',
+        'local_chart_of_accounts',
+        'local_bank_cash',
+        'local_transactions',
+        'local_voucher_prefixes',
+        'local_payment_terms',
+        'local_account_types',
         'local_account_categories'
       ];
-      
+
       debugPrint('Database: Starting v34 migration for sync columns...');
       for (var table in syncTables) {
-        try { 
-          await db.execute('ALTER TABLE $table ADD COLUMN is_synced INTEGER DEFAULT 1');
+        try {
+          await db.execute(
+              'ALTER TABLE $table ADD COLUMN is_synced INTEGER DEFAULT 1');
         } catch (_) {}
-        
-        try { 
-          await db.execute('ALTER TABLE $table ADD COLUMN organization_id INTEGER');
+
+        try {
+          await db
+              .execute('ALTER TABLE $table ADD COLUMN organization_id INTEGER');
         } catch (_) {}
       }
       debugPrint('Database: v34 migration complete.');
     }
-    
+
     if (oldVersion < 35) {
       // 35. Comprehensive Schema Integrity Check
       debugPrint('Database: Starting v35 schema integrity migration...');
-      
+
       // Products Table Parity
       final productCols = {
         'sku': 'TEXT',
@@ -935,9 +1089,12 @@ class DatabaseHelper {
         'organization_id': 'INTEGER',
         'store_id': 'INTEGER'
       };
-      
+
       for (var entry in productCols.entries) {
-        try { await db.execute('ALTER TABLE local_products ADD COLUMN ${entry.key} ${entry.value}'); } catch (_) {}
+        try {
+          await db.execute(
+              'ALTER TABLE local_products ADD COLUMN ${entry.key} ${entry.value}');
+        } catch (_) {}
       }
 
       // Orders Table Parity
@@ -963,7 +1120,10 @@ class DatabaseHelper {
       };
 
       for (var entry in orderCols.entries) {
-        try { await db.execute('ALTER TABLE local_orders ADD COLUMN ${entry.key} ${entry.value}'); } catch (_) {}
+        try {
+          await db.execute(
+              'ALTER TABLE local_orders ADD COLUMN ${entry.key} ${entry.value}');
+        } catch (_) {}
       }
 
       // Business Partners Parity
@@ -981,18 +1141,27 @@ class DatabaseHelper {
       };
 
       for (var entry in partnerCols.entries) {
-        try { await db.execute('ALTER TABLE local_businesspartners ADD COLUMN ${entry.key} ${entry.value}'); } catch (_) {}
+        try {
+          await db.execute(
+              'ALTER TABLE local_businesspartners ADD COLUMN ${entry.key} ${entry.value}');
+        } catch (_) {}
       }
-      
+
       debugPrint('Database: v35 schema integrity migration complete.');
     }
 
     if (oldVersion < 37) {
       // 37. Financial Sessions and Transaction Year
       debugPrint('Database: Starting v37 migration...');
-      try { await db.execute('ALTER TABLE local_transactions ADD COLUMN syear INTEGER'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_businesspartners ADD COLUMN payment_term_id INTEGER'); } catch (_) {}
-      
+      try {
+        await db
+            .execute('ALTER TABLE local_transactions ADD COLUMN syear INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN payment_term_id INTEGER');
+      } catch (_) {}
+
       await db.execute('''
         CREATE TABLE IF NOT EXISTS local_financial_sessions (
           syear INTEGER PRIMARY KEY,
@@ -1011,20 +1180,39 @@ class DatabaseHelper {
     if (oldVersion < 38) {
       // 38. Accounting System v2 - Adding is_system and missing category fields
       debugPrint('Database: Starting v38 migration...');
-      try { await db.execute('ALTER TABLE local_account_types ADD COLUMN status INTEGER DEFAULT 1'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_types ADD COLUMN is_system INTEGER DEFAULT 0'); } catch (_) {}
-      
-      try { await db.execute('ALTER TABLE local_account_categories ADD COLUMN account_type_id INTEGER'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_categories ADD COLUMN status INTEGER DEFAULT 1'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_categories ADD COLUMN is_system INTEGER DEFAULT 0'); } catch (_) {}
-      
-      try { await db.execute('ALTER TABLE local_chart_of_accounts ADD COLUMN is_system INTEGER DEFAULT 0'); } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_types ADD COLUMN status INTEGER DEFAULT 1');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_types ADD COLUMN is_system INTEGER DEFAULT 0');
+      } catch (_) {}
+
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN account_type_id INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN status INTEGER DEFAULT 1');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN is_system INTEGER DEFAULT 0');
+      } catch (_) {}
+
+      try {
+        await db.execute(
+            'ALTER TABLE local_chart_of_accounts ADD COLUMN is_system INTEGER DEFAULT 0');
+      } catch (_) {}
       debugPrint('Database: v38 migration complete.');
     }
-    
+
     if (oldVersion < 39) {
       // 39. Fix local_bank_cash schema
-      debugPrint('Database: Starting v39 migration (Fixing local_bank_cash)...');
+      debugPrint(
+          'Database: Starting v39 migration (Fixing local_bank_cash)...');
       try {
         await db.execute('DROP TABLE IF EXISTS local_bank_cash');
         await db.execute('''
@@ -1046,7 +1234,8 @@ class DatabaseHelper {
 
     if (oldVersion < 40) {
       // 40. Fix local_bank_cash schema (TEXT ID, consistent column names)
-      debugPrint('Database: Starting v40 migration (Fixing local_bank_cash schema)...');
+      debugPrint(
+          'Database: Starting v40 migration (Fixing local_bank_cash schema)...');
       try {
         await db.execute('DROP TABLE IF EXISTS local_bank_cash');
         await db.execute('''
@@ -1070,9 +1259,11 @@ class DatabaseHelper {
 
     if (oldVersion < 41) {
       // 41. Fix local_voucher_prefixes schema (Adding status column)
-      debugPrint('Database: Starting v41 migration (Adding status to local_voucher_prefixes)...');
+      debugPrint(
+          'Database: Starting v41 migration (Adding status to local_voucher_prefixes)...');
       try {
-        await db.execute('ALTER TABLE local_voucher_prefixes ADD COLUMN status INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_voucher_prefixes ADD COLUMN status INTEGER DEFAULT 1');
       } catch (e) {
         debugPrint('Database: v41 migration error: $e');
       }
@@ -1083,12 +1274,14 @@ class DatabaseHelper {
       // 42. Adding days to payment terms and due_date to orders
       debugPrint('Database: Starting v42 migration (days and due_date)...');
       try {
-        await db.execute('ALTER TABLE local_payment_terms ADD COLUMN days INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_payment_terms ADD COLUMN days INTEGER DEFAULT 0');
       } catch (e) {
         debugPrint('Database: v42 migration error (days): $e');
       }
       try {
-        await db.execute('ALTER TABLE local_orders ADD COLUMN due_date INTEGER');
+        await db
+            .execute('ALTER TABLE local_orders ADD COLUMN due_date INTEGER');
       } catch (e) {
         debugPrint('Database: v42 migration error (due_date): $e');
       }
@@ -1139,14 +1332,18 @@ class DatabaseHelper {
 
       // Seed defaults locally
       try {
-        await db.execute("INSERT OR IGNORE INTO local_invoice_types (id_invoice_type, description, for_used) VALUES ('SI', 'Sales Invoice', 'Sales Invoice')");
-        await db.execute("INSERT OR IGNORE INTO local_invoice_types (id_invoice_type, description, for_used) VALUES ('SIR', 'Sales Invoice Return', 'Sales Invoice Return')");
-        await db.execute("INSERT OR IGNORE INTO local_invoice_types (id_invoice_type, description, for_used) VALUES ('PI', 'Purchase Invoice', 'Purchase Invoice')");
-        await db.execute("INSERT OR IGNORE INTO local_invoice_types (id_invoice_type, description, for_used) VALUES ('PIR', 'Purchase Invoice Return', 'Purchase Invoice Return')");
+        await db.execute(
+            "INSERT OR IGNORE INTO local_invoice_types (id_invoice_type, description, for_used) VALUES ('SI', 'Sales Invoice', 'Sales Invoice')");
+        await db.execute(
+            "INSERT OR IGNORE INTO local_invoice_types (id_invoice_type, description, for_used) VALUES ('SIR', 'Sales Invoice Return', 'Sales Invoice Return')");
+        await db.execute(
+            "INSERT OR IGNORE INTO local_invoice_types (id_invoice_type, description, for_used) VALUES ('PI', 'Purchase Invoice', 'Purchase Invoice')");
+        await db.execute(
+            "INSERT OR IGNORE INTO local_invoice_types (id_invoice_type, description, for_used) VALUES ('PIR', 'Purchase Invoice Return', 'Purchase Invoice Return')");
       } catch (e) {
         debugPrint('Database: v43 migration error (seeding): $e');
       }
-      
+
       debugPrint('Database: v43 migration complete.');
     }
 
@@ -1219,20 +1416,26 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 47) {
-      debugPrint('Database: Starting v47 migration (is_synced to GL Setup, Daily Balance, Invoice Types)...');
+      debugPrint(
+          'Database: Starting v47 migration (is_synced to GL Setup, Daily Balance, Invoice Types)...');
       try {
-        await db.execute('ALTER TABLE local_gl_setup ADD COLUMN is_synced INTEGER DEFAULT 1');
-        await db.execute('ALTER TABLE local_daily_balances ADD COLUMN is_synced INTEGER DEFAULT 1');
-        await db.execute('ALTER TABLE local_invoice_types ADD COLUMN is_synced INTEGER DEFAULT 1');
-        await db.execute('ALTER TABLE local_invoice_items ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_gl_setup ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_daily_balances ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_invoice_types ADD COLUMN is_synced INTEGER DEFAULT 1');
+        await db.execute(
+            'ALTER TABLE local_invoice_items ADD COLUMN is_synced INTEGER DEFAULT 1');
       } catch (e) {
         debugPrint('Database: v47 migration error: $e');
       }
       debugPrint('Database: v47 migration complete.');
     }
-    
+
     if (oldVersion < 48) {
-      debugPrint('Database: Starting v48 migration (Missing Metadata Tables)...');
+      debugPrint(
+          'Database: Starting v48 migration (Missing Metadata Tables)...');
       try {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS local_roles(
@@ -1272,31 +1475,66 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 49) {
-      debugPrint('Database: Starting v49 migration (Accounting Schema Parity)...');
+      debugPrint(
+          'Database: Starting v49 migration (Accounting Schema Parity)...');
       // Ensure local_account_types has all columns
-      try { await db.execute('ALTER TABLE local_account_types ADD COLUMN status INTEGER DEFAULT 1'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_types ADD COLUMN is_system INTEGER DEFAULT 0'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_types ADD COLUMN is_synced INTEGER DEFAULT 1'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_types ADD COLUMN updated_at INTEGER'); } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_types ADD COLUMN status INTEGER DEFAULT 1');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_types ADD COLUMN is_system INTEGER DEFAULT 0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_types ADD COLUMN is_synced INTEGER DEFAULT 1');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_types ADD COLUMN updated_at INTEGER');
+      } catch (_) {}
 
       // Ensure local_account_categories has all columns
-      try { await db.execute('ALTER TABLE local_account_categories ADD COLUMN account_type_id INTEGER'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_categories ADD COLUMN status INTEGER DEFAULT 1'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_categories ADD COLUMN is_system INTEGER DEFAULT 0'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_categories ADD COLUMN is_synced INTEGER DEFAULT 1'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_account_categories ADD COLUMN updated_at INTEGER'); } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN account_type_id INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN status INTEGER DEFAULT 1');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN is_system INTEGER DEFAULT 0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN is_synced INTEGER DEFAULT 1');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_account_categories ADD COLUMN updated_at INTEGER');
+      } catch (_) {}
 
       // Fix for local_chart_of_accounts
-      try { await db.execute('ALTER TABLE local_chart_of_accounts ADD COLUMN is_system INTEGER DEFAULT 0'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_chart_of_accounts ADD COLUMN status INTEGER DEFAULT 1'); } catch (_) {}
-      
+      try {
+        await db.execute(
+            'ALTER TABLE local_chart_of_accounts ADD COLUMN is_system INTEGER DEFAULT 0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_chart_of_accounts ADD COLUMN status INTEGER DEFAULT 1');
+      } catch (_) {}
+
       debugPrint('Database: v49 migration complete.');
     }
 
     if (oldVersion < 50) {
       debugPrint('Database: Starting v50 migration (Fix Missing syear)...');
       try {
-        await db.execute('ALTER TABLE local_transactions ADD COLUMN syear INTEGER');
+        await db
+            .execute('ALTER TABLE local_transactions ADD COLUMN syear INTEGER');
       } catch (_) {}
       debugPrint('Database: v50 migration complete.');
     }
@@ -1304,8 +1542,10 @@ class DatabaseHelper {
     if (oldVersion < 51) {
       debugPrint('Database: Starting v51 migration (GL Setup Discounts)...');
       try {
-        await db.execute('ALTER TABLE local_gl_setup ADD COLUMN sales_discount_account_id TEXT');
-        await db.execute('ALTER TABLE local_gl_setup ADD COLUMN purchase_discount_account_id TEXT');
+        await db.execute(
+            'ALTER TABLE local_gl_setup ADD COLUMN sales_discount_account_id TEXT');
+        await db.execute(
+            'ALTER TABLE local_gl_setup ADD COLUMN purchase_discount_account_id TEXT');
       } catch (e) {
         debugPrint('Database: v51 migration error: $e');
       }
@@ -1315,10 +1555,14 @@ class DatabaseHelper {
     if (oldVersion < 52) {
       // 52. Role Privileges
       try {
-        await db.execute('ALTER TABLE local_roles ADD COLUMN can_read INTEGER DEFAULT 0');
-        await db.execute('ALTER TABLE local_roles ADD COLUMN can_write INTEGER DEFAULT 0');
-        await db.execute('ALTER TABLE local_roles ADD COLUMN can_edit INTEGER DEFAULT 0');
-        await db.execute('ALTER TABLE local_roles ADD COLUMN can_print INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN can_read INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN can_write INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN can_edit INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN can_print INTEGER DEFAULT 0');
       } catch (e) {
         debugPrint('Migration to v52 error: $e');
       }
@@ -1378,14 +1622,46 @@ class DatabaseHelper {
 
         // Seed some default forms
         final initialForms = [
-          {'form_name': 'Products', 'form_code': 'FRM_PRODUCTS', 'module_name': 'Inventory'},
-          {'form_name': 'Orders', 'form_code': 'FRM_ORDERS', 'module_name': 'Sales'},
-          {'form_name': 'Customers', 'form_code': 'FRM_CUSTOMERS', 'module_name': 'CRM'},
-          {'form_name': 'Vendors', 'form_code': 'FRM_VENDORS', 'module_name': 'Purchasing'},
-          {'form_name': 'Inventory', 'form_code': 'FRM_INVENTORY', 'module_name': 'Inventory'},
-          {'form_name': 'Reports', 'form_code': 'FRM_REPORTS', 'module_name': 'Admin'},
-          {'form_name': 'Users', 'form_code': 'FRM_USERS', 'module_name': 'Admin'},
-          {'form_name': 'Settings', 'form_code': 'FRM_SETTINGS', 'module_name': 'Admin'},
+          {
+            'form_name': 'Products',
+            'form_code': 'FRM_PRODUCTS',
+            'module_name': 'Inventory'
+          },
+          {
+            'form_name': 'Orders',
+            'form_code': 'FRM_ORDERS',
+            'module_name': 'Sales'
+          },
+          {
+            'form_name': 'Customers',
+            'form_code': 'FRM_CUSTOMERS',
+            'module_name': 'CRM'
+          },
+          {
+            'form_name': 'Vendors',
+            'form_code': 'FRM_VENDORS',
+            'module_name': 'Purchasing'
+          },
+          {
+            'form_name': 'Inventory',
+            'form_code': 'FRM_INVENTORY',
+            'module_name': 'Inventory'
+          },
+          {
+            'form_name': 'Reports',
+            'form_code': 'FRM_REPORTS',
+            'module_name': 'Admin'
+          },
+          {
+            'form_name': 'Users',
+            'form_code': 'FRM_USERS',
+            'module_name': 'Admin'
+          },
+          {
+            'form_name': 'Settings',
+            'form_code': 'FRM_SETTINGS',
+            'module_name': 'Admin'
+          },
         ];
 
         for (final form in initialForms) {
@@ -1398,27 +1674,56 @@ class DatabaseHelper {
 
     if (oldVersion < 54) {
       // 54. Ensure role privileges exist (Re-run v52 logic more robustly)
-      try { await db.execute('ALTER TABLE local_roles ADD COLUMN can_read INTEGER DEFAULT 0'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_roles ADD COLUMN can_write INTEGER DEFAULT 0'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_roles ADD COLUMN can_edit INTEGER DEFAULT 0'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_roles ADD COLUMN can_print INTEGER DEFAULT 0'); } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN can_read INTEGER DEFAULT 0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN can_write INTEGER DEFAULT 0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN can_edit INTEGER DEFAULT 0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN can_print INTEGER DEFAULT 0');
+      } catch (_) {}
       debugPrint('Database: v54 migration complete (Role Privileges ensured).');
     }
 
     if (oldVersion < 55) {
       // 55. Product Enhancements (Limit Price, GL Accounts, Opening Stock)
-      try { await db.execute('ALTER TABLE local_products ADD COLUMN limit_price REAL DEFAULT 0.0'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_products ADD COLUMN stock_qty REAL DEFAULT 0.0'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_products ADD COLUMN inventory_gl_id TEXT'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_products ADD COLUMN cogs_gl_id TEXT'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_products ADD COLUMN revenue_gl_id TEXT'); } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN limit_price REAL DEFAULT 0.0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN stock_qty REAL DEFAULT 0.0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN inventory_gl_id TEXT');
+      } catch (_) {}
+      try {
+        await db
+            .execute('ALTER TABLE local_products ADD COLUMN cogs_gl_id TEXT');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN revenue_gl_id TEXT');
+      } catch (_) {}
       debugPrint('Database: v55 migration complete (Product Enhancements).');
     }
 
     if (oldVersion < 56) {
-      debugPrint('Database: Starting v56 migration (Invoice Item Discounts)...');
+      debugPrint(
+          'Database: Starting v56 migration (Invoice Item Discounts)...');
       try {
-        await db.execute('ALTER TABLE local_invoice_items ADD COLUMN discount_percent REAL DEFAULT 0.0');
+        await db.execute(
+            'ALTER TABLE local_invoice_items ADD COLUMN discount_percent REAL DEFAULT 0.0');
       } catch (e) {
         debugPrint('Database: v56 migration error: $e');
       }
@@ -1438,19 +1743,34 @@ class DatabaseHelper {
 
         // Seed Business Types locally
         final types = [
-          'Services', 'Manufacturer', 'Retailer', 'Services + Retailer',
-          'Wholesaler', 'Distributor', 'Restaurant & Cafe', 'Logistics',
-          'Healthcare', 'Construction', 'E-commerce', 'Hospitality'
+          'Services',
+          'Manufacturer',
+          'Retailer',
+          'Services + Retailer',
+          'Wholesaler',
+          'Distributor',
+          'Restaurant & Cafe',
+          'Logistics',
+          'Healthcare',
+          'Construction',
+          'E-commerce',
+          'Hospitality'
         ];
         for (var type in types) {
-           await db.execute("INSERT OR IGNORE INTO local_business_types (business_type) VALUES (?)", [type]);
+          await db.execute(
+              "INSERT OR IGNORE INTO local_business_types (business_type) VALUES (?)",
+              [type]);
         }
 
         // Add columns to local_organizations
-        await db.execute('ALTER TABLE local_organizations ADD COLUMN business_type_id INTEGER');
-        await db.execute('ALTER TABLE local_organizations ADD COLUMN is_services INTEGER DEFAULT 0');
-        await db.execute('ALTER TABLE local_organizations ADD COLUMN is_manufacturer INTEGER DEFAULT 0');
-        await db.execute('ALTER TABLE local_organizations ADD COLUMN is_retailer INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_organizations ADD COLUMN business_type_id INTEGER');
+        await db.execute(
+            'ALTER TABLE local_organizations ADD COLUMN is_services INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_organizations ADD COLUMN is_manufacturer INTEGER DEFAULT 0');
+        await db.execute(
+            'ALTER TABLE local_organizations ADD COLUMN is_retailer INTEGER DEFAULT 0');
 
         // Default update
         await db.execute('''
@@ -1465,116 +1785,201 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 58) {
-       // v58: Add accounting IDs and discount fields to local_products to match server parity & model
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN limtprice REAL DEFAULT 0.0'); } catch (_) {}
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN cogs_id TEXT'); } catch (_) {}
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN revnue_id TEXT'); } catch (_) {}
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN defult_discount_percnt REAL DEFAULT 0.0'); } catch (_) {}
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN defult_discount_percnt_limit REAL DEFAULT 0.0'); } catch (_) {}
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN sales_discount_id TEXT'); } catch (_) {}
-       
-       // Standard names as well
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN limit_price REAL DEFAULT 0.0'); } catch (_) {}
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN cogs_gl_id TEXT'); } catch (_) {}
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN revenue_gl_id TEXT'); } catch (_) {}
-       try { await db.execute('ALTER TABLE local_products ADD COLUMN inventory_gl_id TEXT'); } catch (_) {}
+      // v58: Add accounting IDs and discount fields to local_products to match server parity & model
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN limtprice REAL DEFAULT 0.0');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE local_products ADD COLUMN cogs_id TEXT');
+      } catch (_) {}
+      try {
+        await db
+            .execute('ALTER TABLE local_products ADD COLUMN revnue_id TEXT');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN defult_discount_percnt REAL DEFAULT 0.0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN defult_discount_percnt_limit REAL DEFAULT 0.0');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN sales_discount_id TEXT');
+      } catch (_) {}
+
+      // Standard names as well
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN limit_price REAL DEFAULT 0.0');
+      } catch (_) {}
+      try {
+        await db
+            .execute('ALTER TABLE local_products ADD COLUMN cogs_gl_id TEXT');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN revenue_gl_id TEXT');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_products ADD COLUMN inventory_gl_id TEXT');
+      } catch (_) {}
     }
 
     if (oldVersion < 59) {
-      debugPrint('Database: Starting v59 migration (Financial Year & is_closed)...');
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN syear INTEGER'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_invoices ADD COLUMN syear INTEGER'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_financial_sessions ADD COLUMN is_closed INTEGER DEFAULT 0'); } catch (_) {}
+      debugPrint(
+          'Database: Starting v59 migration (Financial Year & is_closed)...');
+      try {
+        await db.execute('ALTER TABLE local_orders ADD COLUMN syear INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE local_invoices ADD COLUMN syear INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_financial_sessions ADD COLUMN is_closed INTEGER DEFAULT 0');
+      } catch (_) {}
       debugPrint('Database: v59 migration complete.');
     }
-    
+
     if (oldVersion < 60) {
-      debugPrint('Database: Starting v60 migration (Passwords and role details)...');
-      try { await db.execute('ALTER TABLE local_app_users ADD COLUMN password TEXT'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_businesspartners ADD COLUMN password TEXT'); } catch (_) {}
-      
+      debugPrint(
+          'Database: Starting v60 migration (Passwords and role details)...');
+      try {
+        await db
+            .execute('ALTER TABLE local_app_users ADD COLUMN password TEXT');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN password TEXT');
+      } catch (_) {}
+
       // Ensure role columns exist in local_businesspartners (if missed in earlier migrations)
-      try { await db.execute('ALTER TABLE local_businesspartners ADD COLUMN role TEXT'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_businesspartners ADD COLUMN business_type_name TEXT'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_businesspartners ADD COLUMN role_name TEXT'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_businesspartners ADD COLUMN department_name TEXT'); } catch (_) {}
-      
+      try {
+        await db
+            .execute('ALTER TABLE local_businesspartners ADD COLUMN role TEXT');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN business_type_name TEXT');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN role_name TEXT');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN department_name TEXT');
+      } catch (_) {}
+
       debugPrint('Database: v60 migration complete.');
     }
 
     if (oldVersion < 61) {
       debugPrint('Database: Starting v61 migration (Role department_id)...');
-      try { await db.execute('ALTER TABLE local_roles ADD COLUMN department_id INTEGER'); } catch (_) {}
+      try {
+        await db.execute(
+            'ALTER TABLE local_roles ADD COLUMN department_id INTEGER');
+      } catch (_) {}
       debugPrint('Database: v61 migration complete.');
     }
     if (oldVersion < 62) {
-      debugPrint('Database: Starting v62 migration (AppUser role_name and last_login)...');
-      try { await db.execute('ALTER TABLE local_app_users ADD COLUMN role_name TEXT'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_app_users ADD COLUMN last_login TEXT'); } catch (_) {}
+      debugPrint(
+          'Database: Starting v62 migration (AppUser role_name and last_login)...');
+      try {
+        await db
+            .execute('ALTER TABLE local_app_users ADD COLUMN role_name TEXT');
+      } catch (_) {}
+      try {
+        await db
+            .execute('ALTER TABLE local_app_users ADD COLUMN last_login TEXT');
+      } catch (_) {}
       debugPrint('Database: v62 migration complete.');
     }
 
     if (oldVersion < 63) {
       debugPrint('Database: Starting v63 migration (AppUser store_id)...');
-      try { await db.execute('ALTER TABLE local_app_users ADD COLUMN store_id INTEGER'); } catch (_) {}
+      try {
+        await db
+            .execute('ALTER TABLE local_app_users ADD COLUMN store_id INTEGER');
+      } catch (_) {}
       debugPrint('Database: v63 migration complete.');
     }
 
     if (oldVersion < 64) {
-      debugPrint('Database: Starting v64 migration (Ensure syear in Transactions, Invoices, Orders)...');
+      debugPrint(
+          'Database: Starting v64 migration (Ensure syear in Transactions, Invoices, Orders)...');
       // Ensure syear exists in critical tables as requested
-      try { await db.execute('ALTER TABLE local_transactions ADD COLUMN syear INTEGER'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_invoices ADD COLUMN syear INTEGER'); } catch (_) {}
-      try { await db.execute('ALTER TABLE local_orders ADD COLUMN syear INTEGER'); } catch (_) {}
-      
+      try {
+        await db
+            .execute('ALTER TABLE local_transactions ADD COLUMN syear INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE local_invoices ADD COLUMN syear INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE local_orders ADD COLUMN syear INTEGER');
+      } catch (_) {}
+
       // Attempt to add to 'Receipts' if it implies a separate table (e.g. local_receipts), strictly as a safety check
-      try { 
-         // Check if table exists first prevents error spam, but simple alter try-catch is fine for migration scripts
-         await db.execute('ALTER TABLE local_receipts ADD COLUMN syear INTEGER'); 
+      try {
+        // Check if table exists first prevents error spam, but simple alter try-catch is fine for migration scripts
+        await db.execute('ALTER TABLE local_receipts ADD COLUMN syear INTEGER');
       } catch (_) {
-         // Expected if table does not exist
+        // Expected if table does not exist
       }
       debugPrint('Database: v64 migration complete.');
     }
 
     if (oldVersion < 65) {
-      debugPrint('Database: Starting v65 migration (is_system for voucher prefixes)...');
+      debugPrint(
+          'Database: Starting v65 migration (is_system for voucher prefixes)...');
       try {
-        await db.execute('ALTER TABLE local_voucher_prefixes ADD COLUMN is_system INTEGER DEFAULT 0');
-      } catch (_) { /* ignore */ }
+        await db.execute(
+            'ALTER TABLE local_voucher_prefixes ADD COLUMN is_system INTEGER DEFAULT 0');
+      } catch (_) {/* ignore */}
       debugPrint('Database: v65 migration complete.');
     }
     if (oldVersion < 66) {
-       debugPrint('Database: Starting v66 migration (Add Store/SYear to Roles)...');
-        try {
-          await db.execute('ALTER TABLE local_roles ADD COLUMN store_id INTEGER');
-        } catch (_) {}
-        try {
-          await db.execute('ALTER TABLE local_roles ADD COLUMN syear INTEGER');
-        } catch (_) {}
-       debugPrint('Database: v66 migration complete.');
+      debugPrint(
+          'Database: Starting v66 migration (Add Store/SYear to Roles)...');
+      try {
+        await db.execute('ALTER TABLE local_roles ADD COLUMN store_id INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE local_roles ADD COLUMN syear INTEGER');
+      } catch (_) {}
+      debugPrint('Database: v66 migration complete.');
     }
     if (oldVersion < 67) {
-       debugPrint('Database: Starting v67 migration (Add created_at to local_app_forms)...');
-       try {
-         await db.execute('ALTER TABLE local_app_forms ADD COLUMN created_at TEXT');
-       } catch (e) {
-         debugPrint('Database: v67 migration error: $e');
-       }
-       debugPrint('Database: v67 migration complete.');
+      debugPrint(
+          'Database: Starting v67 migration (Add created_at to local_app_forms)...');
+      try {
+        await db
+            .execute('ALTER TABLE local_app_forms ADD COLUMN created_at TEXT');
+      } catch (e) {
+        debugPrint('Database: v67 migration error: $e');
+      }
+      debugPrint('Database: v67 migration complete.');
     }
     if (oldVersion < 68) {
-       debugPrint('Database: Starting v68 migration (Add organization_id to local_role_form_privileges)...');
-       try {
-         await db.execute('ALTER TABLE local_role_form_privileges ADD COLUMN organization_id INTEGER');
-       } catch (e) {
-          debugPrint('Database: v68 migration error: $e');
-       }
-       debugPrint('Database: v68 migration complete.');
+      debugPrint(
+          'Database: Starting v68 migration (Add organization_id to local_role_form_privileges)...');
+      try {
+        await db.execute(
+            'ALTER TABLE local_role_form_privileges ADD COLUMN organization_id INTEGER');
+      } catch (e) {
+        debugPrint('Database: v68 migration error: $e');
+      }
+      debugPrint('Database: v68 migration complete.');
     }
     if (oldVersion < 69) {
-       debugPrint('Database: Starting v69 migration (Add Store Access Tables)...');
-       await db.execute('''
+      debugPrint(
+          'Database: Starting v69 migration (Add Store Access Tables)...');
+      await db.execute('''
         CREATE TABLE IF NOT EXISTS local_role_store_access(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           role_id INTEGER,
@@ -1596,12 +2001,15 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 70) {
-      debugPrint('Database: Starting v70 migration (Add updated_at to local_role_form_privileges)...');
+      debugPrint(
+          'Database: Starting v70 migration (Add updated_at to local_role_form_privileges)...');
       try {
-        await db.execute('ALTER TABLE local_role_form_privileges ADD COLUMN updated_at TEXT');
+        await db.execute(
+            'ALTER TABLE local_role_form_privileges ADD COLUMN updated_at TEXT');
       } catch (e) {
         if (e.toString().toLowerCase().contains('duplicate column')) {
-          debugPrint('Database: v70 migration - updated_at column already exists (Skipping).');
+          debugPrint(
+              'Database: v70 migration - updated_at column already exists (Skipping).');
         } else {
           debugPrint('Database: v70 migration error: $e');
         }
@@ -1610,13 +2018,15 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 71) {
-      debugPrint('Database: Starting v71 migration (Fix GL Setup Constraints)...');
+      debugPrint(
+          'Database: Starting v71 migration (Fix GL Setup Constraints)...');
       try {
         // SQLite doesn't support ALTER TABLE to drop constraints.
         // We need to recreate the table.
         await db.transaction((txn) async {
           // 1. Rename existing table
-          await txn.execute('ALTER TABLE local_gl_setup RENAME TO local_gl_setup_old');
+          await txn.execute(
+              'ALTER TABLE local_gl_setup RENAME TO local_gl_setup_old');
 
           // 2. Create new table with nullable columns
           await txn.execute('''
@@ -1687,19 +2097,24 @@ class DatabaseHelper {
 
     if (oldVersion < 72) {
       debugPrint('Database: Starting v72 migration (Fix Inventory Schemas)...');
-      final tables = ['local_brands', 'local_categories', 'local_product_types'];
-      
+      final tables = [
+        'local_brands',
+        'local_categories',
+        'local_product_types'
+      ];
+
       for (var table in tables) {
-         try {
-           await db.execute('ALTER TABLE $table ADD COLUMN organization_id INTEGER DEFAULT 0');
-           debugPrint('Database: Added organization_id to $table');
-         } catch (_) {
-           // Column likely exists
-         }
-         try {
-           await db.execute('ALTER TABLE $table ADD COLUMN updated_at INTEGER');
-           debugPrint('Database: Added updated_at to $table');
-         } catch (_) {}
+        try {
+          await db.execute(
+              'ALTER TABLE $table ADD COLUMN organization_id INTEGER DEFAULT 0');
+          debugPrint('Database: Added organization_id to $table');
+        } catch (_) {
+          // Column likely exists
+        }
+        try {
+          await db.execute('ALTER TABLE $table ADD COLUMN updated_at INTEGER');
+          debugPrint('Database: Added updated_at to $table');
+        } catch (_) {}
       }
       debugPrint('Database: v72 migration checking complete.');
     }
@@ -1707,8 +2122,10 @@ class DatabaseHelper {
     if (oldVersion < 73) {
       debugPrint('Database: Starting v73 migration (Sub-Ledger Columns)...');
       try {
-        await db.execute('ALTER TABLE local_transactions ADD COLUMN module_account TEXT');
-        await db.execute('ALTER TABLE local_transactions ADD COLUMN offset_module_account TEXT');
+        await db.execute(
+            'ALTER TABLE local_transactions ADD COLUMN module_account TEXT');
+        await db.execute(
+            'ALTER TABLE local_transactions ADD COLUMN offset_module_account TEXT');
       } catch (e) {
         debugPrint('Database: v73 migration error: $e');
       }
@@ -1716,13 +2133,19 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 74) {
-      debugPrint('Database: Starting v74 migration (Transaction Payment Details)...');
+      debugPrint(
+          'Database: Starting v74 migration (Transaction Payment Details)...');
       try {
-        await db.execute('ALTER TABLE local_transactions ADD COLUMN payment_mode TEXT');
-        await db.execute('ALTER TABLE local_transactions ADD COLUMN reference_number TEXT');
-        await db.execute('ALTER TABLE local_transactions ADD COLUMN reference_date INTEGER');
-        await db.execute('ALTER TABLE local_transactions ADD COLUMN reference_bank TEXT');
-        await db.execute('ALTER TABLE local_transactions ADD COLUMN invoice_id TEXT');
+        await db.execute(
+            'ALTER TABLE local_transactions ADD COLUMN payment_mode TEXT');
+        await db.execute(
+            'ALTER TABLE local_transactions ADD COLUMN reference_number TEXT');
+        await db.execute(
+            'ALTER TABLE local_transactions ADD COLUMN reference_date INTEGER');
+        await db.execute(
+            'ALTER TABLE local_transactions ADD COLUMN reference_bank TEXT');
+        await db.execute(
+            'ALTER TABLE local_transactions ADD COLUMN invoice_id TEXT');
       } catch (e) {
         debugPrint('Database: v74 migration error: $e');
       }
@@ -1730,8 +2153,8 @@ class DatabaseHelper {
 
     if (oldVersion < 75) {
       debugPrint('Database: Starting v75 migration (Stock Transfers)...');
-       // 25. Stock Transfers (Gate Pass)
-       await db.execute('''
+      // 25. Stock Transfers (Gate Pass)
+      await db.execute('''
         CREATE TABLE IF NOT EXISTS local_stock_transfers(
           id TEXT PRIMARY KEY,
           transfer_number TEXT,
@@ -1751,21 +2174,26 @@ class DatabaseHelper {
           items_payload TEXT
         )
       ''');
-       debugPrint('Database: v75 migration complete.');
+      debugPrint('Database: v75 migration complete.');
     }
   }
 
   Future<void> _validateSchema(Database db) async {
     // Optional: Check highly critical tables
-    final requiredTables = ['local_products', 'local_orders', 'local_businesspartners', 'local_transactions'];
+    final requiredTables = [
+      'local_products',
+      'local_orders',
+      'local_businesspartners',
+      'local_transactions'
+    ];
     for (var table in requiredTables) {
-      final result = await db.rawQuery("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", [table]);
+      final result = await db.rawQuery(
+          "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", [table]);
       if (result.isEmpty) {
         debugPrint('CRITICAL: Missing required table: $table');
       }
     }
   }
-
 
   Future<void> _createDB(Database db, int version) async {
     // 1. Sync Queue Table (Always needed)
@@ -1779,19 +2207,19 @@ class DatabaseHelper {
         status INTEGER DEFAULT 0 -- 0: Pending, 1: Processing, 2: Failed
       )
     ''');
-    
+
     // Delegate the rest of schema creation to onUpgrade
     // passing 0 as oldVersion forces all migration steps to run
     // But first, create the BASE tables that onUpgrade assumes might exist (or are legacy base)
-    
-     // 5. Offline Sync Status (Track last pull time)
+
+    // 5. Offline Sync Status (Track last pull time)
     await db.execute('''
       CREATE TABLE sync_metadata(
         entity TEXT PRIMARY KEY, -- 'products', 'customers'
         last_sync INTEGER
       )
     ''');
-    
+
     // 6. Local Users (For Offline Login)
     await db.execute('''
       CREATE TABLE local_users(

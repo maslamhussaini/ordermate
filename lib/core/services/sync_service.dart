@@ -40,11 +40,13 @@ final inventoryLocalRepositoryProvider =
   return InventoryLocalRepository();
 });
 
-final localAccountingRepositoryProvider = Provider<LocalAccountingRepository>((ref) {
+final localAccountingRepositoryProvider =
+    Provider<LocalAccountingRepository>((ref) {
   return LocalAccountingRepository();
 });
 
-final syncProgressProvider = StateNotifierProvider<SyncProgressNotifier, SyncStatus>((ref) {
+final syncProgressProvider =
+    StateNotifierProvider<SyncProgressNotifier, SyncStatus>((ref) {
   return SyncProgressNotifier();
 });
 
@@ -149,30 +151,37 @@ class SyncService {
   Future<bool> hasUnsyncedData() async {
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
 
-    
     // Check key repositories
-    final orders = await _orderLocalRepository.getUnsyncedOrders(organizationId: orgId);
+    final orders =
+        await _orderLocalRepository.getUnsyncedOrders(organizationId: orgId);
     if (orders.isNotEmpty) return true;
 
-    final products = await _productLocalRepository.getUnsyncedProducts(organizationId: orgId);
+    final products = await _productLocalRepository.getUnsyncedProducts(
+        organizationId: orgId);
     if (products.isNotEmpty) return true;
 
-    final partners = await _partnerLocalRepository.getUnsyncedPartners(organizationId: orgId);
+    final partners = await _partnerLocalRepository.getUnsyncedPartners(
+        organizationId: orgId);
     if (partners.isNotEmpty) return true;
 
     // Inventory
-    final brands = await _inventoryLocalRepository.getUnsyncedBrands(organizationId: orgId);
+    final brands = await _inventoryLocalRepository.getUnsyncedBrands(
+        organizationId: orgId);
     if (brands.isNotEmpty) return true;
-    final cats = await _inventoryLocalRepository.getUnsyncedCategories(organizationId: orgId);
+    final cats = await _inventoryLocalRepository.getUnsyncedCategories(
+        organizationId: orgId);
     if (cats.isNotEmpty) return true;
 
     // Accounting
-    final invoices = await _accountingLocalRepository.getUnsyncedInvoices(organizationId: orgId);
+    final invoices = await _accountingLocalRepository.getUnsyncedInvoices(
+        organizationId: orgId);
     if (invoices.isNotEmpty) return true;
-    final tx = await _accountingLocalRepository.getUnsyncedTransactions(organizationId: orgId);
+    final tx = await _accountingLocalRepository.getUnsyncedTransactions(
+        organizationId: orgId);
     if (tx.isNotEmpty) return true;
-    
-    final transfers = await _transferLocalRepository.getUnsyncedTransfers(organizationId: orgId);
+
+    final transfers = await _transferLocalRepository.getUnsyncedTransfers(
+        organizationId: orgId);
     if (transfers.isNotEmpty) return true;
 
     return false;
@@ -194,39 +203,41 @@ class SyncService {
       }
 
       debugPrint('SyncService: Full Sync Started for Org: $orgId');
-      _ref.read(syncProgressProvider.notifier).setSyncing(true, message: 'Starting Sync...', progress: 0.0);
+      _ref
+          .read(syncProgressProvider.notifier)
+          .setSyncing(true, message: 'Starting Sync...', progress: 0.0);
 
       debugPrint('--- SYNC STEP 1/7: Pushing local changes ---');
       _updateStatus('Pushing local changes...', 0.1);
-      await pushLocalChanges(); 
+      await pushLocalChanges();
 
       debugPrint('--- SYNC STEP 2/7: Syncing Inventory ---');
       _updateStatus('Syncing Inventory...', 0.3);
-      await syncInventory(); 
+      await syncInventory();
 
       debugPrint('--- SYNC STEP 3/7: Syncing Accounting ---');
       _updateStatus('Syncing Accounting...', 0.5);
-      await syncAccounting(); 
+      await syncAccounting();
 
       debugPrint('--- SYNC STEP 4/7: Syncing Products ---');
       _updateStatus('Syncing Products...', 0.7);
-      await syncProducts(); 
+      await syncProducts();
 
       debugPrint('--- SYNC STEP 5/7: Syncing Partners ---');
       _updateStatus('Syncing Partners...', 0.8);
-      await syncPartners(); 
+      await syncPartners();
 
       debugPrint('--- SYNC STEP 6/7: Syncing Orders ---');
       _updateStatus('Syncing Orders...', 0.9);
-      await syncOrders(); 
-      
+      await syncOrders();
+
       debugPrint('--- SYNC STEP 6.5/7: Syncing Stock Transfers ---');
       _updateStatus('Syncing Stock Transfers...', 0.95);
       await syncStockTransfers();
 
       debugPrint('--- SYNC STEP 7/7: Updating Metadata ---');
       _updateStatus('Updating Metadata...', 1.0);
-      await syncMetadata(); 
+      await syncMetadata();
 
       debugPrint('✅ SyncService: Full Sync Successfully Completed.');
     } catch (e, stack) {
@@ -234,7 +245,9 @@ class SyncService {
       debugPrint(stack.toString());
     } finally {
       SupabaseConfig.isOfflineLoggedIn = wasOffline;
-      _ref.read(syncProgressProvider.notifier).setSyncing(false, message: 'Sync Complete');
+      _ref
+          .read(syncProgressProvider.notifier)
+          .setSyncing(false, message: 'Sync Complete');
     }
   }
 
@@ -243,18 +256,21 @@ class SyncService {
     final storeId = _ref.read(organizationProvider).selectedStore?.id;
 
     try {
-      debugPrint('SyncService: Starting Accounting Pull (COA, Terms, Bank, Prefix, Types, Cats, Invoices, Transactions)...');
-      
+      debugPrint(
+          'SyncService: Starting Accounting Pull (COA, Terms, Bank, Prefix, Types, Cats, Invoices, Transactions)...');
+
       try {
-        final items = await _accountingRepository.getChartOfAccounts(organizationId: orgId);
+        final items = await _accountingRepository.getChartOfAccounts(
+            organizationId: orgId);
         debugPrint('   - COA Pulled: ${items.length} items');
         _updateStatus('Pulled Chart of Accounts...', 0.51);
       } catch (e) {
         debugPrint('   - ❌ COA pull failed: $e');
       }
-      
+
       try {
-        final items = await _accountingRepository.getPaymentTerms(organizationId: orgId);
+        final items =
+            await _accountingRepository.getPaymentTerms(organizationId: orgId);
         debugPrint('   - Payment Terms Pulled: ${items.length} items');
         _updateStatus('Pulled Payment Terms...', 0.52);
       } catch (e) {
@@ -262,7 +278,8 @@ class SyncService {
       }
 
       try {
-        final items = await _accountingRepository.getBankCashAccounts(organizationId: orgId);
+        final items = await _accountingRepository.getBankCashAccounts(
+            organizationId: orgId);
         debugPrint('   - Bank/Cash Pulled: ${items.length} items');
         _updateStatus('Pulled Bank Accounts...', 0.53);
       } catch (e) {
@@ -270,7 +287,8 @@ class SyncService {
       }
 
       try {
-        final items = await _accountingRepository.getVoucherPrefixes(organizationId: orgId);
+        final items = await _accountingRepository.getVoucherPrefixes(
+            organizationId: orgId);
         debugPrint('   - Voucher Prefixes Pulled: ${items.length} items');
         _updateStatus('Pulled Voucher Prefixes...', 0.54);
       } catch (e) {
@@ -278,50 +296,55 @@ class SyncService {
       }
 
       try {
-        final items = await _accountingRepository.getAccountTypes(organizationId: orgId);
+        final items =
+            await _accountingRepository.getAccountTypes(organizationId: orgId);
         debugPrint('   - Account Types Pulled: ${items.length} items');
         _updateStatus('Pulled Account Types...', 0.55);
       } catch (e) {
         debugPrint('   - ❌ Account Types pull failed: $e');
       }
-      
+
       try {
-        final items = await _accountingRepository.getAccountCategories(organizationId: orgId);
+        final items = await _accountingRepository.getAccountCategories(
+            organizationId: orgId);
         debugPrint('   - Account Categories Pulled: ${items.length} items');
         _updateStatus('Pulled Account Categories...', 0.56);
       } catch (e) {
         debugPrint('   - ❌ Account Categories pull failed: $e');
       }
 
-       try {
-         final items = await _accountingRepository.getInvoiceTypes(organizationId: orgId);
-         debugPrint('   - Invoice Types Pulled: ${items.length} items');
-         _updateStatus('Pulled Invoice Types...', 0.57);
-       } catch (e) {
-         debugPrint('   - ❌ Invoice Types pull failed: $e');
-       }
-      
-       try {
-         final invoices = await _accountingRepository.getInvoices(organizationId: orgId, storeId: storeId);
-         debugPrint('   - Invoices Pulled: ${invoices.length} items');
-         _updateStatus('Pulled Invoices...', 0.58);
-         if (orgId != null) {
-            final items = await _accountingRepository.getInvoiceItemsByOrg(orgId);
-            debugPrint('   - Invoice Items Pulled: ${items.length} items');
-            await _accountingRepository.getGLSetup(orgId);
-            debugPrint('   - GL Setup Pulled');
-         }
-       } catch (e) {
-         debugPrint('   - ❌ Invoices/Items push failed: $e');
-       }
-      
-       try {
-         final txs = await _accountingRepository.getTransactions(organizationId: orgId, storeId: storeId);
-         debugPrint('   - Transactions Pulled: ${txs.length} items');
-         _updateStatus('Pulled Transactions...', 0.59);
-       } catch (e) {
-         debugPrint('   - ❌ Transactions pull failed: $e');
-       }
+      try {
+        final items =
+            await _accountingRepository.getInvoiceTypes(organizationId: orgId);
+        debugPrint('   - Invoice Types Pulled: ${items.length} items');
+        _updateStatus('Pulled Invoice Types...', 0.57);
+      } catch (e) {
+        debugPrint('   - ❌ Invoice Types pull failed: $e');
+      }
+
+      try {
+        final invoices = await _accountingRepository.getInvoices(
+            organizationId: orgId, storeId: storeId);
+        debugPrint('   - Invoices Pulled: ${invoices.length} items');
+        _updateStatus('Pulled Invoices...', 0.58);
+        if (orgId != null) {
+          final items = await _accountingRepository.getInvoiceItemsByOrg(orgId);
+          debugPrint('   - Invoice Items Pulled: ${items.length} items');
+          await _accountingRepository.getGLSetup(orgId);
+          debugPrint('   - GL Setup Pulled');
+        }
+      } catch (e) {
+        debugPrint('   - ❌ Invoices/Items push failed: $e');
+      }
+
+      try {
+        final txs = await _accountingRepository.getTransactions(
+            organizationId: orgId, storeId: storeId);
+        debugPrint('   - Transactions Pulled: ${txs.length} items');
+        _updateStatus('Pulled Transactions...', 0.59);
+      } catch (e) {
+        debugPrint('   - ❌ Transactions pull failed: $e');
+      }
 
       debugPrint('SyncService: Accounting Sync Step Complete.');
     } catch (e) {
@@ -333,67 +356,83 @@ class SyncService {
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
     final storeId = _ref.read(organizationProvider).selectedStore?.id;
     debugPrint('SyncService: Pushing accounting changes...');
-    
+
     // 0. Sync Repair: Ensure manual items are marked unsynced if pull finished
     final db = await DatabaseHelper.instance.database;
-    await db.execute('UPDATE local_account_categories SET is_synced = 0 WHERE id > 10 AND is_system = 0');
+    await db.execute(
+        'UPDATE local_account_categories SET is_synced = 0 WHERE id > 10 AND is_system = 0');
     await db.execute('UPDATE local_brands SET is_synced = 0 WHERE id > 100');
-    
-    final totalLocalCats = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM local_account_categories')) ?? 0;
-    debugPrint('SyncService: DEBUG - Total Categories in local DB: $totalLocalCats');
-    
+
+    final totalLocalCats = Sqflite.firstIntValue(await db
+            .rawQuery('SELECT COUNT(*) FROM local_account_categories')) ??
+        0;
+    debugPrint(
+        'SyncService: DEBUG - Total Categories in local DB: $totalLocalCats');
+
     // 1. Account Types (Base for COA)
-    final unsyncedTypes = await _accountingLocalRepository.getUnsyncedAccountTypes(organizationId: orgId);
+    final unsyncedTypes = await _accountingLocalRepository
+        .getUnsyncedAccountTypes(organizationId: orgId);
     if (unsyncedTypes.isNotEmpty) {
-       debugPrint('SyncService: Found ${unsyncedTypes.length} unsynced Account Types to push');
+      debugPrint(
+          'SyncService: Found ${unsyncedTypes.length} unsynced Account Types to push');
     }
     for (final type in unsyncedTypes) {
       try {
         await _accountingRepository.createAccountType(type);
         debugPrint('SyncService: Pushed AccountType ${type.typeName}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push AccountType ${type.typeName}: $e');
+        debugPrint(
+            'SyncService: Failed to push AccountType ${type.typeName}: $e');
       }
     }
 
     // 2. Account Categories (Base for COA)
-    final unsyncedCategories = await _accountingLocalRepository.getUnsyncedAccountCategories(organizationId: orgId);
+    final unsyncedCategories = await _accountingLocalRepository
+        .getUnsyncedAccountCategories(organizationId: orgId);
     if (unsyncedCategories.isNotEmpty) {
-      debugPrint('SyncService: Found ${unsyncedCategories.length} unsynced Account Categories');
+      debugPrint(
+          'SyncService: Found ${unsyncedCategories.length} unsynced Account Categories');
     }
     for (final cat in unsyncedCategories) {
       try {
         await _accountingRepository.createAccountCategory(cat);
         debugPrint('SyncService: Pushed AccountCategory ${cat.categoryName}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push AccountCategory ${cat.categoryName}: $e');
+        debugPrint(
+            'SyncService: Failed to push AccountCategory ${cat.categoryName}: $e');
       }
     }
 
     // 3. Financial Sessions (Base for Transactions)
-    final unsyncedSessions = await _accountingLocalRepository.getUnsyncedFinancialSessions(organizationId: orgId);
+    final unsyncedSessions = await _accountingLocalRepository
+        .getUnsyncedFinancialSessions(organizationId: orgId);
     for (final session in unsyncedSessions) {
       try {
         await _accountingRepository.createFinancialSession(session);
         debugPrint('SyncService: Pushed FinancialSession ${session.sYear}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push FinancialSession ${session.sYear}: $e');
+        debugPrint(
+            'SyncService: Failed to push FinancialSession ${session.sYear}: $e');
       }
     }
 
     // 4. COA (Base for Transactions, BankCash, DailyBalance)
-    final unsyncedCOA = await _accountingLocalRepository.getUnsyncedChartOfAccounts(organizationId: orgId);
+    final unsyncedCOA = await _accountingLocalRepository
+        .getUnsyncedChartOfAccounts(organizationId: orgId);
     if (unsyncedCOA.isNotEmpty) {
-       debugPrint('SyncService: Found ${unsyncedCOA.length} unsynced Chart of Accounts to push');
+      debugPrint(
+          'SyncService: Found ${unsyncedCOA.length} unsynced Chart of Accounts to push');
     }
     // Sort by level ASC to ensure parents are pushed before children
     unsyncedCOA.sort((a, b) => a.level.compareTo(b.level));
     for (final account in unsyncedCOA) {
       try {
-        await _accountingRepository.createChartOfAccount(account); 
-        debugPrint('SyncService: Pushed ChartOfAccount ${account.accountTitle}');
+        await _accountingRepository.createChartOfAccount(account);
+        debugPrint(
+            'SyncService: Pushed ChartOfAccount ${account.accountTitle}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push COA ${account.accountTitle}: $e');
+        debugPrint(
+            'SyncService: Failed to push COA ${account.accountTitle}: $e');
       }
     }
 
@@ -402,17 +441,22 @@ class SyncService {
     for (final setup in unsyncedGL) {
       try {
         await _accountingRepository.saveGLSetup(setup);
-        await _accountingLocalRepository.markGLSetupAsSynced(setup.organizationId);
-        debugPrint('SyncService: Pushed GLSetup for Org ${setup.organizationId}');
+        await _accountingLocalRepository
+            .markGLSetupAsSynced(setup.organizationId);
+        debugPrint(
+            'SyncService: Pushed GLSetup for Org ${setup.organizationId}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push GLSetup for Org ${setup.organizationId}: $e');
+        debugPrint(
+            'SyncService: Failed to push GLSetup for Org ${setup.organizationId}: $e');
       }
     }
 
     // 6. Payment Terms
-    final unsyncedTerms = await _accountingLocalRepository.getUnsyncedPaymentTerms(organizationId: orgId);
+    final unsyncedTerms = await _accountingLocalRepository
+        .getUnsyncedPaymentTerms(organizationId: orgId);
     if (unsyncedTerms.isNotEmpty) {
-       debugPrint('SyncService: Found ${unsyncedTerms.length} unsynced Payment Terms to push');
+      debugPrint(
+          'SyncService: Found ${unsyncedTerms.length} unsynced Payment Terms to push');
     }
     for (final term in unsyncedTerms) {
       try {
@@ -424,23 +468,28 @@ class SyncService {
     }
 
     // 7. Voucher Prefixes (Base for Transactions)
-    final unsyncedPrefixes = await _accountingLocalRepository.getUnsyncedVoucherPrefixes(organizationId: orgId);
+    final unsyncedPrefixes = await _accountingLocalRepository
+        .getUnsyncedVoucherPrefixes(organizationId: orgId);
     if (unsyncedPrefixes.isNotEmpty) {
-      debugPrint('SyncService: Found ${unsyncedPrefixes.length} unsynced Voucher Prefixes to push');
+      debugPrint(
+          'SyncService: Found ${unsyncedPrefixes.length} unsynced Voucher Prefixes to push');
     }
     for (final prefix in unsyncedPrefixes) {
       try {
         await _accountingRepository.createVoucherPrefix(prefix);
         debugPrint('SyncService: Pushed Prefix ${prefix.prefixCode}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push Prefix ${prefix.prefixCode}: $e');
+        debugPrint(
+            'SyncService: Failed to push Prefix ${prefix.prefixCode}: $e');
       }
     }
 
     // 8. Bank Cash (Depends on COA)
-    final unsyncedBankCash = await _accountingLocalRepository.getUnsyncedBankCashAccounts(organizationId: orgId, storeId: storeId);
+    final unsyncedBankCash = await _accountingLocalRepository
+        .getUnsyncedBankCashAccounts(organizationId: orgId, storeId: storeId);
     if (unsyncedBankCash.isNotEmpty) {
-       debugPrint('SyncService: Found ${unsyncedBankCash.length} unsynced Bank/Cash accounts to push');
+      debugPrint(
+          'SyncService: Found ${unsyncedBankCash.length} unsynced Bank/Cash accounts to push');
     }
     for (final acct in unsyncedBankCash) {
       try {
@@ -452,67 +501,81 @@ class SyncService {
     }
 
     // 9. Transactions (Depends on VoucherPrefix, COA, FinancialSession)
-    final unsyncedTx = await _accountingLocalRepository.getUnsyncedTransactions(organizationId: orgId, storeId: storeId);
+    final unsyncedTx = await _accountingLocalRepository.getUnsyncedTransactions(
+        organizationId: orgId, storeId: storeId);
     for (final tx in unsyncedTx) {
       try {
-         await _accountingRepository.createTransaction(tx);
-         debugPrint('SyncService: Pushed Transaction ${tx.voucherNumber}');
+        await _accountingRepository.createTransaction(tx);
+        debugPrint('SyncService: Pushed Transaction ${tx.voucherNumber}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push Transaction ${tx.voucherNumber}: $e');
+        debugPrint(
+            'SyncService: Failed to push Transaction ${tx.voucherNumber}: $e');
       }
     }
 
     // 10. Daily Balances (Depends on COA)
-    final unsyncedBalances = await _accountingLocalRepository.getUnsyncedDailyBalances(organizationId: orgId);
+    final unsyncedBalances = await _accountingLocalRepository
+        .getUnsyncedDailyBalances(organizationId: orgId);
     for (final balance in unsyncedBalances) {
       try {
         await _accountingRepository.saveDailyBalance(balance);
-        debugPrint('SyncService: Pushed DailyBalance for account ${balance.accountId}');
+        debugPrint(
+            'SyncService: Pushed DailyBalance for account ${balance.accountId}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push DailyBalance for account ${balance.accountId}: $e');
+        debugPrint(
+            'SyncService: Failed to push DailyBalance for account ${balance.accountId}: $e');
       }
     }
 
     // 11. Invoice Types
-    final unsyncedInvTypes = await _accountingLocalRepository.getUnsyncedInvoiceTypes(organizationId: orgId);
+    final unsyncedInvTypes = await _accountingLocalRepository
+        .getUnsyncedInvoiceTypes(organizationId: orgId);
     for (final type in unsyncedInvTypes) {
       try {
         await _accountingRepository.createInvoiceType(type);
         debugPrint('SyncService: Pushed InvoiceType ${type.idInvoiceType}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push InvoiceType ${type.idInvoiceType}: $e');
+        debugPrint(
+            'SyncService: Failed to push InvoiceType ${type.idInvoiceType}: $e');
       }
     }
 
     // 12. Invoices & Items (Depends on Partners, Orders, Types)
-    final unsyncedInvoices = await _accountingLocalRepository.getUnsyncedInvoices(organizationId: orgId, storeId: storeId);
+    final unsyncedInvoices = await _accountingLocalRepository
+        .getUnsyncedInvoices(organizationId: orgId, storeId: storeId);
     if (unsyncedInvoices.isNotEmpty) {
-       debugPrint('SyncService: Found ${unsyncedInvoices.length} unsynced Invoices to push');
+      debugPrint(
+          'SyncService: Found ${unsyncedInvoices.length} unsynced Invoices to push');
     }
     for (final invoice in unsyncedInvoices) {
       try {
         await _accountingRepository.createInvoice(invoice);
-        
+
         // Push items for this invoice
-        final items = await _accountingLocalRepository.getInvoiceItems(invoice.id);
+        final items =
+            await _accountingLocalRepository.getInvoiceItems(invoice.id);
         if (items.isNotEmpty) {
           await _accountingRepository.createInvoiceItems(items);
         }
-        
+
         await _accountingLocalRepository.markInvoiceAsSynced(invoice.id);
-        debugPrint('SyncService: Pushed Invoice ${invoice.invoiceNumber} and ${items.length} items');
+        debugPrint(
+            'SyncService: Pushed Invoice ${invoice.invoiceNumber} and ${items.length} items');
       } catch (e) {
-        debugPrint('SyncService: Failed to push Invoice ${invoice.invoiceNumber}: $e');
+        debugPrint(
+            'SyncService: Failed to push Invoice ${invoice.invoiceNumber}: $e');
       }
     }
   }
 
   Future<void> pushInventory() async {
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
-    debugPrint('SyncService: Pushing inventory changes (Brands, Categories, etc.)...');
-    
+    debugPrint(
+        'SyncService: Pushing inventory changes (Brands, Categories, etc.)...');
+
     // 1. Brands
-    final unsyncedBrands = await _inventoryLocalRepository.getUnsyncedBrands(organizationId: orgId);
+    final unsyncedBrands = await _inventoryLocalRepository.getUnsyncedBrands(
+        organizationId: orgId);
     for (final brand in unsyncedBrands) {
       try {
         await _inventoryRepository.createBrand(brand);
@@ -523,9 +586,11 @@ class SyncService {
     }
 
     // 2. Categories
-    final unsyncedCats = await _inventoryLocalRepository.getUnsyncedCategories(organizationId: orgId);
+    final unsyncedCats = await _inventoryLocalRepository.getUnsyncedCategories(
+        organizationId: orgId);
     if (unsyncedCats.isNotEmpty) {
-      debugPrint('SyncService: Found ${unsyncedCats.length} unsynced Product Categories to push');
+      debugPrint(
+          'SyncService: Found ${unsyncedCats.length} unsynced Product Categories to push');
     }
     for (final cat in unsyncedCats) {
       try {
@@ -537,7 +602,8 @@ class SyncService {
     }
 
     // 3. Product Types
-    final unsyncedTypes = await _inventoryLocalRepository.getUnsyncedProductTypes(organizationId: orgId);
+    final unsyncedTypes = await _inventoryLocalRepository
+        .getUnsyncedProductTypes(organizationId: orgId);
     for (final type in unsyncedTypes) {
       try {
         await _inventoryRepository.createProductType(type);
@@ -548,7 +614,8 @@ class SyncService {
     }
 
     // 4. UOMs
-    final unsyncedUoms = await _inventoryLocalRepository.getUnsyncedUnitsOfMeasure(organizationId: orgId);
+    final unsyncedUoms = await _inventoryLocalRepository
+        .getUnsyncedUnitsOfMeasure(organizationId: orgId);
     for (final uom in unsyncedUoms) {
       try {
         await _inventoryRepository.createUnitOfMeasure(uom);
@@ -559,7 +626,8 @@ class SyncService {
     }
 
     // 5. Unit Conversions
-    final unsyncedConvs = await _inventoryLocalRepository.getUnsyncedUnitConversions(organizationId: orgId);
+    final unsyncedConvs = await _inventoryLocalRepository
+        .getUnsyncedUnitConversions(organizationId: orgId);
     for (final conv in unsyncedConvs) {
       try {
         await _inventoryRepository.createUnitConversion(conv);
@@ -583,7 +651,7 @@ class SyncService {
       ]);
 
       if (orgId != null) {
-         await _partnerRepository.getDepartments(orgId);
+        await _partnerRepository.getDepartments(orgId);
       }
       debugPrint('SyncService: Metadata Sync Complete.');
     } catch (e) {
@@ -605,17 +673,21 @@ class SyncService {
 
   Future<void> pushStockTransfers() async {
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
-    final unsynced = await _transferLocalRepository.getUnsyncedTransfers(organizationId: orgId);
+    final unsynced = await _transferLocalRepository.getUnsyncedTransfers(
+        organizationId: orgId);
     if (unsynced.isEmpty) return;
-    
-    debugPrint('SyncService: Found ${unsynced.length} unsynced Stock Transfers to push');
+
+    debugPrint(
+        'SyncService: Found ${unsynced.length} unsynced Stock Transfers to push');
     for (final transfer in unsynced) {
       try {
         await _transferRepository.createTransfer(transfer);
         await _transferLocalRepository.markTransferAsSynced(transfer.id);
-        debugPrint('SyncService: Pushed Stock Transfer ${transfer.transferNumber}');
+        debugPrint(
+            'SyncService: Pushed Stock Transfer ${transfer.transferNumber}');
       } catch (e) {
-        debugPrint('SyncService: Failed to push Stock Transfer ${transfer.transferNumber}: $e');
+        debugPrint(
+            'SyncService: Failed to push Stock Transfer ${transfer.transferNumber}: $e');
       }
     }
   }
@@ -626,8 +698,9 @@ class SyncService {
     final deletedRecords = await db.query('local_deleted_records');
 
     if (deletedRecords.isEmpty) return;
-    
-    debugPrint('SyncService: Found ${deletedRecords.length} deletions to sync.');
+
+    debugPrint(
+        'SyncService: Found ${deletedRecords.length} deletions to sync.');
 
     for (final record in deletedRecords) {
       final id = record['id'] as int;
@@ -636,20 +709,22 @@ class SyncService {
 
       try {
         if (table == 'local_orders') {
-           await _orderRepository.deleteOrder(entityId);
-           debugPrint('SyncService: Synced deletion for order $entityId');
+          await _orderRepository.deleteOrder(entityId);
+          debugPrint('SyncService: Synced deletion for order $entityId');
         } else if (table == 'local_products') {
-           await _productRepository.deleteProduct(entityId);
-           debugPrint('SyncService: Synced deletion for product $entityId');
+          await _productRepository.deleteProduct(entityId);
+          debugPrint('SyncService: Synced deletion for product $entityId');
         } else if (table == 'local_businesspartners') {
-           await _partnerRepository.deletePartner(entityId);
-           debugPrint('SyncService: Synced deletion for partner $entityId');
+          await _partnerRepository.deletePartner(entityId);
+          debugPrint('SyncService: Synced deletion for partner $entityId');
         }
       } catch (e) {
-        debugPrint('SyncService: Failed to sync deletion for $table:$entityId - $e (Marking as done to prevent loop)');
+        debugPrint(
+            'SyncService: Failed to sync deletion for $table:$entityId - $e (Marking as done to prevent loop)');
       } finally {
         // Always remove from tracking table to prevent infinite loops
-        await db.delete('local_deleted_records', where: 'id = ?', whereArgs: [id]);
+        await db
+            .delete('local_deleted_records', where: 'id = ?', whereArgs: [id]);
       }
     }
   }
@@ -657,10 +732,12 @@ class SyncService {
   Future<void> pushProducts() async {
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
     final storeId = _ref.read(organizationProvider).selectedStore?.id;
-    final unsynced = await _productLocalRepository.getUnsyncedProducts(organizationId: orgId, storeId: storeId);
+    final unsynced = await _productLocalRepository.getUnsyncedProducts(
+        organizationId: orgId, storeId: storeId);
     if (unsynced.isEmpty) return;
 
-    debugPrint('SyncService: Found ${unsynced.length} unsynced Products to push');
+    debugPrint(
+        'SyncService: Found ${unsynced.length} unsynced Products to push');
 
     debugPrint('SyncService: Pushing ${unsynced.length} unsynced products...');
     for (final product in unsynced) {
@@ -677,10 +754,12 @@ class SyncService {
   Future<void> pushPartners() async {
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
     final storeId = _ref.read(organizationProvider).selectedStore?.id;
-    final unsynced = await _partnerLocalRepository.getUnsyncedPartners(organizationId: orgId, storeId: storeId);
+    final unsynced = await _partnerLocalRepository.getUnsyncedPartners(
+        organizationId: orgId, storeId: storeId);
     if (unsynced.isEmpty) return;
 
-    debugPrint('SyncService: Found ${unsynced.length} unsynced Partners to push');
+    debugPrint(
+        'SyncService: Found ${unsynced.length} unsynced Partners to push');
 
     debugPrint('SyncService: Pushing ${unsynced.length} unsynced partners...');
     for (final partner in unsynced) {
@@ -697,10 +776,12 @@ class SyncService {
 
   Future<void> pushAppUsers() async {
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
-    final unsynced = await _partnerLocalRepository.getUnsyncedAppUsers(organizationId: orgId);
+    final unsynced = await _partnerLocalRepository.getUnsyncedAppUsers(
+        organizationId: orgId);
     if (unsynced.isEmpty) return;
 
-    debugPrint('SyncService: Found ${unsynced.length} unsynced AppUsers to push');
+    debugPrint(
+        'SyncService: Found ${unsynced.length} unsynced AppUsers to push');
 
     for (final map in unsynced) {
       try {
@@ -718,7 +799,8 @@ class SyncService {
   Future<void> pushOrders() async {
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
     final storeId = _ref.read(organizationProvider).selectedStore?.id;
-    final unsynced = await _orderLocalRepository.getUnsyncedOrders(organizationId: orgId, storeId: storeId);
+    final unsynced = await _orderLocalRepository.getUnsyncedOrders(
+        organizationId: orgId, storeId: storeId);
     if (unsynced.isEmpty) return;
 
     debugPrint('SyncService: Found ${unsynced.length} unsynced Orders to push');
@@ -768,7 +850,8 @@ class SyncService {
       debugPrint('SyncService: Starting Product Sync...');
 
       // 1. Fetch from Supabase
-      final products = await _productRepository.getProducts(organizationId: orgId, storeId: storeId);
+      final products = await _productRepository.getProducts(
+          organizationId: orgId, storeId: storeId);
 
       if (products.isEmpty) {
         debugPrint('SyncService: No products found on server.');
@@ -803,10 +886,14 @@ class SyncService {
     try {
       debugPrint('SyncService: Starting Partner Sync (Pull)...');
 
-      final customers = await _partnerRepository.getPartners(isCustomer: true, organizationId: orgId, storeId: storeId);
-      final vendors = await _partnerRepository.getPartners(isVendor: true, organizationId: orgId, storeId: storeId);
-      final employees = await _partnerRepository.getPartners(isEmployee: true, organizationId: orgId, storeId: storeId);
-      final suppliers = await _partnerRepository.getPartners(isSupplier: true, organizationId: orgId, storeId: storeId);
+      final customers = await _partnerRepository.getPartners(
+          isCustomer: true, organizationId: orgId, storeId: storeId);
+      final vendors = await _partnerRepository.getPartners(
+          isVendor: true, organizationId: orgId, storeId: storeId);
+      final employees = await _partnerRepository.getPartners(
+          isEmployee: true, organizationId: orgId, storeId: storeId);
+      final suppliers = await _partnerRepository.getPartners(
+          isSupplier: true, organizationId: orgId, storeId: storeId);
 
       // 5. App Users
       if (orgId != null) {
@@ -814,7 +901,12 @@ class SyncService {
       }
 
       // Combine
-      final allPartners = [...customers, ...vendors, ...employees, ...suppliers];
+      final allPartners = [
+        ...customers,
+        ...vendors,
+        ...employees,
+        ...suppliers
+      ];
 
       if (allPartners.isEmpty) {
         debugPrint('SyncService: No partners found.');
@@ -849,7 +941,8 @@ class SyncService {
     try {
       debugPrint('SyncService: Starting Order Sync (Pull)...');
       // Ideally fetch only recent orders or incremental.
-      final orders = await _orderRepository.getOrders(organizationId: orgId, storeId: storeId);
+      final orders = await _orderRepository.getOrders(
+          organizationId: orgId, storeId: storeId);
 
       if (orders.isEmpty) {
         debugPrint('SyncService: No orders found.');
@@ -880,15 +973,17 @@ class SyncService {
 
     try {
       debugPrint('SyncService: Starting Stock Transfer Sync (Pull)...');
-      final transfers = await _transferRepository.getTransfers(organizationId: orgId, storeId: storeId);
-      
+      final transfers = await _transferRepository.getTransfers(
+          organizationId: orgId, storeId: storeId);
+
       if (transfers.isEmpty) {
         debugPrint('SyncService: No stock transfers found.');
         return;
       }
 
       // Convert to models for caching
-      final models = transfers.map((e) => StockTransferModel.fromEntity(e)).toList();
+      final models =
+          transfers.map((e) => StockTransferModel.fromEntity(e)).toList();
       await _transferLocalRepository.cacheTransfers(models);
 
       final db = await DatabaseHelper.instance.database;
@@ -900,7 +995,8 @@ class SyncService {
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      debugPrint('SyncService: Stock Transfer Sync Complete. Cached ${transfers.length} items.');
+      debugPrint(
+          'SyncService: Stock Transfer Sync Complete. Cached ${transfers.length} items.');
     } catch (e) {
       debugPrint('SyncService: Stock Transfer Sync Failed: $e');
     }

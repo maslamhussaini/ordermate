@@ -54,8 +54,9 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
   Future<void> _handlePdfAction(Order order, String action) async {
     // Show Loading
     if (!mounted) return;
-    
-    final ValueNotifier<String> statusMessage = ValueNotifier('Initializing...');
+
+    final ValueNotifier<String> statusMessage =
+        ValueNotifier('Initializing...');
     final ValueNotifier<double> progressValue = ValueNotifier(0.0);
 
     showDialog(
@@ -70,17 +71,21 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
               const SizedBox(height: 10),
               ValueListenableBuilder<double>(
                 valueListenable: progressValue,
-                builder: (context, val, _) => LinearProgressIndicator(value: val, minHeight: 6),
+                builder: (context, val, _) =>
+                    LinearProgressIndicator(value: val, minHeight: 6),
               ),
               const SizedBox(height: 16),
               ValueListenableBuilder<String>(
                 valueListenable: statusMessage,
-                builder: (context, msg, _) => Text(msg, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14)),
+                builder: (context, msg, _) => Text(msg,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14)),
               ),
               const SizedBox(height: 4),
               ValueListenableBuilder<double>(
-                 valueListenable: progressValue,
-                 builder: (context, val, _) => Text('${(val * 100).toInt()}%', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                valueListenable: progressValue,
+                builder: (context, val, _) => Text('${(val * 100).toInt()}%',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ),
             ],
           ),
@@ -92,8 +97,11 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
       // 1. Fetch Order Items
       statusMessage.value = 'Fetching order items...';
       progressValue.value = 0.1;
-      
-      final items = await ref.read(orderProvider.notifier).getOrderItems(order.id).timeout(const Duration(seconds: 10));
+
+      final items = await ref
+          .read(orderProvider.notifier)
+          .getOrderItems(order.id)
+          .timeout(const Duration(seconds: 10));
 
       // 2. Fetch Partner
       statusMessage.value = 'Fetching partner details...';
@@ -112,17 +120,23 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
       if (partner == null) {
         final connectivityResult = await ConnectivityHelper.check();
         if (connectivityResult.contains(ConnectivityResult.none)) {
-             try {
-               final partners = await ref.read(businessPartnerLocalRepositoryProvider).getLocalPartners(isCustomer: true, isVendor: true, isEmployee: true);
-               partner = partners.firstWhere((p) => p.id == order.businessPartnerId, orElse: () => throw Exception('Partner not found locally'));
-             } catch (e) {
-               throw Exception('Offline: Business Partner not found in local cache.');
-             }
+          try {
+            final partners = await ref
+                .read(businessPartnerLocalRepositoryProvider)
+                .getLocalPartners(
+                    isCustomer: true, isVendor: true, isEmployee: true);
+            partner = partners.firstWhere(
+                (p) => p.id == order.businessPartnerId,
+                orElse: () => throw Exception('Partner not found locally'));
+          } catch (e) {
+            throw Exception(
+                'Offline: Business Partner not found in local cache.');
+          }
         } else {
-             partner = await ref
-            .read(businessPartnerProvider.notifier)
-            .repository
-            .getPartnerById(order.businessPartnerId);
+          partner = await ref
+              .read(businessPartnerProvider.notifier)
+              .repository
+              .getPartnerById(order.businessPartnerId);
         }
       }
 
@@ -132,15 +146,30 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
 
       // 3. Address Formatting
       statusMessage.value = 'Formatting address...';
-      
-      // Ensure address metadata is loaded (lightweight check usually)
-      if (bpState.cities.isEmpty) await ref.read(businessPartnerProvider.notifier).loadCities();
-      if (bpState.states.isEmpty) await ref.read(businessPartnerProvider.notifier).loadStates();
-      if (bpState.countries.isEmpty) await ref.read(businessPartnerProvider.notifier).loadCountries();
 
-      String getCityName(int? id) => ref.read(businessPartnerProvider).cities.firstWhere((e) => e['id'] == id, orElse: () => {})['city_name'] as String? ?? '';
-      String getStateName(int? id) => ref.read(businessPartnerProvider).states.firstWhere((e) => e['id'] == id, orElse: () => {})['state_name'] as String? ?? '';
-      String getCountryName(int? id) => ref.read(businessPartnerProvider).countries.firstWhere((e) => e['id'] == id, orElse: () => {})['country_name'] as String? ?? '';
+      // Ensure address metadata is loaded (lightweight check usually)
+      if (bpState.cities.isEmpty)
+        await ref.read(businessPartnerProvider.notifier).loadCities();
+      if (bpState.states.isEmpty)
+        await ref.read(businessPartnerProvider.notifier).loadStates();
+      if (bpState.countries.isEmpty)
+        await ref.read(businessPartnerProvider.notifier).loadCountries();
+
+      String getCityName(int? id) =>
+          ref.read(businessPartnerProvider).cities.firstWhere(
+              (e) => e['id'] == id,
+              orElse: () => {})['city_name'] as String? ??
+          '';
+      String getStateName(int? id) =>
+          ref.read(businessPartnerProvider).states.firstWhere(
+              (e) => e['id'] == id,
+              orElse: () => {})['state_name'] as String? ??
+          '';
+      String getCountryName(int? id) =>
+          ref.read(businessPartnerProvider).countries.firstWhere(
+              (e) => e['id'] == id,
+              orElse: () => {})['country_name'] as String? ??
+          '';
 
       final customerAddressParts = <String>[
         partner.address.trim(),
@@ -163,7 +192,8 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
 
       final org = orgState.selectedOrganization;
       final orgName = org?.name ?? 'Organization Name'; // Fallback
-      final store = orgState.selectedStore ?? (orgState.stores.isNotEmpty ? orgState.stores.first : null);
+      final store = orgState.selectedStore ??
+          (orgState.stores.isNotEmpty ? orgState.stores.first : null);
       final sName = store?.name ?? 'Store Name';
       final sPhone = store?.phone ?? '';
       final currency = store?.storeDefaultCurrency ?? 'AED';
@@ -177,21 +207,27 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
 
         if (isOnline && org.logoUrl != null) {
           try {
-            final response = await http.get(Uri.parse(org.logoUrl!)).timeout(const Duration(seconds: 2));
+            final response = await http
+                .get(Uri.parse(org.logoUrl!))
+                .timeout(const Duration(seconds: 2));
             if (response.statusCode == 200) {
               logoBytes = response.bodyBytes;
               // Cache silent fire-and-forget not needed here strictly, handled by Repo usually
             }
           } catch (e) {
             // Fallback to cached
-             try {
-                logoBytes = await ref.read(organizationRepositoryProvider).getCachedLogo(org.id);
-             } catch (_) {}
+            try {
+              logoBytes = await ref
+                  .read(organizationRepositoryProvider)
+                  .getCachedLogo(org.id);
+            } catch (_) {}
           }
         } else {
-           try {
-              logoBytes = await ref.read(organizationRepositoryProvider).getCachedLogo(org.id);
-           } catch (_) {}
+          try {
+            logoBytes = await ref
+                .read(organizationRepositoryProvider)
+                .getCachedLogo(org.id);
+          } catch (_) {}
         }
       }
 
@@ -199,47 +235,52 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
       statusMessage.value = 'Preparing PDF Engine...';
       progressValue.value = 0.3;
 
-      final pdfBytes = await PdfInvoiceService().generateInvoice(
-        order: order,
-        items: items,
-        customer: partner,
-        organizationName: orgName,
-        storeName: sName,
-        storeAddress: [
-          store?.location ?? '',
-          store?.city ?? '',
-          store?.postalCode ?? '',
-          store?.country ?? '',
-        ].where((s) => s.isNotEmpty).join(', '),
-        storePhone: sPhone,
-        customerAddressOverride: fullCustomerAddress,
-        logoBytes: logoBytes,
-        settings: ref.read(settingsProvider).pdfSettings,
-        currencyCode: currency,
-        onProgress: (msg, val) {
-           statusMessage.value = msg;
-           progressValue.value = val;
-        }
-      ).timeout(const Duration(seconds: 15));
+      final pdfBytes = await PdfInvoiceService()
+          .generateInvoice(
+              order: order,
+              items: items,
+              customer: partner,
+              organizationName: orgName,
+              storeName: sName,
+              storeAddress: [
+                store?.location ?? '',
+                store?.city ?? '',
+                store?.postalCode ?? '',
+                store?.country ?? '',
+              ].where((s) => s.isNotEmpty).join(', '),
+              storePhone: sPhone,
+              customerAddressOverride: fullCustomerAddress,
+              logoBytes: logoBytes,
+              settings: ref.read(settingsProvider).pdfSettings,
+              currencyCode: currency,
+              onProgress: (msg, val) {
+                statusMessage.value = msg;
+                progressValue.value = val;
+              })
+          .timeout(const Duration(seconds: 15));
 
       if (pdfBytes.isEmpty) throw Exception('Generated PDF is empty');
 
       if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pop(); // Close loading dialog correctly
+      Navigator.of(context, rootNavigator: true)
+          .pop(); // Close loading dialog correctly
 
       // 7. Perform Action
       statusMessage.value = 'Opening PDF...';
       final filename = '${order.orderNumber}.pdf';
       switch (action) {
         case 'print':
-          await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdfBytes, name: filename);
+          await Printing.layoutPdf(
+              onLayout: (PdfPageFormat format) async => pdfBytes,
+              name: filename);
         case 'preview':
           if (!mounted) return;
           await Navigator.of(context).push(
-             MaterialPageRoute(
-               builder: (ctx) => PdfPreviewScreen(pdfBytes: pdfBytes, fileName: filename),
-             ),
-           );
+            MaterialPageRoute(
+              builder: (ctx) =>
+                  PdfPreviewScreen(pdfBytes: pdfBytes, fileName: filename),
+            ),
+          );
         case 'share':
           await Printing.sharePdf(bytes: pdfBytes, filename: filename);
         case 'convert':
@@ -248,7 +289,8 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Close loading
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
         debugPrint('PDF Error: $e');
       }
     }
@@ -270,12 +312,10 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Already Invoiced'),
-          content: const Text(
-            'This order is already marked as invoiced.\n\n'
-            'Regenerating will create new accounting transactions. '
-            'If you deleted the previous transactions manually, you can proceed.\n\n'
-            'Do you want to continue?'
-          ),
+          content: const Text('This order is already marked as invoiced.\n\n'
+              'Regenerating will create new accounting transactions. '
+              'If you deleted the previous transactions manually, you can proceed.\n\n'
+              'Do you want to continue?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -301,31 +341,40 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
     if (!mounted) return;
 
     if (order.dispatchStatus != 'dispatched' || order.dispatchDate == null) {
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order must be status "dispatched" and have a date.')));
-       return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Order must be status "dispatched" and have a date.')));
+      return;
     }
 
     // 2. Perform Conversion
     try {
-      showDialog(context: context, builder: (ctx) => const Center(child: CircularProgressIndicator()));
-      
+      showDialog(
+          context: context,
+          builder: (ctx) => const Center(child: CircularProgressIndicator()));
+
       final accountingState = ref.read(accountingProvider);
       if (accountingState.accounts.isEmpty) {
         await ref.read(accountingProvider.notifier).loadAll();
       }
-      
-      await ref.read(voucherServiceProvider).convertOrderToInvoice(order, accounts: ref.read(accountingProvider).accounts);
-      
+
+      await ref.read(voucherServiceProvider).convertOrderToInvoice(order,
+          accounts: ref.read(accountingProvider).accounts);
+
       // Update order status in DB (Invoiced = true)
-      await ref.read(orderProvider.notifier).updateOrderInvoiced(order.id, true);
-      
+      await ref
+          .read(orderProvider.notifier)
+          .updateOrderInvoiced(order.id, true);
+
       if (!mounted) return;
       Navigator.pop(context); // Close loading
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order converted to Invoice and Transactions created.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text('Order converted to Invoice and Transactions created.')));
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Conversion failed: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Conversion failed: $e')));
       }
     }
   }
@@ -345,30 +394,41 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
               DropdownButtonFormField<String>(
                 initialValue: status == 'pending' ? 'dispatched' : status,
                 decoration: const InputDecoration(labelText: 'Status'),
-                items: ['dispatched', 'pending'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                items: ['dispatched', 'pending']
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                    .toList(),
                 onChanged: (v) => status = v ?? status,
               ),
               ListTile(
-                title: Text('Date: ${date?.toLocal().toString().split(' ')[0]}'),
+                title:
+                    Text('Date: ${date?.toLocal().toString().split(' ')[0]}'),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: () async {
-                  final picked = await showDatePicker(context: context, initialDate: date ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
+                  final picked = await showDatePicker(
+                      context: context,
+                      initialDate: date ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100));
                   if (picked != null) setDialogState(() => date = picked);
                 },
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
-              onPressed: () {
-                final updated = order.copyWith(dispatchStatus: status, dispatchDate: date);
-                // Also trigger repo update
-                ref.read(orderProvider.notifier).updateDispatchInfo(order.id, status, date!);
-                Navigator.pop(ctx, updated);
-              }, 
-              child: const Text('Save & Continue')
-            ),
+                onPressed: () {
+                  final updated = order.copyWith(
+                      dispatchStatus: status, dispatchDate: date);
+                  // Also trigger repo update
+                  ref
+                      .read(orderProvider.notifier)
+                      .updateDispatchInfo(order.id, status, date!);
+                  Navigator.pop(ctx, updated);
+                },
+                child: const Text('Save & Continue')),
           ],
         ),
       ),
@@ -480,60 +540,63 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
 
           // Dependency Check
           try {
-             // Show loading
-             showDialog(
-                context: context, 
+            // Show loading
+            showDialog(
+                context: context,
                 barrierDismissible: false,
-                builder: (ctx) => const Center(child: CircularProgressIndicator())
-             );
-             
-             // Load Data
-             await Future.wait([
-               ref.read(productProvider.notifier).loadProducts(),
-               ref.read(businessPartnerProvider.notifier).loadCustomers(),
-               ref.read(businessPartnerProvider.notifier).loadVendors(), 
-             ]);
+                builder: (ctx) =>
+                    const Center(child: CircularProgressIndicator()));
 
-             if (!context.mounted) return;
-             Navigator.pop(context);
+            // Load Data
+            await Future.wait([
+              ref.read(productProvider.notifier).loadProducts(),
+              ref.read(businessPartnerProvider.notifier).loadCustomers(),
+              ref.read(businessPartnerProvider.notifier).loadVendors(),
+            ]);
 
-             final products = ref.read(productProvider).products;
-             final partnerState = ref.read(businessPartnerProvider);
-             final customers = partnerState.customers;
-             final vendors = partnerState.vendors;
+            if (!context.mounted) return;
+            Navigator.pop(context);
 
-             final missing = <String>[];
-             if (products.isEmpty) missing.add('Product');
-             
-             if (initialType == 'SO') {
-               if (customers.isEmpty) missing.add('Customer');
-             } else {
-               if (vendors.isEmpty) missing.add('Vendor');
-             }
+            final products = ref.read(productProvider).products;
+            final partnerState = ref.read(businessPartnerProvider);
+            final customers = partnerState.customers;
+            final vendors = partnerState.vendors;
 
-             if (missing.isNotEmpty) {
-               showDialog(
+            final missing = <String>[];
+            if (products.isEmpty) missing.add('Product');
+
+            if (initialType == 'SO') {
+              if (customers.isEmpty) missing.add('Customer');
+            } else {
+              if (vendors.isEmpty) missing.add('Vendor');
+            }
+
+            if (missing.isNotEmpty) {
+              showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Missing Requirements'),
-                    content: Text('Please create the following before creating an Order:\n\n• ${missing.join('\n• ')}\n\nYou can create these in the Products or Partners sections.'),
-                    actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-                  )
-               );
-               return;
-             }
+                        title: const Text('Missing Requirements'),
+                        content: Text(
+                            'Please create the following before creating an Order:\n\n• ${missing.join('\n• ')}\n\nYou can create these in the Products or Partners sections.'),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('OK'))
+                        ],
+                      ));
+              return;
+            }
 
-             context.pushNamed(
-                'order-create',
-                extra: {
-                  'initialOrderType': initialType
-                }, 
-              );
+            context.pushNamed(
+              'order-create',
+              extra: {'initialOrderType': initialType},
+            );
           } catch (e) {
-             if (context.mounted) {
-               Navigator.pop(context);
-               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error checking dependencies: $e')));
-             }
+            if (context.mounted) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error checking dependencies: $e')));
+            }
           }
         },
         child: const Icon(Icons.add),
@@ -730,7 +793,9 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                                         child: Row(
                                           children: [
                                             Icon(Icons.print,
-                                                color: Theme.of(context).iconTheme.color),
+                                                color: Theme.of(context)
+                                                    .iconTheme
+                                                    .color),
                                             const SizedBox(width: 8),
                                             const Text('Print'),
                                           ],
@@ -825,13 +890,19 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                                         children: [
                                           Icon(Icons.business,
                                               size: 14,
-                                              color: Theme.of(context).textTheme.bodySmall?.color),
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.color),
                                           const SizedBox(width: 4),
                                           Text(
                                             order.businessPartnerName ??
                                                 'Unknown Partner',
                                             style: TextStyle(
-                                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.color,
                                                 fontWeight: FontWeight.w500),
                                           ),
                                         ],
@@ -841,13 +912,19 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                                         children: [
                                           Icon(Icons.calendar_today,
                                               size: 14,
-                                              color: Theme.of(context).textTheme.bodySmall?.color),
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.color),
                                           const SizedBox(width: 4),
                                           Text(
                                             DateFormat('yyyy-MM-dd')
                                                 .format(order.orderDate),
                                             style: TextStyle(
-                                                color: Theme.of(context).textTheme.bodySmall?.color,
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.color,
                                                 fontSize: 13),
                                           ),
                                           const Spacer(),
@@ -856,7 +933,10 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 15,
-                                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge
+                                                  ?.color,
                                             ),
                                           ),
                                         ],

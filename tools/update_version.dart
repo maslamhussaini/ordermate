@@ -42,13 +42,15 @@ void main(List<String> args) async {
     } else {
       // Default: Patch increment (Safest default, or use 'patch' arg)
       patch++;
-      print('Performing PATCH version increment (default). Use "major" or "minor" args for other updates.');
+      print(
+          'Performing PATCH version increment (default). Use "major" or "minor" args for other updates.');
     }
 
     newVersion = '$major.$minor.$patch+$build';
     versionString = '$major.$minor.$patch';
-    
-    pubspecContent = pubspecContent.replaceFirst(versionRegex, 'version: $newVersion');
+
+    pubspecContent =
+        pubspecContent.replaceFirst(versionRegex, 'version: $newVersion');
     await pubspecFile.writeAsString(pubspecContent);
     print('Updated pubspec.yaml version to $newVersion');
   } else {
@@ -58,22 +60,25 @@ void main(List<String> args) async {
   // 2. Update lib/build_info.dart
   String content = await buildInfoFile.readAsString();
   final now = DateTime.now();
-  final formattedDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+  final formattedDate =
+      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
   // Update buildTime
   final buildTimeRegex = RegExp(r"const String buildTime = '([^']*)';");
   if (buildTimeRegex.hasMatch(content)) {
-    content = content.replaceFirst(buildTimeRegex, "const String buildTime = '$formattedDate';");
+    content = content.replaceFirst(
+        buildTimeRegex, "const String buildTime = '$formattedDate';");
   }
 
   // Update appVersion
   final appVersionRegex = RegExp(r"const String appVersion = '([^']*)';");
   if (appVersionRegex.hasMatch(content)) {
-    content = content.replaceFirst(appVersionRegex, "const String appVersion = '$versionString';");
+    content = content.replaceFirst(
+        appVersionRegex, "const String appVersion = '$versionString';");
     print('Updated build_info.dart appVersion to $versionString');
   }
 
   await buildInfoFile.writeAsString(content);
-  print('Successfully updated lib/build_info.dart with buildTime $formattedDate');
+  print(
+      'Successfully updated lib/build_info.dart with buildTime $formattedDate');
 }
-

@@ -13,19 +13,26 @@ class FinancialSessionFormScreen extends ConsumerStatefulWidget {
   const FinancialSessionFormScreen({super.key, this.sYear});
 
   @override
-  ConsumerState<FinancialSessionFormScreen> createState() => _FinancialSessionFormScreenState();
+  ConsumerState<FinancialSessionFormScreen> createState() =>
+      _FinancialSessionFormScreenState();
 }
 
-class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFormScreen> {
+class _FinancialSessionFormScreenState
+    extends ConsumerState<FinancialSessionFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _yearController;
   late TextEditingController _narrationController;
   DateTime _startDate = DateTime(DateTime.now().year, 1, 1);
   DateTime _endDate = DateTime(DateTime.now().year, 12, 31);
-  
-  String _yearType = 'Calendar Year'; // Calendar Year, Financial Year, Fiscal Year
-  final List<String> _yearTypes = ['Calendar Year', 'Financial Year', 'Fiscal Year'];
-  
+
+  String _yearType =
+      'Calendar Year'; // Calendar Year, Financial Year, Fiscal Year
+  final List<String> _yearTypes = [
+    'Calendar Year',
+    'Financial Year',
+    'Fiscal Year'
+  ];
+
   bool _inUse = false;
   bool _isActive = true;
   bool _isLoading = false;
@@ -37,7 +44,10 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
     _narrationController = TextEditingController();
 
     if (widget.sYear != null) {
-      final session = ref.read(accountingProvider).financialSessions.firstWhere((s) => s.sYear == widget.sYear);
+      final session = ref
+          .read(accountingProvider)
+          .financialSessions
+          .firstWhere((s) => s.sYear == widget.sYear);
       _yearController.text = session.sYear.toString();
       _narrationController.text = session.narration ?? '';
       _startDate = session.startDate;
@@ -45,9 +55,15 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
       _inUse = session.inUse;
       _isActive = session.isActive;
       // Heuristic to detect type if editing
-      if (_startDate.month == 1 && _startDate.day == 1 && _endDate.month == 12 && _endDate.day == 31) {
+      if (_startDate.month == 1 &&
+          _startDate.day == 1 &&
+          _endDate.month == 12 &&
+          _endDate.day == 31) {
         _yearType = 'Calendar Year';
-      } else if (_startDate.month == 7 && _startDate.day == 1 && _endDate.month == 6 && _endDate.day == 30) {
+      } else if (_startDate.month == 7 &&
+          _startDate.day == 1 &&
+          _endDate.month == 6 &&
+          _endDate.day == 30) {
         _yearType = 'Financial Year';
       } else {
         _yearType = 'Fiscal Year';
@@ -73,15 +89,15 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
         _endDate = DateTime(year + 1, 6, 30); // 30th June next year
       });
     } else if (_yearType == 'Fiscal Year') {
-       // Default logic: Today to +12 months, user editable
-       // Keep existing if manually set, otherwise set default span?
-       // For new entry, let's default to current date -> +1 year
-       if (widget.sYear == null) {
-         setState(() {
-            _startDate = DateTime.now();
-            _endDate = DateTime.now().add(const Duration(days: 365));
-         });
-       }
+      // Default logic: Today to +12 months, user editable
+      // Keep existing if manually set, otherwise set default span?
+      // For new entry, let's default to current date -> +1 year
+      if (widget.sYear == null) {
+        setState(() {
+          _startDate = DateTime.now();
+          _endDate = DateTime.now().add(const Duration(days: 365));
+        });
+      }
     }
   }
 
@@ -95,7 +111,9 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     // Only allow edit if Fiscal Year is selected
     if (_yearType != 'Fiscal Year') {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dates are auto-calculated for Calendar and Financial Year.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Dates are auto-calculated for Calendar and Financial Year.')));
       return;
     }
 
@@ -122,17 +140,18 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     // Strict Validation: Ensure sYear exists (implicit in text field)
     if (_yearController.text.isEmpty) {
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Financial Year ID cannot be empty')));
-       return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Financial Year ID cannot be empty')));
+      return;
     }
 
     setState(() => _isLoading = true);
     try {
       final orgId = ref.read(organizationProvider).selectedOrganization?.id;
-      
+
       final account = FinancialSession(
         sYear: int.parse(_yearController.text),
         startDate: _startDate,
@@ -141,7 +160,7 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
         inUse: _inUse,
         isActive: _isActive,
         organizationId: orgId ?? 0,
-       // isClosed: false  // Default
+        // isClosed: false  // Default
       );
 
       final notifier = ref.read(accountingProvider.notifier);
@@ -150,7 +169,7 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
       } else {
         await notifier.updateFinancialSession(account, organizationId: orgId);
       }
-      
+
       // If marked in_use, we might want to unmark others? handled by repo typically or manual
 
       if (mounted) {
@@ -176,7 +195,9 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.sYear == null ? 'New Financial Session' : 'Edit Session ${widget.sYear}'),
+        title: Text(widget.sYear == null
+            ? 'New Financial Session'
+            : 'Edit Session ${widget.sYear}'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -198,37 +219,46 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
                       keyboardType: TextInputType.number,
                       enabled: widget.sYear == null,
                       onChanged: (_) => _recalcDates(),
-                      validator: (value) => 
-                        (value == null || int.tryParse(value) == null) ? 'Invalid year' : null,
+                      validator: (value) =>
+                          (value == null || int.tryParse(value) == null)
+                              ? 'Invalid year'
+                              : null,
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Year Type Dropdown
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(4)
-                      ),
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(4)),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _yearType,
                           isExpanded: true,
-                          items: _yearTypes.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                          onChanged: widget.sYear == null ? (val) {
-                            if (val != null) {
-                               setState(() => _yearType = val);
-                               _recalcDates();
-                            }
-                          } : null, // Disable changing type on edit for safety, or allow? Better minimal changes on edit.
+                          items: _yearTypes
+                              .map((e) =>
+                                  DropdownMenuItem(value: e, child: Text(e)))
+                              .toList(),
+                          onChanged: widget.sYear == null
+                              ? (val) {
+                                  if (val != null) {
+                                    setState(() => _yearType = val);
+                                    _recalcDates();
+                                  }
+                                }
+                              : null, // Disable changing type on edit for safety, or allow? Better minimal changes on edit.
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text('Type: Calendar (Jan-Dec), Financial (Jul-Jun), Fiscal (Custom)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Text(
+                        'Type: Calendar (Jan-Dec), Financial (Jul-Jun), Fiscal (Custom)',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
                     const SizedBox(height: 24),
-                    
-                    const Text('Session Duration', style: TextStyle(fontWeight: FontWeight.bold)),
+
+                    const Text('Session Duration',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -236,11 +266,14 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
                           child: OutlinedButton.icon(
                             onPressed: () => _selectDate(context, true),
                             icon: const Icon(Icons.date_range),
-                            label: Text('From: ${dateFormat.format(_startDate)}'),
+                            label:
+                                Text('From: ${dateFormat.format(_startDate)}'),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              foregroundColor: _yearType == 'Fiscal Year' ? null : Colors.grey
-                            ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                foregroundColor: _yearType == 'Fiscal Year'
+                                    ? null
+                                    : Colors.grey),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -250,9 +283,11 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
                             icon: const Icon(Icons.date_range),
                             label: Text('To: ${dateFormat.format(_endDate)}'),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              foregroundColor: _yearType == 'Fiscal Year' ? null : Colors.grey
-                            ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                foregroundColor: _yearType == 'Fiscal Year'
+                                    ? null
+                                    : Colors.grey),
                           ),
                         ),
                       ],
@@ -270,7 +305,8 @@ class _FinancialSessionFormScreenState extends ConsumerState<FinancialSessionFor
                     const SizedBox(height: 16),
                     SwitchListTile(
                       title: const Text('Mark as Current Session'),
-                      subtitle: const Text('Currently active period for all transactions'),
+                      subtitle: const Text(
+                          'Currently active period for all transactions'),
                       value: _inUse,
                       onChanged: (val) => setState(() => _inUse = val),
                     ),

@@ -90,7 +90,9 @@ class _VendorFormScreenState extends ConsumerState<VendorFormScreen> {
       if (currentOrgId == null || currentStoreId == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: Organization or Store not selected. Please restart the app.')),
+            const SnackBar(
+                content: Text(
+                    'Error: Organization or Store not selected. Please restart the app.')),
           );
         }
         setState(() => _isLoading = false);
@@ -176,94 +178,106 @@ class _VendorFormScreenState extends ConsumerState<VendorFormScreen> {
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                 child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Vendor Name',
-                        border: OutlineInputBorder(),
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Vendor Name',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Required' : null,
                       ),
-                      validator: (v) =>
-                          v == null || v.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _contactPersonController,
-                      decoration: const InputDecoration(
-                        labelText: 'Contact Person',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _contactPersonController,
+                        decoration: const InputDecoration(
+                          labelText: 'Contact Person',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.phone,
                       ),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _addressController,
-                      decoration: const InputDecoration(
-                        labelText: 'Address',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _addressController,
+                        decoration: const InputDecoration(
+                          labelText: 'Address',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 2,
                       ),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 16),
-                    LookupField<ChartOfAccount, String>(
-                      label: 'Vendor GL Account',
-                      value: _selectedChartOfAccountId?.toString(),
-                      items: ref.watch(accountingProvider).accounts.where((a) {
-                        final categories = ref.read(accountingProvider).categories;
-                        final cat = categories.firstWhere((c) => c.id == a.accountCategoryId,
-                            orElse: () => const AccountCategory(
-                                id: 0,
-                                categoryName: '',
-                                accountTypeId: 0,
-                                organizationId: 0,
-                                status: true));
-                        return cat.categoryName.toLowerCase().contains('vendor') ||
-                               cat.categoryName.toLowerCase().contains('payable') ||
-                               cat.categoryName.toLowerCase().contains('supplier');
-                      }).toList(),
-                      onChanged: (v) => setState(() => _selectedChartOfAccountId = v),
-                      labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
-                      valueBuilder: (item) => item.id,
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      title: const Text('Is Supplier'),
-                      subtitle: const Text('Check if this vendor is a supplier'),
-                      value: _isSupplier,
-                      onChanged: (v) => setState(() => _isSupplier = v),
-                    ),
-                    SwitchListTile(
-                      title: const Text('Active'),
-                      subtitle: const Text('Is this vendor currently active?'),
-                      value: _isActive,
-                      onChanged: (v) => setState(() => _isActive = v),
-                    ),
-                    const SizedBox(height: 24),
-
-                  ],
+                      const SizedBox(height: 16),
+                      LookupField<ChartOfAccount, String>(
+                        label: 'Vendor GL Account',
+                        value: _selectedChartOfAccountId?.toString(),
+                        items:
+                            ref.watch(accountingProvider).accounts.where((a) {
+                          final categories =
+                              ref.read(accountingProvider).categories;
+                          final cat = categories.firstWhere(
+                              (c) => c.id == a.accountCategoryId,
+                              orElse: () => const AccountCategory(
+                                  id: 0,
+                                  categoryName: '',
+                                  accountTypeId: 0,
+                                  organizationId: 0,
+                                  status: true));
+                          return cat.categoryName
+                                  .toLowerCase()
+                                  .contains('vendor') ||
+                              cat.categoryName
+                                  .toLowerCase()
+                                  .contains('payable') ||
+                              cat.categoryName
+                                  .toLowerCase()
+                                  .contains('supplier');
+                        }).toList(),
+                        onChanged: (v) =>
+                            setState(() => _selectedChartOfAccountId = v),
+                        labelBuilder: (item) =>
+                            '${item.accountCode} - ${item.accountTitle}',
+                        valueBuilder: (item) => item.id,
+                      ),
+                      const SizedBox(height: 16),
+                      SwitchListTile(
+                        title: const Text('Is Supplier'),
+                        subtitle:
+                            const Text('Check if this vendor is a supplier'),
+                        value: _isSupplier,
+                        onChanged: (v) => setState(() => _isSupplier = v),
+                      ),
+                      SwitchListTile(
+                        title: const Text('Active'),
+                        subtitle:
+                            const Text('Is this vendor currently active?'),
+                        value: _isActive,
+                        onChanged: (v) => setState(() => _isActive = v),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
     );
   }
 }

@@ -14,19 +14,21 @@ class AppMenu extends ConsumerWidget {
     final auth = ref.watch(authProvider);
 
     // Filter by Role AND DB-Driven Permission (Read Access)
-    final menuItems = appRoutes.where((r) => 
-      r.roles.contains(auth.role) && 
-      r.showInMenu &&
-      auth.can(r.module, Permission.read)
-    ).toList();
+    final menuItems = appRoutes
+        .where((r) =>
+            r.roles.contains(auth.role) &&
+            r.showInMenu &&
+            auth.can(r.module, Permission.read))
+        .toList();
 
     return Drawer(
       child: Column(
         children: [
           UserAccountsDrawerHeader(
-             accountName: Text('Role: ${auth.role.name.toUpperCase()}'),
-             accountEmail: Text(auth.isLoggedIn ? 'Online' : 'Offline'),
-             currentAccountPicture: const CircleAvatar(child: Icon(Icons.person)),
+            accountName: Text('Role: ${auth.role.name.toUpperCase()}'),
+            accountEmail: Text(auth.isLoggedIn ? 'Online' : 'Offline'),
+            currentAccountPicture:
+                const CircleAvatar(child: Icon(Icons.person)),
           ),
           Expanded(
             child: ListView.builder(
@@ -42,8 +44,9 @@ class AppMenu extends ConsumerWidget {
                     } else {
                       context.go(route.path);
                     }
-                    if (Scaffold.of(context).hasDrawer && Scaffold.of(context).isDrawerOpen) {
-                       Navigator.pop(context); 
+                    if (Scaffold.of(context).hasDrawer &&
+                        Scaffold.of(context).isDrawerOpen) {
+                      Navigator.pop(context);
                     }
                   },
                 );

@@ -3,7 +3,8 @@ import 'package:ordermate/features/accounting/data/repositories/accounting_repos
 import 'package:ordermate/features/accounting/data/repositories/local_accounting_repository.dart';
 import 'package:ordermate/features/accounting/domain/repositories/accounting_repository.dart';
 
-final localAccountingRepositoryProvider = Provider<LocalAccountingRepository>((ref) {
+final localAccountingRepositoryProvider =
+    Provider<LocalAccountingRepository>((ref) {
   return LocalAccountingRepository();
 });
 

@@ -10,7 +10,8 @@ class ProductTypeFormScreen extends ConsumerStatefulWidget {
   const ProductTypeFormScreen({super.key, this.typeId});
 
   @override
-  ConsumerState<ProductTypeFormScreen> createState() => _ProductTypeFormScreenState();
+  ConsumerState<ProductTypeFormScreen> createState() =>
+      _ProductTypeFormScreenState();
 }
 
 class _ProductTypeFormScreenState extends ConsumerState<ProductTypeFormScreen> {
@@ -31,9 +32,10 @@ class _ProductTypeFormScreenState extends ConsumerState<ProductTypeFormScreen> {
     if (id == null) return;
 
     final type = ref.read(inventoryProvider).productTypes.firstWhere(
-      (t) => t.id == id,
-      orElse: () => ProductType(id: 0, name: '', createdAt: DateTime.now(), organizationId: 0),
-    );
+          (t) => t.id == id,
+          orElse: () => ProductType(
+              id: 0, name: '', createdAt: DateTime.now(), organizationId: 0),
+        );
     if (type.id != 0) {
       _nameController.text = type.name;
     }
@@ -52,16 +54,21 @@ class _ProductTypeFormScreenState extends ConsumerState<ProductTypeFormScreen> {
 
     try {
       if (widget.typeId == null) {
-        await ref.read(inventoryProvider.notifier).addProductType(_nameController.text.trim());
+        await ref
+            .read(inventoryProvider.notifier)
+            .addProductType(_nameController.text.trim());
       } else {
         final id = int.tryParse(widget.typeId!);
         if (id != null) {
-          final existing = ref.read(inventoryProvider).productTypes.firstWhere((t) => t.id == id);
+          final existing = ref
+              .read(inventoryProvider)
+              .productTypes
+              .firstWhere((t) => t.id == id);
           final updated = existing.copyWith(name: _nameController.text.trim());
           await ref.read(inventoryProvider.notifier).updateProductType(updated);
         }
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Product Type saved successfully')),
@@ -83,7 +90,8 @@ class _ProductTypeFormScreenState extends ConsumerState<ProductTypeFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.typeId == null ? 'New Product Type' : 'Edit Product Type'),
+        title: Text(
+            widget.typeId == null ? 'New Product Type' : 'Edit Product Type'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -110,8 +118,11 @@ class _ProductTypeFormScreenState extends ConsumerState<ProductTypeFormScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _saveType,
-                  icon: _isLoading 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.save),
                   label: Text(_isLoading ? 'Saving...' : 'Save Product Type'),
                   style: ElevatedButton.styleFrom(

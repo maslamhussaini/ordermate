@@ -48,8 +48,10 @@ class OrganizationLocalRepository {
         name: map['name'] as String,
         code: map['code'] as String?,
         isActive: (map['is_active'] as int) == 1,
-        createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ?? DateTime.now(),
-        updatedAt: DateTime.tryParse(map['updated_at'] as String? ?? '') ?? DateTime.now(),
+        createdAt: DateTime.tryParse(map['created_at'] as String? ?? '') ??
+            DateTime.now(),
+        updatedAt: DateTime.tryParse(map['updated_at'] as String? ?? '') ??
+            DateTime.now(),
         logoUrl: map['logo_url'] as String?,
       );
     }).toList();
@@ -73,8 +75,12 @@ class OrganizationLocalRepository {
             name: localData['name'] as String,
             code: localData['code'] as String?,
             isActive: (localData['is_active'] as int) == 1,
-            createdAt: DateTime.tryParse(localData['created_at'] as String? ?? '') ?? DateTime.now(),
-            updatedAt: DateTime.tryParse(localData['updated_at'] as String? ?? '') ?? DateTime.now(),
+            createdAt:
+                DateTime.tryParse(localData['created_at'] as String? ?? '') ??
+                    DateTime.now(),
+            updatedAt:
+                DateTime.tryParse(localData['updated_at'] as String? ?? '') ??
+                    DateTime.now(),
             logoUrl: localData['logo_url'] as String?,
           ));
         } else {
@@ -93,8 +99,12 @@ class OrganizationLocalRepository {
           name: localData['name'] as String,
           code: localData['code'] as String?,
           isActive: (localData['is_active'] as int) == 1,
-          createdAt: DateTime.tryParse(localData['created_at'] as String? ?? '') ?? DateTime.now(),
-          updatedAt: DateTime.tryParse(localData['updated_at'] as String? ?? '') ?? DateTime.now(),
+          createdAt:
+              DateTime.tryParse(localData['created_at'] as String? ?? '') ??
+                  DateTime.now(),
+          updatedAt:
+              DateTime.tryParse(localData['updated_at'] as String? ?? '') ??
+                  DateTime.now(),
           logoUrl: localData['logo_url'] as String?,
         ));
       }

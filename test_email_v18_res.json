@@ -1,0 +1,28 @@
+﻿{
+    "message":  "Success",
+    "debug_logs":  [
+                       "Sending email to: maslamhussaini@gmail.com",
+                       "S: 220 smtp.gmail.com ESMTP d2e1a72fcca58-824418dd7bcsm2153153b3a.64 - gsmtp",
+                       "C: EHLO localhost",
+                       "S: 250-smtp.gmail.com at your service, [2406:da1a:c77:d409:aae3:8d49:823:3287]\r\n250-SIZE 35882577\r\n250-8BITMIME\r\n250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH\r\n250-ENHANCEDSTATUSCODES\r\n250-PIPELINING\r\n250-CHUNKING\r\n250 SMTPUTF8",
+                       "C: AUTH LOGIN...",
+                       "S: 334 VXNlcm5hbWU6",
+                       "C: bWFzbGFtaHVzc2FpbmlAZ21haWwuY29t",
+                       "S: 334 UGFzc3dvcmQ6",
+                       "C: bmRhaCBiZGF1IHNjYWsgdWZvdA==",
+                       "S: 235 2.7.0 Accepted",
+                       "C: MAIL FROM: \u003cmaslamhussaini@gmail.com\u003e",
+                       "S: 250 2.1.0 OK d2e1a72fcca58-824418dd7bcsm2153153b3a.64 - gsmtp",
+                       "C: RCPT TO: \u003cmaslamhussaini@gmail.com\u003e",
+                       "S: 250 2.1.5 OK d2e1a72fcca58-824418dd7bcsm2153153b3a.64 - gsmtp",
+                       "C: DATA",
+                       "S: 354 Go ahead d2e1a72fcca58-824418dd7bcsm2153153b3a.64 - gsmtp",
+                       "C: From: Orde...",
+                       "C: ",
+                       "C: \u003ch1\u003eTest from Antigravity v18\u003c/h1\u003e",
+                       "C: .",
+                       "S: 250 2.0.0 OK  1770381421 d2e1a72fcca58-824418dd7bcsm2153153b3a.64 - gsmtp",
+                       "C: QUIT",
+                       "S: 221 2.0.0 closing connection d2e1a72fcca58-824418dd7bcsm2153153b3a.64 - gsmtp"
+                   ]
+}

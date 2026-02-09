@@ -8,12 +8,12 @@ import 'package:ordermate/core/widgets/batch_import_dialog.dart';
 import 'package:ordermate/features/inventory/domain/entities/product_type.dart';
 import 'package:ordermate/features/inventory/presentation/providers/inventory_provider.dart';
 
-
 class ProductTypeListScreen extends ConsumerStatefulWidget {
   const ProductTypeListScreen({super.key});
 
   @override
-  ConsumerState<ProductTypeListScreen> createState() => _ProductTypeListScreenState();
+  ConsumerState<ProductTypeListScreen> createState() =>
+      _ProductTypeListScreenState();
 }
 
 class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
@@ -24,7 +24,8 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
   void initState() {
     super.initState();
     Future.microtask(
-        () => ref.read(inventoryProvider.notifier).loadProductTypes(),);
+      () => ref.read(inventoryProvider.notifier).loadProductTypes(),
+    );
   }
 
   @override
@@ -36,7 +37,9 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
   Future<void> _removeDuplicates() async {
     final types = ref.read(inventoryProvider).productTypes;
     if (types.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No product types to check.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No product types to check.')));
       return;
     }
 
@@ -67,14 +70,16 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Duplicates?'),
-        content: Text('Found ${duplicates.length} duplicate entries based on Name.\n\nAre you sure you want to delete them?'),
+        content: Text(
+            'Found ${duplicates.length} duplicate entries based on Name.\n\nAre you sure you want to delete them?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Delete Duplicates'),
           ),
@@ -89,7 +94,7 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
       ImportProgress(total: duplicates.length),
     );
     var isCancelled = false;
-    
+
     if (!mounted) return;
 
     showDialog(
@@ -112,20 +117,22 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
       if (isCancelled) break;
 
       try {
-        await ref.read(inventoryProvider.notifier).deleteProductType(duplicates[i].id);
+        await ref
+            .read(inventoryProvider.notifier)
+            .deleteProductType(duplicates[i].id);
         successCount++;
       } catch (e) {
         debugPrint('Failed to delete duplicate ${duplicates[i].name}: $e');
         failCount++;
       }
-      
+
       progressNotifier.value = ImportProgress(
         total: duplicates.length,
         processed: i + 1,
         success: successCount,
         failed: failCount,
       );
-      
+
       await Future.delayed(Duration.zero);
     }
 
@@ -134,12 +141,14 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) Navigator.of(context, rootNavigator: true).pop();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isCancelled 
-            ? 'Deletion Cancelled' 
-            : 'Removed $successCount duplicates. ($failCount failed)',),
+          content: Text(
+            isCancelled
+                ? 'Deletion Cancelled'
+                : 'Removed $successCount duplicates. ($failCount failed)',
+          ),
           backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
         ),
       );
@@ -234,8 +243,9 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
       final headers = [
         ['Name'],
       ];
-      final path = await CsvService().saveCsvFile('product_type_template.csv', headers);
-       if (path != null && mounted) {
+      final path =
+          await CsvService().saveCsvFile('product_type_template.csv', headers);
+      if (path != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Template saved to $path')),
         );
@@ -255,10 +265,12 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
       if (rows == null || rows.isEmpty) return;
 
       var startIndex = 0;
-      if (rows.isNotEmpty && rows[0].isNotEmpty && rows[0][0].toString().toLowerCase() == 'name') {
+      if (rows.isNotEmpty &&
+          rows[0].isNotEmpty &&
+          rows[0][0].toString().toLowerCase() == 'name') {
         startIndex = 1;
       }
-      
+
       final totalRecords = rows.length - startIndex;
       if (totalRecords <= 0) return;
 
@@ -267,13 +279,15 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
       );
 
       var isCancelled = false;
-      
-      final existing = ref.read(inventoryProvider).productTypes
-        .map((e) => e.name.toLowerCase().trim())
-        .toSet();
+
+      final existing = ref
+          .read(inventoryProvider)
+          .productTypes
+          .map((e) => e.name.toLowerCase().trim())
+          .toSet();
 
       if (!mounted) return;
-      
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -281,8 +295,8 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
           title: 'Importing Product Types',
           progressNotifier: progressNotifier,
           onStop: () {
-             isCancelled = true;
-             Navigator.of(context).pop();
+            isCancelled = true;
+            Navigator.of(context).pop();
           },
         ),
       );
@@ -292,20 +306,20 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
         var failCount = 0;
         var duplicateCount = 0;
         var processedCount = 0;
-        
+
         for (var i = startIndex; i < rows.length; i++) {
           if (isCancelled) break;
-          
+
           final row = rows[i];
           if (row.isEmpty) {
-             processedCount++;
-             progressNotifier.value = ImportProgress(
-                total: totalRecords,
-                processed: processedCount,
-                success: successCount,
-                failed: failCount,
-             );
-             continue;
+            processedCount++;
+            progressNotifier.value = ImportProgress(
+              total: totalRecords,
+              processed: processedCount,
+              success: successCount,
+              failed: failCount,
+            );
+            continue;
           }
 
           try {
@@ -326,32 +340,33 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
           processedCount++;
 
           progressNotifier.value = ImportProgress(
-             total: totalRecords,
-             processed: processedCount,
-             success: successCount,
-             failed: failCount,
+            total: totalRecords,
+            processed: processedCount,
+            success: successCount,
+            failed: failCount,
           );
-          
+
           await Future.delayed(const Duration(milliseconds: 10));
         }
 
         if (mounted) {
           if (!isCancelled) {
-             await Future.delayed(const Duration(milliseconds: 800));
-             if (mounted) Navigator.of(context, rootNavigator: true).pop();
+            await Future.delayed(const Duration(milliseconds: 800));
+            if (mounted) Navigator.of(context, rootNavigator: true).pop();
           }
-           ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isCancelled 
-                  ? 'Import Cancelled' 
-                  : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',),
+              content: Text(
+                isCancelled
+                    ? 'Import Cancelled'
+                    : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',
+              ),
               backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
             ),
           );
           ref.read(inventoryProvider.notifier).loadProductTypes();
         }
       });
-
     } catch (e) {
       if (mounted) {
         // Navigator.of(context).maybePop();
@@ -379,7 +394,8 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(inventoryProvider.notifier).loadProductTypes(),
+            onPressed: () =>
+                ref.read(inventoryProvider.notifier).loadProductTypes(),
           ),
           IconButton(
             icon: const Icon(Icons.delete_sweep),
@@ -431,11 +447,14 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
                     ? Center(child: Text('Error: ${state.error}'))
                     : filteredTypes.isEmpty
                         ? Center(
-                             child: Column(
-                               mainAxisAlignment: MainAxisAlignment.center,
-                               children: [
-                                 Icon(Icons.category_outlined,
-                                    size: 64, color: Colors.grey.shade400,),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.category_outlined,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   types.isEmpty
@@ -520,7 +539,8 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               OutlinedButton.icon(
-                onPressed: () => context.push('/inventory/product-types/edit/${type.id}'),
+                onPressed: () =>
+                    context.push('/inventory/product-types/edit/${type.id}'),
                 icon: const Icon(Icons.edit, size: 18),
                 label: const Text('Edit'),
                 style: OutlinedButton.styleFrom(
@@ -543,5 +563,5 @@ class _ProductTypeListScreenState extends ConsumerState<ProductTypeListScreen> {
         ],
       ),
     );
-}
+  }
 }

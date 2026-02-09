@@ -43,14 +43,15 @@ class BusinessPartner extends Equatable {
   final String? email;
   final String address;
   final String? contactPerson;
-  
+
   // Location
   final double? latitude;
   final double? longitude;
   final int? distanceMeters; // Runtime field
-  
+
   final String? businessTypeName; // New: For offline display
-  final String? roleName; // New: For offline display (e.g. Employee Designation)
+  final String?
+      roleName; // New: For offline display (e.g. Employee Designation)
   final String? departmentName; // New: For offline display
 
   final String? createdBy;
@@ -58,12 +59,12 @@ class BusinessPartner extends Equatable {
   final int? roleId;
   final int organizationId;
   final int storeId;
-  final int? businessTypeId; 
+  final int? businessTypeId;
   final int? cityId;
   final int? stateId;
   final int? countryId;
   final String? postalCode;
-  
+
   final int? departmentId;
   final String? chartOfAccountId;
   final int? paymentTermId;
@@ -74,7 +75,7 @@ class BusinessPartner extends Equatable {
   final bool isVendor;
   final bool isEmployee;
   final bool isSupplier;
-  
+
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;

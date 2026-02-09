@@ -22,7 +22,9 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
     Future.microtask(
       () {
         ref.read(businessPartnerProvider.notifier).loadAppUsers();
-        ref.read(businessPartnerProvider.notifier).loadEmployees(); // Load employees for import
+        ref
+            .read(businessPartnerProvider.notifier)
+            .loadEmployees(); // Load employees for import
       },
     );
   }
@@ -33,9 +35,10 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
 
   Future<void> _showImportDialog() async {
     final bpState = ref.read(businessPartnerProvider);
-    final existingUserPartnerIds = bpState.appUsers.map((u) => u.businessPartnerId).toSet();
+    final existingUserPartnerIds =
+        bpState.appUsers.map((u) => u.businessPartnerId).toSet();
 
-    // Filter employees: 
+    // Filter employees:
     // 1. Must be Employee
     // 2. Must NOT already be an App User
     // 3. Must have Email and Password (implied "Grant Access")
@@ -48,7 +51,9 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
 
     if (eligibleEmployees.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No eligible employees found for import (Must have Email and Role assigned)')),
+        const SnackBar(
+            content: Text(
+                'No eligible employees found for import (Must have Email and Role assigned)')),
       );
       return;
     }
@@ -69,11 +74,13 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
                   itemCount: eligibleEmployees.length,
                   itemBuilder: (context, index) {
                     final emp = eligibleEmployees[index];
-                    final isSelected = _selectedEmployeeIdsForImport.contains(emp.id);
+                    final isSelected =
+                        _selectedEmployeeIdsForImport.contains(emp.id);
                     return CheckboxListTile(
                       value: isSelected,
                       title: Text(emp.name),
-                      subtitle: Text('${emp.email ?? "No Email"} - ${emp.roleName ?? "No Role"}'),
+                      subtitle: Text(
+                          '${emp.email ?? "No Email"} - ${emp.roleName ?? "No Role"}'),
                       onChanged: (val) {
                         setStateDialog(() {
                           if (val == true) {
@@ -93,11 +100,17 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: _selectedEmployeeIdsForImport.isEmpty ? null : () {
-                    Navigator.pop(context);
-                    _executeImport(eligibleEmployees.where((e) => _selectedEmployeeIdsForImport.contains(e.id)).toList());
-                  },
-                  child: Text('Import (${_selectedEmployeeIdsForImport.length})'),
+                  onPressed: _selectedEmployeeIdsForImport.isEmpty
+                      ? null
+                      : () {
+                          Navigator.pop(context);
+                          _executeImport(eligibleEmployees
+                              .where((e) =>
+                                  _selectedEmployeeIdsForImport.contains(e.id))
+                              .toList());
+                        },
+                  child:
+                      Text('Import (${_selectedEmployeeIdsForImport.length})'),
                 ),
               ],
             );
@@ -110,18 +123,23 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
   Future<void> _executeImport(List<BusinessPartner> employees) async {
     // Dynamic cast fix: List<BusinessPartner>
     final partnerList = employees;
-    
+
     try {
-      await ref.read(businessPartnerProvider.notifier).importAppUsersFromEmployees(partnerList);
+      await ref
+          .read(businessPartnerProvider.notifier)
+          .importAppUsersFromEmployees(partnerList);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Successfully imported ${partnerList.length} users')),
+          SnackBar(
+              content:
+                  Text('Successfully imported ${partnerList.length} users')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Import failed: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Import failed: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -152,10 +170,11 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(businessPartnerProvider.notifier).loadAppUsers(),
+            onPressed: () =>
+                ref.read(businessPartnerProvider.notifier).loadAppUsers(),
           ),
           IconButton(
-            icon: const Icon(Icons.download), 
+            icon: const Icon(Icons.download),
             tooltip: 'Import from Employees',
             onPressed: _showImportDialog,
           ),
@@ -205,11 +224,16 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.person_outline, size: 64, color: Colors.grey.shade400),
+                                Icon(Icons.person_outline,
+                                    size: 64, color: Colors.grey.shade400),
                                 const SizedBox(height: 16),
                                 Text(
-                                  users.isEmpty ? 'No users found.' : 'No results found.',
-                                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                                  users.isEmpty
+                                      ? 'No users found.'
+                                      : 'No results found.',
+                                  style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 16),
                                 ),
                               ],
                             ),
@@ -235,27 +259,37 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: user.isActive ? Colors.blue.shade50 : Colors.grey.shade100,
+          backgroundColor:
+              user.isActive ? Colors.blue.shade50 : Colors.grey.shade100,
           child: Icon(
             Icons.person,
             color: user.isActive ? Colors.blue.shade800 : Colors.grey,
           ),
         ),
-        title: Builder(
-          builder: (context) {
-            final bpState = ref.watch(businessPartnerProvider);
-            final employee = bpState.employees.cast<BusinessPartner>().firstWhere(
-              (e) => e.id == user.businessPartnerId,
-              orElse: () => BusinessPartner(id: '', name: '', phone: '', email: null, address: '', organizationId: 0, storeId: 0, isActive: false, createdAt: DateTime.now(), updatedAt: DateTime.now()),
-            );
-            final displayName = user.fullName ?? (employee.name.isNotEmpty ? employee.name : user.email);
-            
-            return Text(
-              displayName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            );
-          }
-        ),
+        title: Builder(builder: (context) {
+          final bpState = ref.watch(businessPartnerProvider);
+          final employee = bpState.employees.cast<BusinessPartner>().firstWhere(
+                (e) => e.id == user.businessPartnerId,
+                orElse: () => BusinessPartner(
+                    id: '',
+                    name: '',
+                    phone: '',
+                    email: null,
+                    address: '',
+                    organizationId: 0,
+                    storeId: 0,
+                    isActive: false,
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now()),
+              );
+          final displayName = user.fullName ??
+              (employee.name.isNotEmpty ? employee.name : user.email);
+
+          return Text(
+            displayName,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          );
+        }),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -263,38 +297,46 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Builder(
-                    builder: (context) {
-                      final bpState = ref.watch(businessPartnerProvider);
-                      final role = bpState.roles.firstWhere(
-                        (r) => r['id'] == user.roleId,
-                        orElse: () => {},
-                      );
-                      final displayRole = role['role_name']?.toString() ?? user.roleName ?? 'No Role';
-                      
-                      return Text(
-                        displayRole,
-                        style: TextStyle(color: Colors.orange.shade900, fontSize: 11, fontWeight: FontWeight.bold),
-                      );
-                    }
-                  ),
+                  child: Builder(builder: (context) {
+                    final bpState = ref.watch(businessPartnerProvider);
+                    final role = bpState.roles.firstWhere(
+                      (r) => r['id'] == user.roleId,
+                      orElse: () => {},
+                    );
+                    final displayRole = role['role_name']?.toString() ??
+                        user.roleName ??
+                        'No Role';
+
+                    return Text(
+                      displayRole,
+                      style: TextStyle(
+                          color: Colors.orange.shade900,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold),
+                    );
+                  }),
                 ),
                 const SizedBox(width: 8),
                 if (!user.isActive)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.red.shade50,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
                       'Inactive',
-                      style: TextStyle(color: Colors.red, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
               ],

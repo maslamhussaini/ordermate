@@ -1,4 +1,6 @@
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:image_picker/image_picker.dart';
 
@@ -22,9 +24,10 @@ class _OrganizationFormScreenState
     extends ConsumerState<OrganizationFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  
+
   // Store Fields
-  final _storeNameController = TextEditingController(); // Only for Multiple Branches
+  final _storeNameController =
+      TextEditingController(); // Only for Multiple Branches
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
   final _countryController = TextEditingController();
@@ -36,7 +39,8 @@ class _OrganizationFormScreenState
   bool _isActive = true;
   bool _hasMultipleBranches = false;
   bool _isLoading = false;
-  File? _logoFile;
+  XFile? _pickedFile;
+  Uint8List? _previewBytes;
   String? _existingLogoUrl;
   final ImagePicker _picker = ImagePicker();
 
@@ -82,29 +86,30 @@ class _OrganizationFormScreenState
     setState(() => _isLoading = true);
     try {
       final notifier = ref.read(organizationProvider.notifier);
-      
+
       if (widget.organizationId == null) {
         // Create Organization
         final newOrg = await notifier.createOrganization(
           _nameController.text.trim(),
           null, // Tax ID
           _hasMultipleBranches,
-          _logoFile,
+          logoBytes: _previewBytes,
+          logoName: _pickedFile?.name,
         );
 
         // Create Initial Store
         // Logic: If !multiple, store name is 'Main Store'. If multiple, use input.
         // Actually if !multiple, we might use the Org Name or 'Main Store'.
-        // Let's use Org Name if not specified, or 'Main Store'. 
+        // Let's use Org Name if not specified, or 'Main Store'.
         // User prompt: "create default store".
-        
+
         String storeName = 'Main Store';
         if (_hasMultipleBranches) {
-           storeName = _storeNameController.text.trim();
-           if (storeName.isEmpty) storeName = 'Branch 1'; // Fallback
+          storeName = _storeNameController.text.trim();
+          if (storeName.isEmpty) storeName = 'Branch 1'; // Fallback
         } else {
-           // Maybe use Org Name?
-           storeName = '${_nameController.text.trim()} Store'; 
+          // Maybe use Org Name?
+          storeName = '${_nameController.text.trim()} Store';
         }
 
         final store = Store(
@@ -123,7 +128,6 @@ class _OrganizationFormScreenState
         );
 
         await notifier.addStore(store);
-
       } else {
         // Update Existing Organization
         final id = int.parse(widget.organizationId!);
@@ -141,7 +145,8 @@ class _OrganizationFormScreenState
           updatedAt: DateTime.now(),
         );
 
-        await notifier.updateOrganization(updatedOrg, newLogoFile: _logoFile);
+        await notifier.updateOrganization(updatedOrg,
+            newLogoBytes: _previewBytes, newLogoName: _pickedFile?.name);
       }
 
       if (mounted) {
@@ -202,13 +207,18 @@ class _OrganizationFormScreenState
                               child: CircleAvatar(
                                 radius: 50,
                                 backgroundColor: Colors.grey.shade200,
-                                backgroundImage: _logoFile != null
-                                    ? FileImage(_logoFile!)
-                                    : (_existingLogoUrl != null && _existingLogoUrl!.isNotEmpty
-                                        ? NetworkImage(_existingLogoUrl!) as ImageProvider
+                                backgroundImage: _previewBytes != null
+                                    ? MemoryImage(_previewBytes!)
+                                    : (_existingLogoUrl != null &&
+                                            _existingLogoUrl!.isNotEmpty
+                                        ? NetworkImage(_existingLogoUrl!)
+                                            as ImageProvider
                                         : null),
-                                child: (_logoFile == null && (_existingLogoUrl == null || _existingLogoUrl!.isEmpty))
-                                    ? const Icon(Icons.business, size: 50, color: Colors.grey)
+                                child: (_previewBytes == null &&
+                                        (_existingLogoUrl == null ||
+                                            _existingLogoUrl!.isEmpty))
+                                    ? const Icon(Icons.business,
+                                        size: 50, color: Colors.grey)
                                     : null,
                               ),
                             ),
@@ -223,7 +233,8 @@ class _OrganizationFormScreenState
                                     color: Colors.blue,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.edit, size: 16, color: Colors.white),
+                                  child: const Icon(Icons.edit,
+                                      size: 16, color: Colors.white),
                                 ),
                               ),
                             ),
@@ -241,36 +252,38 @@ class _OrganizationFormScreenState
                             v == null || v.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Only show Branch/Store setup when CREATING
                       if (!isEditing) ...[
                         SwitchListTile(
                           title: const Text('Have Multiple Branches?'),
                           value: _hasMultipleBranches,
-                          onChanged: (v) => setState(() => _hasMultipleBranches = v),
+                          onChanged: (v) =>
+                              setState(() => _hasMultipleBranches = v),
                         ),
                         const SizedBox(height: 16),
-
                         if (_hasMultipleBranches) ...[
-                           TextFormField(
+                          TextFormField(
                             controller: _storeNameController,
                             decoration: const InputDecoration(
                               labelText: 'New Store Name',
                               border: OutlineInputBorder(),
                             ),
-                            validator: (v) => _hasMultipleBranches && (v == null || v.isEmpty) ? 'Required' : null,
+                            validator: (v) =>
+                                _hasMultipleBranches && (v == null || v.isEmpty)
+                                    ? 'Required'
+                                    : null,
                           ),
                           const SizedBox(height: 16),
                         ],
-                        
-                        const Text('Initial Store Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text('Initial Store Details',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-
                         TextFormField(
                           controller: _addressController,
                           decoration: const InputDecoration(
                             labelText: 'Address',
-                             border: OutlineInputBorder(),
+                            border: OutlineInputBorder(),
                           ),
                           validator: (v) => v!.isEmpty ? 'Required' : null,
                         ),
@@ -282,7 +295,7 @@ class _OrganizationFormScreenState
                                 controller: _cityController,
                                 decoration: const InputDecoration(
                                   labelText: 'City',
-                                   border: OutlineInputBorder(),
+                                  border: OutlineInputBorder(),
                                 ),
                               ),
                             ),
@@ -292,7 +305,7 @@ class _OrganizationFormScreenState
                                 controller: _postalController,
                                 decoration: const InputDecoration(
                                   labelText: 'Postal Code',
-                                   border: OutlineInputBorder(),
+                                  border: OutlineInputBorder(),
                                 ),
                               ),
                             ),
@@ -303,7 +316,7 @@ class _OrganizationFormScreenState
                           controller: _countryController,
                           decoration: const InputDecoration(
                             labelText: 'Country',
-                             border: OutlineInputBorder(),
+                            border: OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -315,14 +328,15 @@ class _OrganizationFormScreenState
                             hintText: '+1234567890',
                           ),
                           keyboardType: TextInputType.phone,
-                          validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                          validator: (v) =>
+                              v == null || v.isEmpty ? 'Required' : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _currencyController,
                           decoration: const InputDecoration(
                             labelText: 'Default Currency',
-                             border: OutlineInputBorder(),
+                            border: OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -331,7 +345,8 @@ class _OrganizationFormScreenState
                       if (isEditing)
                         SwitchListTile(
                           title: const Text('Active'),
-                          subtitle: const Text('Is this organization currently active?'),
+                          subtitle: const Text(
+                              'Is this organization currently active?'),
                           value: _isActive,
                           onChanged: (v) => setState(() => _isActive = v),
                         ),
@@ -347,8 +362,10 @@ class _OrganizationFormScreenState
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
+        final bytes = await image.readAsBytes();
         setState(() {
-          _logoFile = File(image.path);
+          _pickedFile = image;
+          _previewBytes = bytes;
         });
       }
     } catch (e) {

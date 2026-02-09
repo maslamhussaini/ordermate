@@ -46,7 +46,8 @@ class ProductModel extends Product {
       cost: (json['cost'] as num?)?.toDouble() ?? 0.0,
       businessPartnerId: json['business_partner_id'] as String?,
       businessPartnerName: json['omtbl_businesspartners'] != null
-          ? (json['omtbl_businesspartners'] as Map<String, dynamic>)['name'] as String?
+          ? (json['omtbl_businesspartners'] as Map<String, dynamic>)['name']
+              as String?
           : null,
       productTypeId: json['product_type_id'] as int?,
       productTypeName: json['omtbl_producttypes'] != null
@@ -65,20 +66,29 @@ class ProductModel extends Product {
           : null,
       uomId: json['uom_id'] as int?,
       uomSymbol: json['omtbl_units_of_measure'] != null
-          ? (json['omtbl_units_of_measure'] as Map<String, dynamic>)['unit_symbol'] as String?
+          ? (json['omtbl_units_of_measure']
+              as Map<String, dynamic>)['unit_symbol'] as String?
           : json['uom_symbol'] as String?,
       baseQuantity: (json['base_quantity'] as num?)?.toDouble() ?? 1.0,
       storeId: (json['store_id'] as int?) ?? 0,
       organizationId: (json['organization_id'] as int?) ?? 0,
-      isActive: json['is_active'] == 1 || json['is_active'] == true || json['is_active'] == null,
-      limitPrice: (json['limit_price'] as num? ?? json['limtprice'] as num?)?.toDouble() ?? 0.0,
+      isActive: json['is_active'] == 1 ||
+          json['is_active'] == true ||
+          json['is_active'] == null,
+      limitPrice: (json['limit_price'] as num? ?? json['limtprice'] as num?)
+              ?.toDouble() ??
+          0.0,
       stockQty: (json['stock_qty'] as num?)?.toDouble() ?? 0.0,
       inventoryGlId: json['inventory_gl_id'] as String?,
       cogsGlId: (json['cogs_gl_id'] as String?) ?? (json['cogs_id'] as String?),
-      revenueGlId: (json['revenue_gl_id'] as String?) ?? (json['revnue_id'] as String?),
-      defaultDiscountPercent: (json['defult_discount_percnt'] as num?)?.toDouble() ?? 0.0,
-      defaultDiscountPercentLimit: (json['defult_discount_percnt_limit'] as num?)?.toDouble() ?? 0.0,
-      salesDiscountGlId: (json['sales_discount_id'] as String?) ?? (json['sales_discount_gl_id'] as String?),
+      revenueGlId:
+          (json['revenue_gl_id'] as String?) ?? (json['revnue_id'] as String?),
+      defaultDiscountPercent:
+          (json['defult_discount_percnt'] as num?)?.toDouble() ?? 0.0,
+      defaultDiscountPercentLimit:
+          (json['defult_discount_percnt_limit'] as num?)?.toDouble() ?? 0.0,
+      salesDiscountGlId: (json['sales_discount_id'] as String?) ??
+          (json['sales_discount_gl_id'] as String?),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -103,7 +113,8 @@ class ProductModel extends Product {
       'organization_id': organizationId,
       'is_active': isActive,
       'limit_price': limitPrice,
-      'limtprice': limitPrice, // Maintain typo field for compatibility until migrated
+      'limtprice':
+          limitPrice, // Maintain typo field for compatibility until migrated
       'stock_qty': stockQty,
       'inventory_gl_id': inventoryGlId,
       'cogs_gl_id': cogsGlId,

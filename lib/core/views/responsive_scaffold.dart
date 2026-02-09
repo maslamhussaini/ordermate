@@ -17,7 +17,8 @@ class ResponsiveScaffold extends ConsumerWidget {
   final Widget child;
   final GoRouterState state;
 
-  const ResponsiveScaffold({super.key, required this.child, required this.state});
+  const ResponsiveScaffold(
+      {super.key, required this.child, required this.state});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,83 +34,102 @@ class ResponsiveScaffold extends ConsumerWidget {
         leading: isDesktop ? const SizedBox.shrink() : null,
         title: _buildAppBarTitle(context, ref, state),
         actions: [
-
 // Year Indicator
           Container(
             alignment: Alignment.center,
             margin: const EdgeInsets.only(right: 8),
             child: InkWell(
               onTap: () {
-               final sessions = accountingState.financialSessions;
-               final currentSession = accountingState.selectedFinancialSession;
-               
-               showDialog(
-                 context: context, 
-                 builder: (context) {
-                    return AlertDialog(
-                       title: const Text('Select Financial Year'),
-                       content: SizedBox(
-                         width: double.maxFinite,
-                         child: ListView(
-                            shrinkWrap: true,
-                            children: [
-                               ListTile(
-                                 title: const Text('All Years'),
-                                 leading: const Icon(Icons.calendar_view_week),
-                                 selected: currentSession == null,
-                                 onTap: () {
-                                    ref.read(accountingProvider.notifier).selectFinancialSession(null);
-                                    Navigator.pop(context);
-                                 },
-                               ),
-                               const Divider(),
-                               if (sessions.isEmpty)
-                                 const ListTile(title: Text('No Financial Sessions Configured')),
-                               ...sessions.map((s) => ListTile(
+                final sessions = accountingState.financialSessions;
+                final currentSession = accountingState.selectedFinancialSession;
+
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Select Financial Year'),
+                        content: SizedBox(
+                          width: double.maxFinite,
+                          child: ListView(shrinkWrap: true, children: [
+                            ListTile(
+                              title: const Text('All Years'),
+                              leading: const Icon(Icons.calendar_view_week),
+                              selected: currentSession == null,
+                              onTap: () {
+                                ref
+                                    .read(accountingProvider.notifier)
+                                    .selectFinancialSession(null);
+                                Navigator.pop(context);
+                              },
+                            ),
+                            const Divider(),
+                            if (sessions.isEmpty)
+                              const ListTile(
+                                  title:
+                                      Text('No Financial Sessions Configured')),
+                            ...sessions.map((s) => ListTile(
                                   title: Text('${s.sYear}'),
-                                  subtitle: Text('${DateFormat.yMMMd().format(s.startDate)} - ${DateFormat.yMMMd().format(s.endDate)}'),
-                                  leading: Icon(Icons.calendar_today, color: s.isClosed ? Colors.grey : Colors.green),
-                                  trailing: s.isClosed 
-                                      ? const Chip(label: Text('Closed', style: TextStyle(fontSize: 10)), backgroundColor: Colors.redAccent) 
-                                      : const Chip(label: Text('Active', style: TextStyle(fontSize: 10)), backgroundColor: Colors.greenAccent),
+                                  subtitle: Text(
+                                      '${DateFormat.yMMMd().format(s.startDate)} - ${DateFormat.yMMMd().format(s.endDate)}'),
+                                  leading: Icon(Icons.calendar_today,
+                                      color: s.isClosed
+                                          ? Colors.grey
+                                          : Colors.green),
+                                  trailing: s.isClosed
+                                      ? const Chip(
+                                          label: Text('Closed',
+                                              style: TextStyle(fontSize: 10)),
+                                          backgroundColor: Colors.redAccent)
+                                      : const Chip(
+                                          label: Text('Active',
+                                              style: TextStyle(fontSize: 10)),
+                                          backgroundColor: Colors.greenAccent),
                                   selected: currentSession?.sYear == s.sYear,
                                   onTap: () {
-                                    ref.read(accountingProvider.notifier).selectFinancialSession(s);
+                                    ref
+                                        .read(accountingProvider.notifier)
+                                        .selectFinancialSession(s);
                                     Navigator.pop(context);
                                   },
-                               )),
-                            ]
-                         ),
-                       ),
-                       actions: [
-                         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-                       ],
-                    );
-                 }
-               );
+                                )),
+                          ]),
+                        ),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel')),
+                        ],
+                      );
+                    });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: selectedYear != null 
-                      ? Theme.of(context).colorScheme.primaryContainer.withAlpha(51) // Suble highlight
-                      : (Theme.of(context).brightness == Brightness.dark ? Colors.white10 : Colors.grey.shade100),
+                  color: selectedYear != null
+                      ? Theme.of(context)
+                          .colorScheme
+                          .primaryContainer
+                          .withAlpha(51) // Suble highlight
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white10
+                          : Colors.grey.shade100),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: selectedYear != null 
+                    color: selectedYear != null
                         ? Theme.of(context).colorScheme.primary.withAlpha(76)
-                        : (Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.grey.shade300),
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white24
+                            : Colors.grey.shade300),
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (selectedYear != null) ...[
-                      Icon(
-                        Icons.calendar_month, 
-                        size: 16, 
-                        color: Theme.of(context).colorScheme.primary
-                      ),
+                      Icon(Icons.calendar_month,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 6),
                     ],
                     Flexible(
@@ -120,9 +140,12 @@ class ResponsiveScaffold extends ConsumerWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
-                          color: selectedYear != null 
+                          color: selectedYear != null
                               ? Theme.of(context).colorScheme.onPrimaryContainer
-                              : Theme.of(context).colorScheme.onSurface.withAlpha(178),
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withAlpha(178),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -135,7 +158,8 @@ class ResponsiveScaffold extends ConsumerWidget {
 
           // Workspace Selector
           IconButton(
-            icon: const Icon(Icons.business_center_rounded, color: Colors.blueAccent),
+            icon: const Icon(Icons.business_center_rounded,
+                color: Colors.blueAccent),
             tooltip: 'Switch Workspace',
             onPressed: () => context.go('/workspace-selection'),
           ),
@@ -144,10 +168,13 @@ class ResponsiveScaffold extends ConsumerWidget {
           PopupMenuButton<String>(
             tooltip: 'My Profile',
             offset: const Offset(0, 50),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-             icon: const CircleAvatar(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            icon: const CircleAvatar(
               backgroundColor: Colors.white24,
-              child: Icon(Icons.person, color: Colors.black54), // Darker icon for visibility on light/default appbar
+              child: Icon(Icons.person,
+                  color: Colors
+                      .black54), // Darker icon for visibility on light/default appbar
             ),
             itemBuilder: (BuildContext context) {
               final userProfile = ref.watch(userProfileProvider).value;
@@ -169,7 +196,8 @@ class ResponsiveScaffold extends ConsumerWidget {
                         const CircleAvatar(
                           radius: 20,
                           backgroundColor: AppColors.primary,
-                          child: Icon(Icons.person, color: Colors.white, size: 24),
+                          child:
+                              Icon(Icons.person, color: Colors.white, size: 24),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -178,23 +206,32 @@ class ResponsiveScaffold extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                (userProfile?.fullName.isNotEmpty == true) 
-                                    ? userProfile!.fullName 
-                                    : (sessionUser?.userMetadata?['full_name'] as String?) ?? userProfile?.email ?? sessionUser?.email ?? 'User',
+                                (userProfile?.fullName.isNotEmpty == true)
+                                    ? userProfile!.fullName
+                                    : (sessionUser?.userMetadata?['full_name']
+                                            as String?) ??
+                                        userProfile?.email ??
+                                        sessionUser?.email ??
+                                        'User',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontSize: 15,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (userProfile?.email != null || sessionUser?.email != null)
+                              if (userProfile?.email != null ||
+                                  sessionUser?.email != null)
                                 Text(
-                                  userProfile?.email ?? sessionUser?.email ?? '',
+                                  userProfile?.email ??
+                                      sessionUser?.email ??
+                                      '',
                                   style: TextStyle(
-                                    color: Theme.of(context).brightness == Brightness.dark 
-                                        ? Colors.white54 
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white54
                                         : Colors.grey.shade600,
                                     fontSize: 11,
                                   ),
@@ -215,7 +252,8 @@ class ResponsiveScaffold extends ConsumerWidget {
                   enabled: true,
                   onTap: () {
                     if (selectedOrg != null) {
-                      _showOrgDetailsDialog(context, selectedOrg, orgState.stores.length);
+                      _showOrgDetailsDialog(
+                          context, selectedOrg, orgState.stores.length);
                     }
                   },
                   child: Padding(
@@ -226,14 +264,18 @@ class ResponsiveScaffold extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.white10 
-                                : Colors.grey.shade100,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white10
+                                    : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Icon(Icons.business, 
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey.shade600, 
-                            size: 20),
+                          child: Icon(Icons.business,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white70
+                                  : Colors.grey.shade600,
+                              size: 20),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -245,7 +287,8 @@ class ResponsiveScaffold extends ConsumerWidget {
                                 selectedOrg?.name ?? 'No Organization',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontSize: 14,
                                 ),
                                 maxLines: 1,
@@ -254,8 +297,9 @@ class ResponsiveScaffold extends ConsumerWidget {
                               Text(
                                 'Workspace',
                                 style: TextStyle(
-                                  color: Theme.of(context).brightness == Brightness.dark 
-                                      ? Colors.white54 
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white54
                                       : Colors.grey,
                                   fontSize: 11,
                                 ),
@@ -284,12 +328,14 @@ class ResponsiveScaffold extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.teal.withValues(alpha: 0.2) 
-                                : Colors.teal.shade50,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.teal.withValues(alpha: 0.2)
+                                    : Colors.teal.shade50,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.store, color: Colors.teal, size: 20),
+                          child: const Icon(Icons.store,
+                              color: Colors.teal, size: 20),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -301,7 +347,8 @@ class ResponsiveScaffold extends ConsumerWidget {
                                 selectedStore?.name ?? 'All Stores',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontSize: 14,
                                 ),
                                 maxLines: 1,
@@ -310,8 +357,9 @@ class ResponsiveScaffold extends ConsumerWidget {
                               Text(
                                 'Current Store',
                                 style: TextStyle(
-                                  color: Theme.of(context).brightness == Brightness.dark 
-                                      ? Colors.white54 
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white54
                                       : Colors.grey,
                                   fontSize: 11,
                                 ),
@@ -337,13 +385,15 @@ class ResponsiveScaffold extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.verified, color: Colors.amber, size: 20),
+                              const Icon(Icons.verified,
+                                  color: Colors.amber, size: 20),
                               const SizedBox(width: 8),
                               Text(
                                 'Free',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -363,10 +413,11 @@ class ResponsiveScaffold extends ConsumerWidget {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                             Navigator.pop(context); // Close menu
-                             ScaffoldMessenger.of(context).showSnackBar(
-                               const SnackBar(content: Text('Pro upgrade coming soon!')),
-                             );
+                            Navigator.pop(context); // Close menu
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Pro upgrade coming soon!')),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
@@ -415,7 +466,7 @@ class ResponsiveScaffold extends ConsumerWidget {
       drawer: isDesktop ? null : const AppDrawer(), // Mobile Drawer
       body: Row(
         children: [
-          if (isDesktop) 
+          if (isDesktop)
             const SizedBox(
               width: 300, // Increased width for the complex drawer
               child: AppDrawer(), // Desktop Sidebar
@@ -434,15 +485,20 @@ class ResponsiveScaffold extends ConsumerWidget {
 
   void _showUserDetailsDialog(BuildContext context, User? user) {
     final sessionUser = SupabaseConfig.client.auth.currentUser;
-    final displayName = (user?.fullName.isNotEmpty == true) 
-        ? user!.fullName 
-        : (sessionUser?.userMetadata?['full_name'] as String?) ?? user?.email ?? sessionUser?.email ?? 'User';
+    final displayName = (user?.fullName.isNotEmpty == true)
+        ? user!.fullName
+        : (sessionUser?.userMetadata?['full_name'] as String?) ??
+            user?.email ??
+            sessionUser?.email ??
+            'User';
     final email = user?.email ?? sessionUser?.email ?? 'N/A';
-    
+
     // Determine User Role with priority: Profile Object -> Session Metadata -> Default
-    String userRole = user?.role ?? (sessionUser?.userMetadata?['role'] as String?) ?? 'EMPLOYEE';
+    String userRole = user?.role ??
+        (sessionUser?.userMetadata?['role'] as String?) ??
+        'EMPLOYEE';
     userRole = userRole.toUpperCase();
-    
+
     final joinedDate = user?.createdAt ?? DateTime.now();
 
     showDialog(
@@ -456,17 +512,21 @@ class ResponsiveScaffold extends ConsumerWidget {
             _detailItem('Display Name', displayName),
             _detailItem('Email Address', email),
             _detailItem('User Role', userRole),
-            _detailItem('Registered Since', DateFormat.yMMMd().format(joinedDate)),
+            _detailItem(
+                'Registered Since', DateFormat.yMMMd().format(joinedDate)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close')),
         ],
       ),
     );
   }
 
-  void _showOrgDetailsDialog(BuildContext context, dynamic org, int actualStoreCount) {
+  void _showOrgDetailsDialog(
+      BuildContext context, dynamic org, int actualStoreCount) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -477,11 +537,14 @@ class ResponsiveScaffold extends ConsumerWidget {
           children: [
             _detailItem('Org Name', org.name),
             _detailItem('Number of Stores', actualStoreCount.toString()),
-            _detailItem('Registered Since', DateFormat.yMMMd().format(org.createdAt)),
+            _detailItem(
+                'Registered Since', DateFormat.yMMMd().format(org.createdAt)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close')),
         ],
       ),
     );
@@ -503,12 +566,15 @@ class ResponsiveScaffold extends ConsumerWidget {
               _detailItem('Postal', store.postalCode ?? 'N/A'),
               _detailItem('Country', store.country ?? 'N/A'),
               _detailItem('Currency', store.storeDefaultCurrency ?? 'N/A'),
-              _detailItem('Registered Since', DateFormat.yMMMd().format(store.createdAt)),
+              _detailItem('Registered Since',
+                  DateFormat.yMMMd().format(store.createdAt)),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close')),
         ],
       ),
     );
@@ -520,13 +586,19 @@ class ResponsiveScaffold extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold)),
           Text(value, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );
   }
-  Widget _buildAppBarTitle(BuildContext context, WidgetRef ref, GoRouterState state) {
+
+  Widget _buildAppBarTitle(
+      BuildContext context, WidgetRef ref, GoRouterState state) {
     // Check if we are on the dashboard
     if (state.matchedLocation == '/dashboard') {
       final orgState = ref.watch(organizationProvider);
@@ -546,8 +618,8 @@ class ResponsiveScaffold extends ConsumerWidget {
                     width: 32,
                     height: 32,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => 
-                      const Icon(Icons.business, size: 32),
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.business, size: 32),
                   ),
                 ),
               )
@@ -560,7 +632,8 @@ class ResponsiveScaffold extends ConsumerWidget {
                     color: Colors.white24,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Icon(Icons.business, size: 24, color: Colors.white),
+                  child:
+                      const Icon(Icons.business, size: 24, color: Colors.white),
                 ),
               ),
             Text(
@@ -571,7 +644,7 @@ class ResponsiveScaffold extends ConsumerWidget {
         );
       }
     }
-    
+
     // Default to Breadcrumbs
     return Breadcrumbs(state: state, routes: appRoutes);
   }

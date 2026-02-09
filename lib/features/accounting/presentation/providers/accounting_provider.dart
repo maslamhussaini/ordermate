@@ -18,7 +18,8 @@ import 'package:ordermate/features/orders/presentation/providers/order_provider.
 import 'package:ordermate/features/products/presentation/providers/product_provider.dart';
 import 'package:ordermate/core/services/sync_service.dart';
 
-final localAccountingRepositoryProvider = Provider<LocalAccountingRepository>((ref) {
+final localAccountingRepositoryProvider =
+    Provider<LocalAccountingRepository>((ref) {
   return LocalAccountingRepository();
 });
 
@@ -101,13 +102,13 @@ class AccountingState {
       currentInvoiceItems: currentInvoiceItems ?? this.currentInvoiceItems,
       glSetup: glSetup ?? this.glSetup,
       currentDailyBalance: currentDailyBalance ?? this.currentDailyBalance,
-      selectedFinancialSession: selectedFinancialSession ?? this.selectedFinancialSession,
+      selectedFinancialSession:
+          selectedFinancialSession ?? this.selectedFinancialSession,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
   }
 }
-
 
 class AccountingNotifier extends StateNotifier<AccountingState> {
   final AccountingRepository _repository;
@@ -121,21 +122,24 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     _ref.listen<SyncStatus>(syncProgressProvider, (previous, next) async {
       if (previous?.isSyncing == true && next.isSyncing == false) {
         if (!mounted) return;
-          
+
         final orgId = _ref.read(organizationProvider).selectedOrganizationId;
         final storeId = _ref.read(organizationProvider).selectedStore?.id;
         final sYear = state.selectedFinancialSession?.sYear;
-          
+
         if (orgId != null) {
-           await loadTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
-           await loadInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
+          await loadTransactions(
+              organizationId: orgId, storeId: storeId, sYear: sYear);
+          await loadInvoices(
+              organizationId: orgId, storeId: storeId, sYear: sYear);
         }
       }
     });
   }
 
   Future<void> loadAll({int? organizationId}) async {
-    final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+    final orgId = organizationId ??
+        _ref.read(organizationProvider).selectedOrganizationId;
     // Preserve the currently selected session
     final currentSession = state.selectedFinancialSession;
     state = state.copyWith(isLoading: true);
@@ -153,14 +157,17 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       ]);
 
       if (!mounted) return;
-      
-      final loadedSessions = List<FinancialSession>.from(results[6] as Iterable);
+
+      final loadedSessions =
+          List<FinancialSession>.from(results[6] as Iterable);
       // Restore the selected session if it still exists in the loaded sessions
       FinancialSession? restoredSession;
       if (currentSession != null) {
-        restoredSession = loadedSessions.where((s) => s.sYear == currentSession.sYear).firstOrNull;
+        restoredSession = loadedSessions
+            .where((s) => s.sYear == currentSession.sYear)
+            .firstOrNull;
       }
-      
+
       state = state.copyWith(
         accounts: List<ChartOfAccount>.from(results[0] as Iterable),
         types: List<AccountType>.from(results[1] as Iterable),
@@ -182,7 +189,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   void selectFinancialSession(FinancialSession? session) {
     state = state.copyWith(selectedFinancialSession: session);
-    
+
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
     final storeId = _ref.read(organizationProvider).selectedStore?.id;
     final sYear = session?.sYear;
@@ -190,20 +197,22 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     // Reload depedent data
     loadTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
     loadInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
-    
+
     // Reload Orders
     try {
-       // OrderProvider has been updated to accept sYear
-       _ref.read(orderProvider.notifier).loadOrders(sYear: sYear);
+      // OrderProvider has been updated to accept sYear
+      _ref.read(orderProvider.notifier).loadOrders(sYear: sYear);
     } catch (e) {
-       // print('Error reloading orders: $e');
+      // print('Error reloading orders: $e');
     }
   }
 
   Future<void> loadBankCashAccounts({int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
-      final accounts = await _repository.getBankCashAccounts(organizationId: orgId);
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
+      final accounts =
+          await _repository.getBankCashAccounts(organizationId: orgId);
       if (!mounted) return;
       state = state.copyWith(bankCashAccounts: accounts);
     } catch (e) {
@@ -214,8 +223,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> loadVoucherPrefixes({int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
-      final prefixes = await _repository.getVoucherPrefixes(organizationId: orgId);
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
+      final prefixes =
+          await _repository.getVoucherPrefixes(organizationId: orgId);
       if (!mounted) return;
       state = state.copyWith(voucherPrefixes: prefixes);
     } catch (e) {
@@ -226,7 +237,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> loadPaymentTerms({int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       final terms = await _repository.getPaymentTerms(organizationId: orgId);
       if (!mounted) return;
       state = state.copyWith(paymentTerms: terms);
@@ -236,10 +248,13 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> loadTransactions({int? organizationId, int? storeId, int? sYear}) async {
+  Future<void> loadTransactions(
+      {int? organizationId, int? storeId, int? sYear}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
-      final txs = await _repository.getTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
+      final txs = await _repository.getTransactions(
+          organizationId: orgId, storeId: storeId, sYear: sYear);
       if (!mounted) return;
       state = state.copyWith(transactions: txs);
     } catch (e) {
@@ -250,26 +265,34 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   int _validateAndGetSYear(DateTime date) {
     if (state.financialSessions.isEmpty) {
-      throw Exception('No financial years configured. Please configure a financial session first.');
+      throw Exception(
+          'No financial years configured. Please configure a financial session first.');
     }
-    
+
     // Find a session that covers this date
-    final session = state.financialSessions.cast<FinancialSession?>().firstWhere(
-      (s) => s != null && 
-             (date.isAtSameMomentAs(s.startDate) || date.isAfter(s.startDate)) &&
-             (date.isAtSameMomentAs(s.endDate) || date.isBefore(s.endDate.add(const Duration(days: 1)))), // inclusive
-      orElse: () => null,
-    );
+    final session =
+        state.financialSessions.cast<FinancialSession?>().firstWhere(
+              (s) =>
+                  s != null &&
+                  (date.isAtSameMomentAs(s.startDate) ||
+                      date.isAfter(s.startDate)) &&
+                  (date.isAtSameMomentAs(s.endDate) ||
+                      date.isBefore(
+                          s.endDate.add(const Duration(days: 1)))), // inclusive
+              orElse: () => null,
+            );
 
     if (session == null) {
-       final dateStr = date.toIso8601String().split('T')[0];
-       throw Exception('Date $dateStr does not fall within any configured Financial Year.');
+      final dateStr = date.toIso8601String().split('T')[0];
+      throw Exception(
+          'Date $dateStr does not fall within any configured Financial Year.');
     }
-    
+
     if (session.isClosed) {
-       throw Exception('Financial Year ${session.sYear} is closed. Cannot transact.');
+      throw Exception(
+          'Financial Year ${session.sYear} is closed. Cannot transact.');
     }
-    
+
     return session.sYear;
   }
 
@@ -277,7 +300,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     try {
       // Validate SYear
       final sYear = _validateAndGetSYear(transaction.voucherDate);
-      
+
       final txWithYear = Transaction(
         id: transaction.id,
         voucherPrefixId: transaction.voucherPrefixId,
@@ -314,7 +337,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     try {
       // Validate SYear
       final sYear = _validateAndGetSYear(transaction.voucherDate);
-      
+
       final txWithYear = Transaction(
         id: transaction.id,
         voucherPrefixId: transaction.voucherPrefixId,
@@ -327,7 +350,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         status: transaction.status,
         organizationId: transaction.organizationId,
         storeId: transaction.storeId,
-        sYear: sYear, 
+        sYear: sYear,
       );
 
       await _repository.updateTransaction(txWithYear);
@@ -353,7 +376,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> addAccount(ChartOfAccount account, {int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       final accountWithOrg = ChartOfAccount(
         id: account.id,
         accountCode: account.accountCode,
@@ -376,10 +400,12 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> updateAccount(ChartOfAccount account, {int? organizationId}) async {
+  Future<void> updateAccount(ChartOfAccount account,
+      {int? organizationId}) async {
     try {
       await _repository.updateChartOfAccount(account);
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       await loadAll(organizationId: orgId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -397,9 +423,11 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> addVoucherPrefix(VoucherPrefix prefix, {int? organizationId}) async {
+  Future<void> addVoucherPrefix(VoucherPrefix prefix,
+      {int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       final prefixWithOrg = VoucherPrefix(
         id: prefix.id,
         prefixCode: prefix.prefixCode,
@@ -409,14 +437,15 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         status: prefix.status,
       );
       await _repository.createVoucherPrefix(prefixWithOrg);
-      await loadVoucherPrefixes(organizationId: orgId); 
+      await loadVoucherPrefixes(organizationId: orgId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
       rethrow;
     }
   }
 
-  Future<void> updateVoucherPrefix(VoucherPrefix prefix, {int? organizationId}) async {
+  Future<void> updateVoucherPrefix(VoucherPrefix prefix,
+      {int? organizationId}) async {
     try {
       await _repository.updateVoucherPrefix(prefix);
       await loadVoucherPrefixes(organizationId: organizationId);
@@ -438,7 +467,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> addPaymentTerm(PaymentTerm term, {int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       final termWithOrg = PaymentTerm(
         id: term.id,
         name: term.name,
@@ -455,7 +485,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> updatePaymentTerm(PaymentTerm term, {int? organizationId}) async {
+  Future<void> updatePaymentTerm(PaymentTerm term,
+      {int? organizationId}) async {
     try {
       await _repository.updatePaymentTerm(term);
       await loadAll(organizationId: organizationId);
@@ -477,7 +508,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> addAccountType(AccountType type, {int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       final typeWithOrg = AccountType(
         id: type.id,
         typeName: type.typeName,
@@ -493,7 +525,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> updateAccountType(AccountType type, {int? organizationId}) async {
+  Future<void> updateAccountType(AccountType type,
+      {int? organizationId}) async {
     try {
       await _repository.updateAccountType(type);
       await loadAll(organizationId: organizationId);
@@ -513,9 +546,11 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> addAccountCategory(AccountCategory category, {int? organizationId}) async {
+  Future<void> addAccountCategory(AccountCategory category,
+      {int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       final categoryWithOrg = AccountCategory(
         id: category.id,
         categoryName: category.categoryName,
@@ -532,7 +567,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> updateAccountCategory(AccountCategory category, {int? organizationId}) async {
+  Future<void> updateAccountCategory(AccountCategory category,
+      {int? organizationId}) async {
     try {
       await _repository.updateAccountCategory(category);
       await loadAll(organizationId: organizationId);
@@ -552,7 +588,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> bulkAddAccountTypes(List<AccountType> types, {int? organizationId}) async {
+  Future<void> bulkAddAccountTypes(List<AccountType> types,
+      {int? organizationId}) async {
     try {
       await _repository.bulkCreateAccountTypes(types);
       await loadAll(organizationId: organizationId);
@@ -562,7 +599,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> bulkAddAccountCategories(List<AccountCategory> categories, {int? organizationId}) async {
+  Future<void> bulkAddAccountCategories(List<AccountCategory> categories,
+      {int? organizationId}) async {
     try {
       await _repository.bulkCreateAccountCategories(categories);
       await loadAll(organizationId: organizationId);
@@ -572,9 +610,11 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> addFinancialSession(FinancialSession session, {int? organizationId}) async {
+  Future<void> addFinancialSession(FinancialSession session,
+      {int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       final sessionWithOrg = FinancialSession(
         sYear: session.sYear,
         startDate: session.startDate,
@@ -592,7 +632,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> updateFinancialSession(FinancialSession session, {int? organizationId}) async {
+  Future<void> updateFinancialSession(FinancialSession session,
+      {int? organizationId}) async {
     try {
       await _repository.updateFinancialSession(session);
       await loadAll(organizationId: organizationId);
@@ -602,9 +643,11 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> createBankCashAccount(BankCash account, {int? organizationId}) async {
+  Future<void> createBankCashAccount(BankCash account,
+      {int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       final accountWithOrg = BankCash(
         id: account.id,
         name: account.name,
@@ -623,7 +666,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> updateBankCashAccount(BankCash account, {int? organizationId}) async {
+  Future<void> updateBankCashAccount(BankCash account,
+      {int? organizationId}) async {
     try {
       await _repository.updateBankCashAccount(account);
       await loadAll(organizationId: organizationId);
@@ -648,15 +692,18 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
   }
 
   // Invoice Methods
-  Future<void> loadInvoices({int? organizationId, int? storeId, int? sYear}) async {
+  Future<void> loadInvoices(
+      {int? organizationId, int? storeId, int? sYear}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       if (orgId == null) {
         state = state.copyWith(isLoading: false, invoices: []);
         return;
       }
-      final invoices = await _repository.getInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
+      final invoices = await _repository.getInvoices(
+          organizationId: orgId, storeId: storeId, sYear: sYear);
       if (!mounted) return;
       state = state.copyWith(invoices: invoices, isLoading: false);
     } catch (e) {
@@ -694,12 +741,13 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> createInvoiceWithItems(Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
+  Future<void> createInvoiceWithItems(
+      Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
     try {
       final sYear = _validateAndGetSYear(invoice.invoiceDate);
       final orgId = _ref.read(organizationProvider).selectedOrganizationId;
       final storeId = _ref.read(organizationProvider).selectedStore?.id;
-      
+
       final invoiceWithOrg = Invoice(
         id: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
@@ -717,21 +765,24 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         sYear: sYear,
       );
 
-      final items = itemMaps.map((m) => InvoiceItem(
-        id: const Uuid().v4(),
-        invoiceId: invoice.id,
-        productId: m['product_id'],
-        quantity: m['quantity'] as double,
-        rate: m['rate'] as double,
-        total: m['total'] as double,
-        productName: m['product_name'],
-        uomId: m['uom_id'],
-        uomSymbol: m['uom_symbol'],
-        discountPercent: (m['discount_percent'] as num?)?.toDouble() ?? 0.0,
-      )).toList();
+      final items = itemMaps
+          .map((m) => InvoiceItem(
+                id: const Uuid().v4(),
+                invoiceId: invoice.id,
+                productId: m['product_id'],
+                quantity: m['quantity'] as double,
+                rate: m['rate'] as double,
+                total: m['total'] as double,
+                productName: m['product_name'],
+                uomId: m['uom_id'],
+                uomSymbol: m['uom_symbol'],
+                discountPercent:
+                    (m['discount_percent'] as num?)?.toDouble() ?? 0.0,
+              ))
+          .toList();
 
       await _repository.createInvoiceWithItems(invoiceWithOrg, items);
-      
+
       // --- GL TRANSACTION GENERATION ---
       try {
         await _createOrUpdateGLForInvoice(invoice, items: items);
@@ -742,21 +793,23 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       // ---------------------------------
 
       // ---------------------------------
-      
+
       final currentSYear = state.selectedFinancialSession?.sYear;
-      await loadInvoices(organizationId: orgId ?? 0, storeId: storeId, sYear: currentSYear);
+      await loadInvoices(
+          organizationId: orgId ?? 0, storeId: storeId, sYear: currentSYear);
     } catch (e) {
       state = state.copyWith(error: e.toString());
       rethrow;
     }
   }
 
-  Future<void> updateInvoiceWithItems(Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
+  Future<void> updateInvoiceWithItems(
+      Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
     try {
       final sYear = _validateAndGetSYear(invoice.invoiceDate);
       final orgId = _ref.read(organizationProvider).selectedOrganizationId;
       final storeId = _ref.read(organizationProvider).selectedStore?.id;
-      
+
       final invoiceWithOrg = Invoice(
         id: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
@@ -774,21 +827,30 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         sYear: sYear,
       );
 
-      final items = itemMaps.map((m) => InvoiceItem(
-        id: const Uuid().v4(),
-        invoiceId: invoice.id,
-        productId: m['product_id'],
-        quantity: m['quantity'] is int ? (m['quantity'] as int).toDouble() : m['quantity'] as double,
-        rate: m['rate'] is int ? (m['rate'] as int).toDouble() : m['rate'] as double,
-        total: m['total'] is int ? (m['total'] as int).toDouble() : m['total'] as double,
-        productName: m['product_name'],
-        uomId: m['uom_id'],
-        uomSymbol: m['uom_symbol'],
-        discountPercent: (m['discount_percent'] as num?)?.toDouble() ?? 0.0,
-      )).toList();
+      final items = itemMaps
+          .map((m) => InvoiceItem(
+                id: const Uuid().v4(),
+                invoiceId: invoice.id,
+                productId: m['product_id'],
+                quantity: m['quantity'] is int
+                    ? (m['quantity'] as int).toDouble()
+                    : m['quantity'] as double,
+                rate: m['rate'] is int
+                    ? (m['rate'] as int).toDouble()
+                    : m['rate'] as double,
+                total: m['total'] is int
+                    ? (m['total'] as int).toDouble()
+                    : m['total'] as double,
+                productName: m['product_name'],
+                uomId: m['uom_id'],
+                uomSymbol: m['uom_symbol'],
+                discountPercent:
+                    (m['discount_percent'] as num?)?.toDouble() ?? 0.0,
+              ))
+          .toList();
 
       await _repository.updateInvoiceWithItems(invoiceWithOrg, items);
-      
+
       // --- GL TRANSACTION UPDATE/REPAIR ---
       try {
         await _createOrUpdateGLForInvoice(invoice, items: items);
@@ -804,10 +866,11 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> updateInvoice(Invoice invoice, {int? organizationId, int? storeId}) async {
+  Future<void> updateInvoice(Invoice invoice,
+      {int? organizationId, int? storeId}) async {
     try {
       final sYear = _validateAndGetSYear(invoice.invoiceDate);
-      
+
       final invoiceWithYear = Invoice(
         id: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
@@ -824,7 +887,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         storeId: invoice.storeId,
         sYear: sYear, // enforced
       );
-      
+
       await _repository.updateInvoice(invoiceWithYear);
       await loadInvoices(organizationId: organizationId, storeId: storeId);
     } catch (e) {
@@ -836,7 +899,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
   Future<void> addInvoiceType(InvoiceType type, {int? organizationId}) async {
     try {
       await _repository.createInvoiceType(type);
-      final types = await _repository.getInvoiceTypes(organizationId: organizationId);
+      final types =
+          await _repository.getInvoiceTypes(organizationId: organizationId);
       state = state.copyWith(invoiceTypes: types);
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -857,7 +921,8 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> loadGLSetup({int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
       if (orgId == null) return;
       final setup = await _repository.getGLSetup(orgId);
       if (!mounted) return;
@@ -880,8 +945,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> loadDailyBalance(String accountId, {int? organizationId}) async {
     try {
-      final orgId = organizationId ?? _ref.read(organizationProvider).selectedOrganizationId;
-      final balance = await _repository.getLatestDailyBalance(accountId, organizationId: orgId);
+      final orgId = organizationId ??
+          _ref.read(organizationProvider).selectedOrganizationId;
+      final balance = await _repository.getLatestDailyBalance(accountId,
+          organizationId: orgId);
       state = state.copyWith(currentDailyBalance: balance);
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -897,6 +964,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       rethrow;
     }
   }
+
   Future<void> postInvoice(Invoice invoice) async {
     try {
       final items = await getInvoiceItems(invoice.id);
@@ -909,17 +977,22 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
-  Future<void> _createOrUpdateGLForInvoice(Invoice invoice, {List<InvoiceItem>? items}) async {
+  Future<void> _createOrUpdateGLForInvoice(Invoice invoice,
+      {List<InvoiceItem>? items}) async {
     try {
-       // Only post if status is posted or we are about to post (which implies we check correctness)
-       // Actually user might want to preview impact, but usually we do this on "Post".
-       // The caller ensures context. Here we blindly execute.
-       
+      // Only post if status is posted or we are about to post (which implies we check correctness)
+      // Actually user might want to preview impact, but usually we do this on "Post".
+      // The caller ensures context. Here we blindly execute.
+
       final partnersState = _ref.read(businessPartnerProvider);
       // Find partner in customers or vendors list
-      final partner = partnersState.customers.where((p) => p.id == invoice.businessPartnerId).firstOrNull 
-                    ?? partnersState.vendors.where((p) => p.id == invoice.businessPartnerId).firstOrNull;
-                    
+      final partner = partnersState.customers
+              .where((p) => p.id == invoice.businessPartnerId)
+              .firstOrNull ??
+          partnersState.vendors
+              .where((p) => p.id == invoice.businessPartnerId)
+              .firstOrNull;
+
       if (partner != null && partner.chartOfAccountId != null) {
         final orgId = _ref.read(organizationProvider).selectedOrganizationId;
         final storeId = _ref.read(organizationProvider).selectedStore?.id;
@@ -927,148 +1000,172 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
         // Ensure GL Setup is loaded
         if (state.glSetup == null) {
-           await loadGLSetup(organizationId: orgId);
+          await loadGLSetup(organizationId: orgId);
         }
         final glSetup = state.glSetup;
-        
+
         if (glSetup != null) {
-           String? debitAccount;
-           String? creditAccount;
-           String prefix = 'JV'; // fallback
-           bool isSales = false;
-           
-           if (invoice.idInvoiceType == 'SI' || invoice.idInvoiceType == 'SINV') {
-             // Sales Invoice: Debit Customer, Credit Sales
-             debitAccount = partner.chartOfAccountId;
-             creditAccount = glSetup.salesAccountId;
-             prefix = 'SINV';
-             isSales = true;
-           } else if (invoice.idInvoiceType == 'SIR' || invoice.idInvoiceType == 'SR') {
-              // Sales Return: Debit Sales Return (or Sales), Credit Customer
-             debitAccount = glSetup.salesAccountId; 
-             creditAccount = partner.chartOfAccountId;
-             prefix = 'SIR'; // Or Credit Note prefix if different
-             // COGS Return Logic could be added here (Debit Inventory, Credit COGS)
-           } 
-           // Add Purchase Invoice Logic as well if needed
-           else if (invoice.idInvoiceType == 'PI') {
-              debitAccount = glSetup.inventoryAccountId; // Or purchase account
-              creditAccount = partner.chartOfAccountId;
-              prefix = 'PI';
-           }
-           
-           // Get Voucher Prefix ID - Ensure we get fresh list if empty
-           List<VoucherPrefix> prefixes = state.voucherPrefixes;
-           if (prefixes.isEmpty) {
-             prefixes = await _repository.getVoucherPrefixes(organizationId: orgId);
-           }
-           
-           final prefixModel = prefixes.where((p) => p.prefixCode == prefix).firstOrNull;
-           
-           if (prefixModel == null) {
-             throw Exception('Voucher Prefix "$prefix" not found. Please configure Voucher Prefixes in setup.');
-           }
-           
-           if (debitAccount != null && creditAccount != null) {
-              // 1. DELETE EXISTING TRANSACTIONS for this Invoice Logic
-              // We replace all entries to handle updates cleanly, and to support multiple entries (Sales + COGS)
-              final allTxs = state.transactions.isEmpty ? await _repository.getTransactions(organizationId: orgId) : state.transactions;
-               final existingTxs = allTxs.where((t) => t.invoiceId == invoice.id || t.voucherNumber == invoice.invoiceNumber).toList();
-              
-              for (var tx in existingTxs) {
-                 await _repository.deleteTransaction(tx.id);
+          String? debitAccount;
+          String? creditAccount;
+          String prefix = 'JV'; // fallback
+          bool isSales = false;
+
+          if (invoice.idInvoiceType == 'SI' ||
+              invoice.idInvoiceType == 'SINV') {
+            // Sales Invoice: Debit Customer, Credit Sales
+            debitAccount = partner.chartOfAccountId;
+            creditAccount = glSetup.salesAccountId;
+            prefix = 'SINV';
+            isSales = true;
+          } else if (invoice.idInvoiceType == 'SIR' ||
+              invoice.idInvoiceType == 'SR') {
+            // Sales Return: Debit Sales Return (or Sales), Credit Customer
+            debitAccount = glSetup.salesAccountId;
+            creditAccount = partner.chartOfAccountId;
+            prefix = 'SIR'; // Or Credit Note prefix if different
+            // COGS Return Logic could be added here (Debit Inventory, Credit COGS)
+          }
+          // Add Purchase Invoice Logic as well if needed
+          else if (invoice.idInvoiceType == 'PI') {
+            debitAccount = glSetup.inventoryAccountId; // Or purchase account
+            creditAccount = partner.chartOfAccountId;
+            prefix = 'PI';
+          }
+
+          // Get Voucher Prefix ID - Ensure we get fresh list if empty
+          List<VoucherPrefix> prefixes = state.voucherPrefixes;
+          if (prefixes.isEmpty) {
+            prefixes =
+                await _repository.getVoucherPrefixes(organizationId: orgId);
+          }
+
+          final prefixModel =
+              prefixes.where((p) => p.prefixCode == prefix).firstOrNull;
+
+          if (prefixModel == null) {
+            throw Exception(
+                'Voucher Prefix "$prefix" not found. Please configure Voucher Prefixes in setup.');
+          }
+
+          if (debitAccount != null && creditAccount != null) {
+            // 1. DELETE EXISTING TRANSACTIONS for this Invoice Logic
+            // We replace all entries to handle updates cleanly, and to support multiple entries (Sales + COGS)
+            final allTxs = state.transactions.isEmpty
+                ? await _repository.getTransactions(organizationId: orgId)
+                : state.transactions;
+            final existingTxs = allTxs
+                .where((t) =>
+                    t.invoiceId == invoice.id ||
+                    t.voucherNumber == invoice.invoiceNumber)
+                .toList();
+
+            for (var tx in existingTxs) {
+              await _repository.deleteTransaction(tx.id);
+            }
+
+            // 2. CREATE MAIN SALES/PURCHASE TRANSACTION
+            final mainTx = Transaction(
+              id: const Uuid().v4(),
+              voucherPrefixId: prefixModel.id,
+              voucherNumber: invoice.invoiceNumber,
+              voucherDate: invoice.invoiceDate,
+              accountId: debitAccount,
+              moduleAccount: invoice.businessPartnerId, // Customer/Vendor ID
+              offsetAccountId: creditAccount,
+              offsetModuleAccount: creditAccount, // Sales/Purchase GL Account
+              amount: invoice.totalAmount,
+              description: 'Invoice ${invoice.invoiceNumber} - ${partner.name}',
+              status: 'posted',
+              organizationId: orgId ?? 0,
+              storeId: storeId ?? 0,
+              sYear: sYear,
+              invoiceId: invoice.id,
+            );
+            await _repository.createTransaction(mainTx);
+
+            // 3. CREATE COGS TRANSACTION (For Sales Invoices)
+            if (isSales && items != null && items.isNotEmpty) {
+              double totalCost = 0;
+
+              // Get products to calculate cost accurately
+              var productList = _ref.read(productProvider).products;
+              if (productList.isEmpty) {
+                await _ref
+                    .read(productProvider.notifier)
+                    .loadProducts(storeId: storeId);
+                productList = _ref.read(productProvider).products;
               }
-              
-              // 2. CREATE MAIN SALES/PURCHASE TRANSACTION
-              final mainTx = Transaction(
-                 id: const Uuid().v4(),
-                 voucherPrefixId: prefixModel.id,
-                 voucherNumber: invoice.invoiceNumber,
-                 voucherDate: invoice.invoiceDate,
-                 accountId: debitAccount,
-                 moduleAccount: invoice.businessPartnerId, // Customer/Vendor ID
-                 offsetAccountId: creditAccount,
-                 offsetModuleAccount: creditAccount, // Sales/Purchase GL Account
-                 amount: invoice.totalAmount,
-                 description: 'Invoice ${invoice.invoiceNumber} - ${partner.name}',
-                 status: 'posted',
-                 organizationId: orgId ?? 0,
-                 storeId: storeId ?? 0,
-                 sYear: sYear,
-                 invoiceId: invoice.id,
-               );
-               await _repository.createTransaction(mainTx);
-               
-               // 3. CREATE COGS TRANSACTION (For Sales Invoices)
-                if (isSales && items != null && items.isNotEmpty) {
-                  double totalCost = 0;
-                  
-                  // Get products to calculate cost accurately
-                  var productList = _ref.read(productProvider).products;
-                  if (productList.isEmpty) {
-                      await _ref.read(productProvider.notifier).loadProducts(storeId: storeId);
-                      productList = _ref.read(productProvider).products;
-                  }
-                  
-                  for (var item in items) {
-                     final product = productList.where((p) => p.id == item.productId).firstOrNull;
-                     if (product != null) {
-                         totalCost += (product.cost * item.quantity);
-                     } else {
-                        // Fallback: try to fetch individual product if list is incomplete
-                        try {
-                          final p = await _ref.read(productRepositoryProvider).getProductById(item.productId);
-                          totalCost += (p.cost * item.quantity);
-                        } catch (_) {}
-                     }
-                  }
-                  
-                  if (totalCost > 0) {
-                      final jvPrefix = state.voucherPrefixes.where((p) => p.prefixCode == 'JV').firstOrNull;
-                      final cogsTx = Transaction(
-                        id: const Uuid().v4(),
-                        voucherPrefixId: jvPrefix?.id ?? prefixModel.id, 
-                        voucherNumber: jvPrefix != null ? 'SIJV-${invoice.invoiceNumber}' : invoice.invoiceNumber,
-                        voucherDate: invoice.invoiceDate,
-                        accountId: glSetup.cogsAccountId, // Debit COGS
-                        offsetAccountId: glSetup.inventoryAccountId, // Credit Inventory
-                        amount: totalCost,
-                        description: 'Cost of Sales - Invoice ${invoice.invoiceNumber}',
-                        status: 'posted',
-                        organizationId: orgId ?? 0,
-                        storeId: storeId ?? 0,
-                        sYear: sYear,
-                        invoiceId: invoice.id,
-                      );
-                      await _repository.createTransaction(cogsTx);
-                  }
-               }
-           } else {
-              throw Exception('GL Accounts not configured for this transaction type.');
-           }
+
+              for (var item in items) {
+                final product = productList
+                    .where((p) => p.id == item.productId)
+                    .firstOrNull;
+                if (product != null) {
+                  totalCost += (product.cost * item.quantity);
+                } else {
+                  // Fallback: try to fetch individual product if list is incomplete
+                  try {
+                    final p = await _ref
+                        .read(productRepositoryProvider)
+                        .getProductById(item.productId);
+                    totalCost += (p.cost * item.quantity);
+                  } catch (_) {}
+                }
+              }
+
+              if (totalCost > 0) {
+                final jvPrefix = state.voucherPrefixes
+                    .where((p) => p.prefixCode == 'JV')
+                    .firstOrNull;
+                final cogsTx = Transaction(
+                  id: const Uuid().v4(),
+                  voucherPrefixId: jvPrefix?.id ?? prefixModel.id,
+                  voucherNumber: jvPrefix != null
+                      ? 'SIJV-${invoice.invoiceNumber}'
+                      : invoice.invoiceNumber,
+                  voucherDate: invoice.invoiceDate,
+                  accountId: glSetup.cogsAccountId, // Debit COGS
+                  offsetAccountId:
+                      glSetup.inventoryAccountId, // Credit Inventory
+                  amount: totalCost,
+                  description:
+                      'Cost of Sales - Invoice ${invoice.invoiceNumber}',
+                  status: 'posted',
+                  organizationId: orgId ?? 0,
+                  storeId: storeId ?? 0,
+                  sYear: sYear,
+                  invoiceId: invoice.id,
+                );
+                await _repository.createTransaction(cogsTx);
+              }
+            }
+          } else {
+            throw Exception(
+                'GL Accounts not configured for this transaction type.');
+          }
         } else {
-           throw Exception('GL Setup missing.');
+          throw Exception('GL Setup missing.');
         }
       } else {
-         throw Exception('Partner or Partner GL Account missing.');
+        throw Exception('Partner or Partner GL Account missing.');
       }
     } catch (glError) {
       print('GL Transaction Op failed: $glError');
-      rethrow; 
+      rethrow;
     }
   }
-
 }
 
-final accountingProvider = StateNotifierProvider<AccountingNotifier, AccountingState>((ref) {
+final accountingProvider =
+    StateNotifierProvider<AccountingNotifier, AccountingState>((ref) {
   final repo = ref.watch(accountingRepositoryProvider);
   final notifier = AccountingNotifier(repo, ref);
-  
+
   // Watch organization to trigger refresh
   final orgId = ref.watch(organizationProvider).selectedOrganizationId;
   if (orgId != null) {
-     Future.microtask(() => notifier.loadAll(organizationId: orgId));
+    Future.microtask(() => notifier.loadAll(organizationId: orgId));
   }
-  
+
   return notifier;
 });

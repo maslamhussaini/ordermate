@@ -20,9 +20,14 @@ class RolePermissions {
 
   static const Map<String, Set<Permission>> staff = {
     'dashboard': {Permission.read},
-    'customers': {Permission.read, Permission.write}, // Staff can create/edit but not delete
+    'customers': {
+      Permission.read,
+      Permission.write
+    }, // Staff can create/edit but not delete
     'orders': {Permission.read, Permission.write},
-    'invoices': {Permission.read}, // Read only? Or write? Assuming write for now
+    'invoices': {
+      Permission.read
+    }, // Read only? Or write? Assuming write for now
     'products': {Permission.read},
     'inventory': {Permission.read},
     'vendors': {Permission.read},

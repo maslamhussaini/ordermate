@@ -8,44 +8,49 @@ import '../models/gl_setup_model.dart';
 import '../models/daily_balance_model.dart';
 import '../../domain/entities/chart_of_account.dart';
 
-
 class LocalAccountingRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  Future<List<ChartOfAccountModel>> getChartOfAccounts({int? organizationId}) async {
+  Future<List<ChartOfAccountModel>> getChartOfAccounts(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String? where;
     List<dynamic>? whereArgs;
-    
+
     if (organizationId != null) {
       where = 'organization_id = ? OR organization_id IS NULL';
       whereArgs = [organizationId];
     }
-    
+
     final List<Map<String, dynamic>> maps = await db.query(
-      'local_chart_of_accounts', 
-      where: where,
-      whereArgs: whereArgs,
-      orderBy: 'account_code ASC'
-    );
+        'local_chart_of_accounts',
+        where: where,
+        whereArgs: whereArgs,
+        orderBy: 'account_code ASC');
     return maps.map((e) => _mapToModel(e)).toList();
   }
 
-  Future<void> cacheChartOfAccounts(List<ChartOfAccountModel> accounts, {int? organizationId}) async {
+  Future<void> cacheChartOfAccounts(List<ChartOfAccountModel> accounts,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       if (organizationId != null) {
-        await txn.delete('local_chart_of_accounts', where: 'is_synced = 1 AND organization_id = ?', whereArgs: [organizationId]);
+        await txn.delete('local_chart_of_accounts',
+            where: 'is_synced = 1 AND organization_id = ?',
+            whereArgs: [organizationId]);
       } else {
         await txn.delete('local_chart_of_accounts', where: 'is_synced = 1');
       }
       for (var account in accounts) {
-        await txn.insert('local_chart_of_accounts', _modelToMap(account)..['is_synced'] = 1, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert(
+            'local_chart_of_accounts', _modelToMap(account)..['is_synced'] = 1,
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
-  Future<void> saveChartOfAccount(ChartOfAccountModel account, {bool isSynced = false}) async {
+  Future<void> saveChartOfAccount(ChartOfAccountModel account,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
     final map = _modelToMap(account);
     map['is_synced'] = isSynced ? 1 : 0;
@@ -60,7 +65,7 @@ class LocalAccountingRepository {
     final db = await _dbHelper.database;
     String? where;
     List<dynamic>? whereArgs;
-    
+
     if (organizationId != null) {
       where = 'organization_id = ? OR organization_id IS NULL';
       whereArgs = [organizationId];
@@ -72,39 +77,48 @@ class LocalAccountingRepository {
       whereArgs: whereArgs,
       orderBy: 'payment_term ASC',
     );
-    return maps.map((e) => PaymentTermModel.fromJson({
-      'id': e['id'],
-      'payment_term': e['payment_term'],
-      'description': e['description'],
-      'is_active': e['is_active'] == 1,
-      'days': e['days'] ?? 0,
-      'organization_id': e['organization_id'],
-    })).toList();
+    return maps
+        .map((e) => PaymentTermModel.fromJson({
+              'id': e['id'],
+              'payment_term': e['payment_term'],
+              'description': e['description'],
+              'is_active': e['is_active'] == 1,
+              'days': e['days'] ?? 0,
+              'organization_id': e['organization_id'],
+            }))
+        .toList();
   }
 
-  Future<void> cachePaymentTerms(List<PaymentTermModel> terms, {int? organizationId}) async {
+  Future<void> cachePaymentTerms(List<PaymentTermModel> terms,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       if (organizationId != null) {
-        await txn.delete('local_payment_terms', where: 'is_synced = 1 AND organization_id = ?', whereArgs: [organizationId]);
+        await txn.delete('local_payment_terms',
+            where: 'is_synced = 1 AND organization_id = ?',
+            whereArgs: [organizationId]);
       } else {
         await txn.delete('local_payment_terms', where: 'is_synced = 1');
       }
       for (var term in terms) {
-        await txn.insert('local_payment_terms', {
-          'id': term.id,
-          'payment_term': term.name,
-          'description': term.description,
-          'is_active': term.isActive ? 1 : 0,
-          'days': term.days,
-          'organization_id': term.organizationId,
-          'is_synced': 1,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert(
+            'local_payment_terms',
+            {
+              'id': term.id,
+              'payment_term': term.name,
+              'description': term.description,
+              'is_active': term.isActive ? 1 : 0,
+              'days': term.days,
+              'organization_id': term.organizationId,
+              'is_synced': 1,
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
-  Future<void> savePaymentTerm(PaymentTermModel term, {bool isSynced = false}) async {
+  Future<void> savePaymentTerm(PaymentTermModel term,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
     final map = {
       'payment_term': term.name,
@@ -117,96 +131,120 @@ class LocalAccountingRepository {
     if (term.id != 0) {
       map['id'] = term.id;
     }
-    await db.insert('local_payment_terms', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('local_payment_terms', map,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<AccountTypeModel>> getAccountTypes({int? organizationId}) async {
     final db = await _dbHelper.database;
     String? where;
     List<dynamic>? whereArgs;
-    
+
     if (organizationId != null) {
       where = 'organization_id = ? OR organization_id IS NULL';
       whereArgs = [organizationId];
     }
-    
-    final maps = await db.query('local_account_types', where: where, whereArgs: whereArgs, orderBy: 'id ASC');
-    return maps.map((e) => AccountTypeModel(
-      id: e['id'] as int,
-      typeName: e['account_type'] as String,
-      status: e['status'] == 1,
-      isSystem: e['is_system'] == 1,
-      organizationId: (e['organization_id'] as int?) ?? 0,
-    )).toList();
+
+    final maps = await db.query('local_account_types',
+        where: where, whereArgs: whereArgs, orderBy: 'id ASC');
+    return maps
+        .map((e) => AccountTypeModel(
+              id: e['id'] as int,
+              typeName: e['account_type'] as String,
+              status: e['status'] == 1,
+              isSystem: e['is_system'] == 1,
+              organizationId: (e['organization_id'] as int?) ?? 0,
+            ))
+        .toList();
   }
 
-  Future<void> saveAccountType(AccountTypeModel type, {bool isSynced = false}) async {
+  Future<void> saveAccountType(AccountTypeModel type,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
-    await db.insert('local_account_types', {
-      'id': type.id,
-      'account_type': type.typeName,
-      'organization_id': type.organizationId,
-      'status': type.status ? 1 : 0,
-      'is_system': type.isSystem ? 1 : 0,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
-  }
-
-  Future<void> cacheAccountTypes(List<AccountTypeModel> types, {int? organizationId}) async {
-    final db = await _dbHelper.database;
-    await db.transaction((txn) async {
-      if (organizationId != null) {
-        await txn.delete('local_account_types', where: '(organization_id = ? OR organization_id IS NULL) AND is_synced = 1', whereArgs: [organizationId]);
-      } else {
-        await txn.delete('local_account_types', where: 'is_synced = 1');
-      }
-      for (var type in types) {
-        await txn.insert('local_account_types', {
+    await db.insert(
+        'local_account_types',
+        {
           'id': type.id,
           'account_type': type.typeName,
           'organization_id': type.organizationId,
           'status': type.status ? 1 : 0,
           'is_system': type.isSystem ? 1 : 0,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> cacheAccountTypes(List<AccountTypeModel> types,
+      {int? organizationId}) async {
+    final db = await _dbHelper.database;
+    await db.transaction((txn) async {
+      if (organizationId != null) {
+        await txn.delete('local_account_types',
+            where:
+                '(organization_id = ? OR organization_id IS NULL) AND is_synced = 1',
+            whereArgs: [organizationId]);
+      } else {
+        await txn.delete('local_account_types', where: 'is_synced = 1');
+      }
+      for (var type in types) {
+        await txn.insert(
+            'local_account_types',
+            {
+              'id': type.id,
+              'account_type': type.typeName,
+              'organization_id': type.organizationId,
+              'status': type.status ? 1 : 0,
+              'is_system': type.isSystem ? 1 : 0,
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
-  Future<List<AccountCategoryModel>> getAccountCategories({int? organizationId}) async {
+  Future<List<AccountCategoryModel>> getAccountCategories(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String? where;
     List<dynamic>? whereArgs;
-    
+
     if (organizationId != null) {
       where = 'organization_id = ? OR organization_id IS NULL';
       whereArgs = [organizationId];
     }
-    
-    final maps = await db.query('local_account_categories', where: where, whereArgs: whereArgs, orderBy: 'category_name ASC');
-    return maps.map((e) => AccountCategoryModel(
-      id: e['id'] as int,
-      categoryName: e['category_name'] as String,
-      accountTypeId: e['account_type_id'] as int,
-      status: e['status'] == 1,
-      isSystem: e['is_system'] == 1,
-      organizationId: (e['organization_id'] as int?) ?? 0,
-    )).toList();
+
+    final maps = await db.query('local_account_categories',
+        where: where, whereArgs: whereArgs, orderBy: 'category_name ASC');
+    return maps
+        .map((e) => AccountCategoryModel(
+              id: e['id'] as int,
+              categoryName: e['category_name'] as String,
+              accountTypeId: e['account_type_id'] as int,
+              status: e['status'] == 1,
+              isSystem: e['is_system'] == 1,
+              organizationId: (e['organization_id'] as int?) ?? 0,
+            ))
+        .toList();
   }
 
-  Future<void> saveAccountCategory(AccountCategoryModel cat, {bool isSynced = false}) async {
+  Future<void> saveAccountCategory(AccountCategoryModel cat,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
-    await db.insert('local_account_categories', {
-      'id': cat.id,
-      'category_name': cat.categoryName,
-      'account_type_id': cat.accountTypeId,
-      'organization_id': cat.organizationId,
-      'status': cat.status ? 1 : 0,
-      'is_system': cat.isSystem ? 1 : 0,
-      'is_synced': isSynced ? 1 : 0,
-      'updated_at': DateTime.now().millisecondsSinceEpoch,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+        'local_account_categories',
+        {
+          'id': cat.id,
+          'category_name': cat.categoryName,
+          'account_type_id': cat.accountTypeId,
+          'organization_id': cat.organizationId,
+          'status': cat.status ? 1 : 0,
+          'is_system': cat.isSystem ? 1 : 0,
+          'is_synced': isSynced ? 1 : 0,
+          'updated_at': DateTime.now().millisecondsSinceEpoch,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<AccountCategoryModel>> getUnsyncedAccountCategories({int? organizationId}) async {
+  Future<List<AccountCategoryModel>> getUnsyncedAccountCategories(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -214,40 +252,51 @@ class LocalAccountingRepository {
       where += ' AND (organization_id = ? OR organization_id IS NULL)';
       args.add(organizationId);
     }
-    final maps = await db.query('local_account_categories', where: where, whereArgs: args);
-    return maps.map((e) => AccountCategoryModel(
-      id: e['id'] as int,
-      categoryName: e['category_name'] as String,
-      accountTypeId: e['account_type_id'] as int,
-      status: e['status'] == 1,
-      isSystem: e['is_system'] == 1,
-      organizationId: (e['organization_id'] as int?) ?? 0,
-    )).toList();
+    final maps = await db.query('local_account_categories',
+        where: where, whereArgs: args);
+    return maps
+        .map((e) => AccountCategoryModel(
+              id: e['id'] as int,
+              categoryName: e['category_name'] as String,
+              accountTypeId: e['account_type_id'] as int,
+              status: e['status'] == 1,
+              isSystem: e['is_system'] == 1,
+              organizationId: (e['organization_id'] as int?) ?? 0,
+            ))
+        .toList();
   }
 
   Future<void> markAccountCategoryAsSynced(int id) async {
     final db = await _dbHelper.database;
-    await db.update('local_account_categories', {'is_synced': 1}, where: 'id = ?', whereArgs: [id]);
+    await db.update('local_account_categories', {'is_synced': 1},
+        where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<void> cacheAccountCategories(List<AccountCategoryModel> categories, {int? organizationId}) async {
+  Future<void> cacheAccountCategories(List<AccountCategoryModel> categories,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       if (organizationId != null) {
-        await txn.delete('local_account_categories', where: '(organization_id = ? OR organization_id IS NULL) AND is_synced = 1', whereArgs: [organizationId]);
+        await txn.delete('local_account_categories',
+            where:
+                '(organization_id = ? OR organization_id IS NULL) AND is_synced = 1',
+            whereArgs: [organizationId]);
       } else {
         await txn.delete('local_account_categories', where: 'is_synced = 1');
       }
       for (var cat in categories) {
-        await txn.insert('local_account_categories', {
-          'id': cat.id,
-          'category_name': cat.categoryName,
-          'account_type_id': cat.accountTypeId,
-          'organization_id': cat.organizationId,
-          'status': cat.status ? 1 : 0,
-          'is_system': cat.isSystem ? 1 : 0,
-          'is_synced': 1,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert(
+            'local_account_categories',
+            {
+              'id': cat.id,
+              'category_name': cat.categoryName,
+              'account_type_id': cat.accountTypeId,
+              'organization_id': cat.organizationId,
+              'status': cat.status ? 1 : 0,
+              'is_system': cat.isSystem ? 1 : 0,
+              'is_synced': 1,
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
@@ -256,7 +305,7 @@ class LocalAccountingRepository {
     final db = await _dbHelper.database;
     String? where;
     List<dynamic>? whereArgs;
-    
+
     if (organizationId != null) {
       where = 'organization_id = ? OR organization_id IS NULL';
       whereArgs = [organizationId];
@@ -268,50 +317,64 @@ class LocalAccountingRepository {
       whereArgs: whereArgs,
       orderBy: 'bank_name ASC',
     );
-    return maps.map((e) => BankCashModel(
-      id: e['id']?.toString() ?? '',
-      name: e['bank_name']?.toString() ?? '',
-      chartOfAccountId: e['account_id']?.toString() ?? '',
-      accountNumber: e['account_number']?.toString(),
-      branchName: e['branch_name']?.toString(),
-      organizationId: (e['organization_id'] as int?) ?? 0,
-      storeId: (e['store_id'] as int?) ?? 0,
-      status: e['is_active'] == 1,
-    )).toList();
-}
+    return maps
+        .map((e) => BankCashModel(
+              id: e['id']?.toString() ?? '',
+              name: e['bank_name']?.toString() ?? '',
+              chartOfAccountId: e['account_id']?.toString() ?? '',
+              accountNumber: e['account_number']?.toString(),
+              branchName: e['branch_name']?.toString(),
+              organizationId: (e['organization_id'] as int?) ?? 0,
+              storeId: (e['store_id'] as int?) ?? 0,
+              status: e['is_active'] == 1,
+            ))
+        .toList();
+  }
 
-  Future<void> cacheBankCashAccounts(List<BankCashModel> accounts, {int? organizationId}) async {
+  Future<void> cacheBankCashAccounts(List<BankCashModel> accounts,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       // Delete only synced records for this organization to avoid wiping local unsynced work
       if (organizationId != null) {
-        await txn.delete('local_bank_cash', where: 'is_synced = 1 AND (organization_id = ? OR organization_id IS NULL)', whereArgs: [organizationId]);
+        await txn.delete('local_bank_cash',
+            where:
+                'is_synced = 1 AND (organization_id = ? OR organization_id IS NULL)',
+            whereArgs: [organizationId]);
       } else {
         await txn.delete('local_bank_cash', where: 'is_synced = 1');
       }
-      
+
       for (var account in accounts) {
-        await txn.insert('local_bank_cash', {
-          ...account.toJson(),
-          'is_synced': 1,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert(
+            'local_bank_cash',
+            {
+              ...account.toJson(),
+              'is_synced': 1,
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
-  Future<void> saveBankCashAccount(BankCashModel account, {bool isSynced = false}) async {
+  Future<void> saveBankCashAccount(BankCashModel account,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
-    await db.insert('local_bank_cash', {
-      ...account.toJson(),
-      'is_synced': isSynced ? 1 : 0,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+        'local_bank_cash',
+        {
+          ...account.toJson(),
+          'is_synced': isSynced ? 1 : 0,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<VoucherPrefixModel>> getVoucherPrefixes({int? organizationId}) async {
+  Future<List<VoucherPrefixModel>> getVoucherPrefixes(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String? where;
     List<dynamic>? whereArgs;
-    
+
     if (organizationId != null) {
       where = 'organization_id = ? OR organization_id IS NULL';
       whereArgs = [organizationId];
@@ -323,41 +386,51 @@ class LocalAccountingRepository {
       whereArgs: whereArgs,
       orderBy: 'prefix_code ASC',
     );
-    return maps.map((e) => VoucherPrefixModel(
-      id: e['id'] as int,
-      prefixCode: e['prefix_code'] as String,
-      description: e['description'] as String?,
-      voucherType: e['voucher_type'] as String? ?? 'GENERAL',
-      organizationId: (e['organization_id'] as int?) ?? 0,
-      status: e['status'] == 1,
-      isSystem: e['is_system'] == 1,
-    )).toList();
+    return maps
+        .map((e) => VoucherPrefixModel(
+              id: e['id'] as int,
+              prefixCode: e['prefix_code'] as String,
+              description: e['description'] as String?,
+              voucherType: e['voucher_type'] as String? ?? 'GENERAL',
+              organizationId: (e['organization_id'] as int?) ?? 0,
+              status: e['status'] == 1,
+              isSystem: e['is_system'] == 1,
+            ))
+        .toList();
   }
 
-  Future<void> cacheVoucherPrefixes(List<VoucherPrefixModel> prefixes, {int? organizationId}) async {
+  Future<void> cacheVoucherPrefixes(List<VoucherPrefixModel> prefixes,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       if (organizationId != null) {
-        await txn.delete('local_voucher_prefixes', where: 'is_synced = 1 AND (organization_id = ? OR organization_id IS NULL)', whereArgs: [organizationId]);
+        await txn.delete('local_voucher_prefixes',
+            where:
+                'is_synced = 1 AND (organization_id = ? OR organization_id IS NULL)',
+            whereArgs: [organizationId]);
       } else {
         await txn.delete('local_voucher_prefixes', where: 'is_synced = 1');
       }
       for (var prefix in prefixes) {
-        await txn.insert('local_voucher_prefixes', {
-          'id': prefix.id,
-          'prefix_code': prefix.prefixCode,
-          'description': prefix.description,
-          'voucher_type': prefix.voucherType,
-          'organization_id': prefix.organizationId,
-          'status': prefix.status ? 1 : 0,
-          'is_system': prefix.isSystem ? 1 : 0,
-          'is_synced': 1,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert(
+            'local_voucher_prefixes',
+            {
+              'id': prefix.id,
+              'prefix_code': prefix.prefixCode,
+              'description': prefix.description,
+              'voucher_type': prefix.voucherType,
+              'organization_id': prefix.organizationId,
+              'status': prefix.status ? 1 : 0,
+              'is_system': prefix.isSystem ? 1 : 0,
+              'is_synced': 1,
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
-  Future<void> saveVoucherPrefix(VoucherPrefixModel prefix, {bool isSynced = false}) async {
+  Future<void> saveVoucherPrefix(VoucherPrefixModel prefix,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
     final map = {
       'prefix_code': prefix.prefixCode,
@@ -371,33 +444,38 @@ class LocalAccountingRepository {
     if (prefix.id != 0) {
       map['id'] = prefix.id;
     }
-    await db.insert('local_voucher_prefixes', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('local_voucher_prefixes', map,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<void> saveTransaction(TransactionModel transaction, {bool isSynced = false}) async {
+  Future<void> saveTransaction(TransactionModel transaction,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
-    await db.insert('local_transactions', {
-      'id': transaction.id,
-      'voucher_prefix_id': transaction.voucherPrefixId,
-      'voucher_number': transaction.voucherNumber,
-      'voucher_date': transaction.voucherDate.millisecondsSinceEpoch,
-      'account_id': transaction.accountId,
-      'offset_account_id': transaction.offsetAccountId,
-      'amount': transaction.amount,
-      'description': transaction.description,
-      'status': transaction.status,
-      'organization_id': transaction.organizationId,
-      'store_id': transaction.storeId,
-      'syear': transaction.sYear,
-      'module_account': transaction.moduleAccount,
-      'offset_module_account': transaction.offsetModuleAccount,
-      'payment_mode': transaction.paymentMode,
-      'reference_number': transaction.referenceNumber,
-      'reference_date': transaction.referenceDate?.millisecondsSinceEpoch,
-      'reference_bank': transaction.referenceBank,
-      'invoice_id': transaction.invoiceId,
-      'is_synced': isSynced ? 1 : 0,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+        'local_transactions',
+        {
+          'id': transaction.id,
+          'voucher_prefix_id': transaction.voucherPrefixId,
+          'voucher_number': transaction.voucherNumber,
+          'voucher_date': transaction.voucherDate.millisecondsSinceEpoch,
+          'account_id': transaction.accountId,
+          'offset_account_id': transaction.offsetAccountId,
+          'amount': transaction.amount,
+          'description': transaction.description,
+          'status': transaction.status,
+          'organization_id': transaction.organizationId,
+          'store_id': transaction.storeId,
+          'syear': transaction.sYear,
+          'module_account': transaction.moduleAccount,
+          'offset_module_account': transaction.offsetModuleAccount,
+          'payment_mode': transaction.paymentMode,
+          'reference_number': transaction.referenceNumber,
+          'reference_date': transaction.referenceDate?.millisecondsSinceEpoch,
+          'reference_bank': transaction.referenceBank,
+          'invoice_id': transaction.invoiceId,
+          'is_synced': isSynced ? 1 : 0,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> deleteTransaction(String id) async {
@@ -405,7 +483,8 @@ class LocalAccountingRepository {
     await db.delete('local_transactions', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<TransactionModel>> getTransactions({int? organizationId, int? storeId, int? sYear}) async {
+  Future<List<TransactionModel>> getTransactions(
+      {int? organizationId, int? storeId, int? sYear}) async {
     final db = await _dbHelper.database;
     List<String> whereClauses = [];
     List<dynamic> whereArgs = [];
@@ -423,60 +502,66 @@ class LocalAccountingRepository {
       whereArgs.add(sYear);
     }
 
-    final maps = await db.query(
-      'local_transactions',
-      where: whereClauses.isEmpty ? null : whereClauses.join(' AND '),
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'voucher_date DESC'
-    );
-    
-    return maps.map((e) => TransactionModel(
-      id: e['id'] as String,
-      voucherPrefixId: e['voucher_prefix_id'] as int,
-      voucherNumber: e['voucher_number'] as String,
-      voucherDate: DateTime.fromMillisecondsSinceEpoch(e['voucher_date'] as int),
-      accountId: e['account_id'] as String,
-      offsetAccountId: e['offset_account_id'] as String?,
-      amount: (e['amount'] as num).toDouble(),
-      description: e['description'] as String?,
-      status: e['status'] as String? ?? 'posted',
-      organizationId: (e['organization_id'] as int?) ?? 0,
-      storeId: (e['store_id'] as int?) ?? 0,
-      sYear: e['syear'] as int?,
-      moduleAccount: e['module_account'] as String?,
-      offsetModuleAccount: e['offset_module_account'] as String?,
-      paymentMode: e['payment_mode'] as String?,
-      referenceNumber: e['reference_number'] as String?,
-      referenceDate: e['reference_date'] != null ? DateTime.fromMillisecondsSinceEpoch(e['reference_date'] as int) : null,
-      referenceBank: e['reference_bank'] as String?,
-      invoiceId: e['invoice_id'] as String?,
-    )).toList();
+    final maps = await db.query('local_transactions',
+        where: whereClauses.isEmpty ? null : whereClauses.join(' AND '),
+        whereArgs: whereArgs.isEmpty ? null : whereArgs,
+        orderBy: 'voucher_date DESC');
+
+    return maps
+        .map((e) => TransactionModel(
+              id: e['id'] as String,
+              voucherPrefixId: e['voucher_prefix_id'] as int,
+              voucherNumber: e['voucher_number'] as String,
+              voucherDate:
+                  DateTime.fromMillisecondsSinceEpoch(e['voucher_date'] as int),
+              accountId: e['account_id'] as String,
+              offsetAccountId: e['offset_account_id'] as String?,
+              amount: (e['amount'] as num).toDouble(),
+              description: e['description'] as String?,
+              status: e['status'] as String? ?? 'posted',
+              organizationId: (e['organization_id'] as int?) ?? 0,
+              storeId: (e['store_id'] as int?) ?? 0,
+              sYear: e['syear'] as int?,
+              moduleAccount: e['module_account'] as String?,
+              offsetModuleAccount: e['offset_module_account'] as String?,
+              paymentMode: e['payment_mode'] as String?,
+              referenceNumber: e['reference_number'] as String?,
+              referenceDate: e['reference_date'] != null
+                  ? DateTime.fromMillisecondsSinceEpoch(
+                      e['reference_date'] as int)
+                  : null,
+              referenceBank: e['reference_bank'] as String?,
+              invoiceId: e['invoice_id'] as String?,
+            ))
+        .toList();
   }
 
-  Future<void> cacheTransactions(List<TransactionModel> transactions, {int? organizationId, int? storeId}) async {
+  Future<void> cacheTransactions(List<TransactionModel> transactions,
+      {int? organizationId, int? storeId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
-       if (organizationId != null && storeId != null) {
-        await txn.delete('local_transactions', 
-          where: 'is_synced = 1 AND organization_id = ? AND store_id = ?', 
-          whereArgs: [organizationId, storeId]);
+      if (organizationId != null && storeId != null) {
+        await txn.delete('local_transactions',
+            where: 'is_synced = 1 AND organization_id = ? AND store_id = ?',
+            whereArgs: [organizationId, storeId]);
       } else if (organizationId != null) {
-        await txn.delete('local_transactions', 
-          where: 'is_synced = 1 AND organization_id = ?', 
-          whereArgs: [organizationId]);
+        await txn.delete('local_transactions',
+            where: 'is_synced = 1 AND organization_id = ?',
+            whereArgs: [organizationId]);
       }
-      
+
       for (var tx in transactions) {
         final map = tx.toJson();
         map['is_synced'] = 1;
-        // In some models toJson() might not include these or have different names, 
+        // In some models toJson() might not include these or have different names,
         // ensures consistency with the table definition
         map['voucher_date'] = tx.voucherDate.millisecondsSinceEpoch;
         if (tx.referenceDate != null) {
-           map['reference_date'] = tx.referenceDate!.millisecondsSinceEpoch;
+          map['reference_date'] = tx.referenceDate!.millisecondsSinceEpoch;
         }
-        
-        await txn.insert('local_transactions', map, conflictAlgorithm: ConflictAlgorithm.replace);
+
+        await txn.insert('local_transactions', map,
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
@@ -484,7 +569,8 @@ class LocalAccountingRepository {
   // ... (Existing sync methods continue) ...
 
   // Sync Methods for Transactions
-  Future<List<TransactionModel>> getUnsyncedTransactions({int? organizationId, int? storeId}) async {
+  Future<List<TransactionModel>> getUnsyncedTransactions(
+      {int? organizationId, int? storeId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -496,33 +582,41 @@ class LocalAccountingRepository {
       where += ' AND store_id = ?';
       args.add(storeId);
     }
-    final maps = await db.query('local_transactions', where: where, whereArgs: args);
-    return maps.map((e) => TransactionModel(
-      id: e['id'] as String,
-      voucherPrefixId: e['voucher_prefix_id'] as int,
-      voucherNumber: e['voucher_number'] as String,
-      voucherDate: DateTime.fromMillisecondsSinceEpoch(e['voucher_date'] as int),
-      accountId: e['account_id'] as String,
-      offsetAccountId: e['offset_account_id'] as String?,
-      amount: (e['amount'] as num).toDouble(),
-      description: e['description'] as String?,
-      status: e['status'] as String? ?? 'posted',
-      organizationId: (e['organization_id'] as int?) ?? 0,
-      storeId: (e['store_id'] as int?) ?? 0,
-      sYear: e['syear'] as int?,
-      moduleAccount: e['module_account'] as String?,
-      offsetModuleAccount: e['offset_module_account'] as String?,
-      paymentMode: e['payment_mode'] as String?,
-      referenceNumber: e['reference_number'] as String?,
-      referenceDate: e['reference_date'] != null ? DateTime.fromMillisecondsSinceEpoch(e['reference_date'] as int) : null,
-      referenceBank: e['reference_bank'] as String?,
-      invoiceId: e['invoice_id'] as String?,
-    )).toList();
+    final maps =
+        await db.query('local_transactions', where: where, whereArgs: args);
+    return maps
+        .map((e) => TransactionModel(
+              id: e['id'] as String,
+              voucherPrefixId: e['voucher_prefix_id'] as int,
+              voucherNumber: e['voucher_number'] as String,
+              voucherDate:
+                  DateTime.fromMillisecondsSinceEpoch(e['voucher_date'] as int),
+              accountId: e['account_id'] as String,
+              offsetAccountId: e['offset_account_id'] as String?,
+              amount: (e['amount'] as num).toDouble(),
+              description: e['description'] as String?,
+              status: e['status'] as String? ?? 'posted',
+              organizationId: (e['organization_id'] as int?) ?? 0,
+              storeId: (e['store_id'] as int?) ?? 0,
+              sYear: e['syear'] as int?,
+              moduleAccount: e['module_account'] as String?,
+              offsetModuleAccount: e['offset_module_account'] as String?,
+              paymentMode: e['payment_mode'] as String?,
+              referenceNumber: e['reference_number'] as String?,
+              referenceDate: e['reference_date'] != null
+                  ? DateTime.fromMillisecondsSinceEpoch(
+                      e['reference_date'] as int)
+                  : null,
+              referenceBank: e['reference_bank'] as String?,
+              invoiceId: e['invoice_id'] as String?,
+            ))
+        .toList();
   }
 
   Future<void> markTransactionAsSynced(String id) async {
     final db = await _dbHelper.database;
-    await db.update('local_transactions', {'is_synced': 1}, where: 'id = ?', whereArgs: [id]);
+    await db.update('local_transactions', {'is_synced': 1},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   ChartOfAccountModel _mapToModel(Map<String, dynamic> e) {
@@ -537,8 +631,10 @@ class LocalAccountingRepository {
       organizationId: (e['organization_id'] as int?) ?? 0,
       isActive: e['is_active'] == 1,
       isSystem: e['is_system'] == 1,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(e['created_at'] ?? DateTime.now().millisecondsSinceEpoch),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(e['updated_at'] ?? DateTime.now().millisecondsSinceEpoch),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+          e['created_at'] ?? DateTime.now().millisecondsSinceEpoch),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+          e['updated_at'] ?? DateTime.now().millisecondsSinceEpoch),
     );
   }
 
@@ -558,19 +654,23 @@ class LocalAccountingRepository {
       'updated_at': account.updatedAt.millisecondsSinceEpoch,
     };
   }
+
   Future<void> deleteChartOfAccount(String id) async {
     final db = await _dbHelper.database;
     // Check if it's a system account before deleting
-    final result = await db.query('local_chart_of_accounts', where: 'id = ?', whereArgs: [id]);
+    final result = await db
+        .query('local_chart_of_accounts', where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty && result.first['is_system'] == 1) {
       throw Exception('System accounts cannot be deleted');
     }
-    await db.delete('local_chart_of_accounts', where: 'id = ?', whereArgs: [id]);
+    await db
+        .delete('local_chart_of_accounts', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> deleteAccountType(int id) async {
     final db = await _dbHelper.database;
-    final result = await db.query('local_account_types', where: 'id = ?', whereArgs: [id]);
+    final result =
+        await db.query('local_account_types', where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty && result.first['is_system'] == 1) {
       throw Exception('System account types cannot be deleted');
     }
@@ -579,14 +679,17 @@ class LocalAccountingRepository {
 
   Future<void> deleteAccountCategory(int id) async {
     final db = await _dbHelper.database;
-    final result = await db.query('local_account_categories', where: 'id = ?', whereArgs: [id]);
+    final result = await db
+        .query('local_account_categories', where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty && result.first['is_system'] == 1) {
       throw Exception('System account categories cannot be deleted');
     }
-    await db.delete('local_account_categories', where: 'id = ?', whereArgs: [id]);
+    await db
+        .delete('local_account_categories', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<FinancialSession>> getFinancialSessions({int? organizationId}) async {
+  Future<List<FinancialSession>> getFinancialSessions(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String? where;
     List<dynamic>? whereArgs;
@@ -594,11 +697,16 @@ class LocalAccountingRepository {
       where = 'organization_id = ? OR organization_id IS NULL';
       whereArgs = [organizationId];
     }
-    final maps = await db.query('local_financial_sessions', where: where, whereArgs: whereArgs, orderBy: 'syear DESC');
-    return maps.map((e) => FinancialSessionModel.fromJson(e)).toList().cast<FinancialSession>();
+    final maps = await db.query('local_financial_sessions',
+        where: where, whereArgs: whereArgs, orderBy: 'syear DESC');
+    return maps
+        .map((e) => FinancialSessionModel.fromJson(e))
+        .toList()
+        .cast<FinancialSession>();
   }
 
-  Future<FinancialSessionModel?> getActiveFinancialSession({int? organizationId}) async {
+  Future<FinancialSessionModel?> getActiveFinancialSession(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'in_use = 1';
     List<dynamic> whereArgs = [];
@@ -606,16 +714,19 @@ class LocalAccountingRepository {
       where += ' AND organization_id = ?';
       whereArgs.add(organizationId);
     }
-    final maps = await db.query('local_financial_sessions', where: where, whereArgs: whereArgs, limit: 1);
+    final maps = await db.query('local_financial_sessions',
+        where: where, whereArgs: whereArgs, limit: 1);
     if (maps.isEmpty) return null;
     return FinancialSessionModel.fromJson(maps.first);
   }
 
-  Future<void> cacheFinancialSessions(List<FinancialSessionModel> sessions, {int? organizationId}) async {
+  Future<void> cacheFinancialSessions(List<FinancialSessionModel> sessions,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       if (organizationId != null) {
-        await txn.delete('local_financial_sessions', where: 'organization_id = ?', whereArgs: [organizationId]);
+        await txn.delete('local_financial_sessions',
+            where: 'organization_id = ?', whereArgs: [organizationId]);
       } else {
         await txn.delete('local_financial_sessions');
       }
@@ -625,14 +736,17 @@ class LocalAccountingRepository {
     });
   }
 
-  Future<void> saveFinancialSession(FinancialSessionModel session, {bool isSynced = false}) async {
+  Future<void> saveFinancialSession(FinancialSessionModel session,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
     final map = session.toLocalMap();
     map['is_synced'] = isSynced ? 1 : 0;
-    await db.insert('local_financial_sessions', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('local_financial_sessions', map,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<Map<String, dynamic>>> getUnpaidInvoices(String customerId, {int? organizationId}) async {
+  Future<List<Map<String, dynamic>>> getUnpaidInvoices(String customerId,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = "business_partner_id = ? AND status != 'Paid'";
     List<dynamic> whereArgs = [customerId];
@@ -650,31 +764,24 @@ class LocalAccountingRepository {
 
   Future<bool> isAccountUsed(String accountId) async {
     final db = await _dbHelper.database;
-    final result = await db.query('local_transactions', 
-      where: 'account_id = ? OR offset_account_id = ?', 
-      whereArgs: [accountId, accountId],
-      limit: 1
-    );
+    final result = await db.query('local_transactions',
+        where: 'account_id = ? OR offset_account_id = ?',
+        whereArgs: [accountId, accountId],
+        limit: 1);
     return result.isNotEmpty;
   }
 
   Future<bool> isAccountTypeUsed(int typeId) async {
     final db = await _dbHelper.database;
-    final result = await db.query('local_chart_of_accounts', 
-      where: 'account_type_id = ?', 
-      whereArgs: [typeId],
-      limit: 1
-    );
+    final result = await db.query('local_chart_of_accounts',
+        where: 'account_type_id = ?', whereArgs: [typeId], limit: 1);
     return result.isNotEmpty;
   }
 
   Future<bool> isAccountCategoryUsed(int categoryId) async {
     final db = await _dbHelper.database;
-    final result = await db.query('local_chart_of_accounts', 
-      where: 'account_category_id = ?', 
-      whereArgs: [categoryId],
-      limit: 1
-    );
+    final result = await db.query('local_chart_of_accounts',
+        where: 'account_category_id = ?', whereArgs: [categoryId], limit: 1);
     return result.isNotEmpty;
   }
 
@@ -696,9 +803,10 @@ class LocalAccountingRepository {
   Future<bool> isBankCashUsed(String bankCashId) async {
     final db = await _dbHelper.database;
     // Get the account_id (chart_of_account_id) first
-    final bc = await db.query('local_bank_cash', where: 'id = ?', whereArgs: [bankCashId]);
+    final bc = await db
+        .query('local_bank_cash', where: 'id = ?', whereArgs: [bankCashId]);
     if (bc.isEmpty) return false;
-    
+
     final coaId = bc.first['account_id'] as String;
     return await isAccountUsed(coaId);
   }
@@ -708,41 +816,49 @@ class LocalAccountingRepository {
     final db = await _dbHelper.database;
     String? where;
     List<dynamic>? whereArgs;
-    
+
     if (organizationId != null) {
       where = 'organization_id = ? OR organization_id IS NULL';
       whereArgs = [organizationId];
     }
-    
-    final maps = await db.query('local_invoice_types', where: where, whereArgs: whereArgs, orderBy: 'id_invoice_type ASC');
+
+    final maps = await db.query('local_invoice_types',
+        where: where, whereArgs: whereArgs, orderBy: 'id_invoice_type ASC');
     return maps.map((e) => InvoiceTypeModel.fromJson(e)).toList();
   }
 
-  Future<void> cacheInvoiceTypes(List<InvoiceTypeModel> types, {int? organizationId}) async {
+  Future<void> cacheInvoiceTypes(List<InvoiceTypeModel> types,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       if (organizationId != null) {
-        await txn.delete('local_invoice_types', where: 'organization_id = ?', whereArgs: [organizationId]);
+        await txn.delete('local_invoice_types',
+            where: 'organization_id = ?', whereArgs: [organizationId]);
       } else {
-        await txn.delete('local_invoice_types', where: 'organization_id IS NULL');
+        await txn.delete('local_invoice_types',
+            where: 'organization_id IS NULL');
       }
       for (var type in types) {
         final map = type.toJson();
         map['is_active'] = (map['is_active'] == true) ? 1 : 0;
-        await txn.insert('local_invoice_types', map, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert('local_invoice_types', map,
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
-  Future<void> saveInvoiceType(InvoiceTypeModel type, {bool isSynced = false}) async {
+  Future<void> saveInvoiceType(InvoiceTypeModel type,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
     final map = type.toJson();
     map['is_active'] = type.isActive ? 1 : 0;
     map['is_synced'] = isSynced ? 1 : 0;
-    await db.insert('local_invoice_types', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('local_invoice_types', map,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<InvoiceModel>> getInvoices({int? organizationId, int? storeId, int? sYear}) async {
+  Future<List<InvoiceModel>> getInvoices(
+      {int? organizationId, int? storeId, int? sYear}) async {
     final db = await _dbHelper.database;
     List<String> whereClauses = [];
     List<dynamic> whereArgs = [];
@@ -760,37 +876,43 @@ class LocalAccountingRepository {
       whereArgs.add(sYear);
     }
 
-    final maps = await db.query(
-      'local_invoices',
-      where: whereClauses.isEmpty ? null : whereClauses.join(' AND '),
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: 'invoice_date DESC'
-    );
+    final maps = await db.query('local_invoices',
+        where: whereClauses.isEmpty ? null : whereClauses.join(' AND '),
+        whereArgs: whereArgs.isEmpty ? null : whereArgs,
+        orderBy: 'invoice_date DESC');
     return maps.map((e) => InvoiceModel.fromJson(e)).toList();
   }
 
-  Future<void> cacheInvoices(List<InvoiceModel> invoices, {int? organizationId}) async {
+  Future<void> cacheInvoices(List<InvoiceModel> invoices,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       if (organizationId != null) {
-        await txn.delete('local_invoices', where: 'is_synced = 1 AND organization_id = ?', whereArgs: [organizationId]);
+        await txn.delete('local_invoices',
+            where: 'is_synced = 1 AND organization_id = ?',
+            whereArgs: [organizationId]);
       } else {
         await txn.delete('local_invoices', where: 'is_synced = 1');
       }
       for (var invoice in invoices) {
-        await txn.insert('local_invoices', invoice.toLocalMap()..['is_synced'] = 1, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert(
+            'local_invoices', invoice.toLocalMap()..['is_synced'] = 1,
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
-  Future<void> saveInvoice(InvoiceModel invoice, {bool isSynced = false}) async {
+  Future<void> saveInvoice(InvoiceModel invoice,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
     final map = invoice.toLocalMap();
     map['is_synced'] = isSynced ? 1 : 0;
-    await db.insert('local_invoices', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('local_invoices', map,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<InvoiceModel>> getUnsyncedInvoices({int? organizationId, int? storeId}) async {
+  Future<List<InvoiceModel>> getUnsyncedInvoices(
+      {int? organizationId, int? storeId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -802,20 +924,23 @@ class LocalAccountingRepository {
       where += ' AND store_id = ?';
       args.add(storeId);
     }
-    final maps = await db.query('local_invoices', where: where, whereArgs: args);
+    final maps =
+        await db.query('local_invoices', where: where, whereArgs: args);
     return maps.map((e) => InvoiceModel.fromJson(e)).toList();
   }
 
   Future<void> markInvoiceAsSynced(String id) async {
     final db = await _dbHelper.database;
-    await db.update('local_invoices', {'is_synced': 1}, where: 'id = ?', whereArgs: [id]);
+    await db.update('local_invoices', {'is_synced': 1},
+        where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> deleteInvoice(String id) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       await txn.delete('local_invoices', where: 'id = ?', whereArgs: [id]);
-      await txn.delete('local_invoice_items', where: 'invoice_id = ?', whereArgs: [id]);
+      await txn.delete('local_invoice_items',
+          where: 'invoice_id = ?', whereArgs: [id]);
     });
   }
 
@@ -830,23 +955,27 @@ class LocalAccountingRepository {
     return maps.map((e) => InvoiceItemModel.fromJson(e)).toList();
   }
 
-  Future<void> cacheInvoiceItems(List<InvoiceItemModel> items, String invoiceId) async {
+  Future<void> cacheInvoiceItems(
+      List<InvoiceItemModel> items, String invoiceId) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
-      await txn.delete('local_invoice_items', where: 'invoice_id = ?', whereArgs: [invoiceId]);
+      await txn.delete('local_invoice_items',
+          where: 'invoice_id = ?', whereArgs: [invoiceId]);
       for (var item in items) {
         final map = item.toJson();
         _prepareInvoiceItemMap(map, item);
-        await txn.insert('local_invoice_items', map, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert('local_invoice_items', map,
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
-  Future<void> bulkCacheInvoiceItems(List<InvoiceItemModel> items, {int? organizationId}) async {
+  Future<void> bulkCacheInvoiceItems(List<InvoiceItemModel> items,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       // If we had a way to identify which invoices these items belong to (already in item)
-      // we could delete items for those invoices. 
+      // we could delete items for those invoices.
       // But clearing all for org might be safer if we are doing a full pull.
       if (organizationId != null) {
         // This is tricky because items table doesn't have organization_id.
@@ -855,36 +984,41 @@ class LocalAccountingRepository {
       for (var item in items) {
         final map = item.toJson();
         _prepareInvoiceItemMap(map, item);
-        await txn.insert('local_invoice_items', map, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert('local_invoice_items', map,
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
   void _prepareInvoiceItemMap(Map<String, dynamic> map, InvoiceItemModel item) {
     if (map['created_at'] is DateTime) {
-       map['created_at'] = (map['created_at'] as DateTime).millisecondsSinceEpoch;
+      map['created_at'] =
+          (map['created_at'] as DateTime).millisecondsSinceEpoch;
     } else if (item.createdAt != null) {
-       map['created_at'] = item.createdAt!.millisecondsSinceEpoch;
+      map['created_at'] = item.createdAt!.millisecondsSinceEpoch;
     }
   }
 
-  Future<void> saveInvoiceItems(List<InvoiceItemModel> items, {bool isSynced = false}) async {
+  Future<void> saveInvoiceItems(List<InvoiceItemModel> items,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
       for (var item in items) {
         final map = item.toJson();
         if (item.createdAt != null) {
-           map['created_at'] = item.createdAt!.millisecondsSinceEpoch;
+          map['created_at'] = item.createdAt!.millisecondsSinceEpoch;
         }
         map['is_synced'] = isSynced ? 1 : 0;
-        await txn.insert('local_invoice_items', map, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert('local_invoice_items', map,
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
 
   Future<void> deleteInvoiceItems(String invoiceId) async {
     final db = await _dbHelper.database;
-    await db.delete('local_invoice_items', where: 'invoice_id = ?', whereArgs: [invoiceId]);
+    await db.delete('local_invoice_items',
+        where: 'invoice_id = ?', whereArgs: [invoiceId]);
   }
 
   // GL Setup Methods
@@ -905,7 +1039,8 @@ class LocalAccountingRepository {
     final db = await _dbHelper.database;
     final map = setup.toJson();
     map['is_synced'] = isSynced ? 1 : 0;
-    await db.insert('local_gl_setup', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('local_gl_setup', map,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<GLSetupModel>> getUnsyncedGLSetups() async {
@@ -920,16 +1055,18 @@ class LocalAccountingRepository {
 
   Future<void> markGLSetupAsSynced(int organizationId) async {
     final db = await _dbHelper.database;
-    await db.update('local_gl_setup', {'is_synced': 1}, 
-      where: 'organization_id = ?', whereArgs: [organizationId]);
+    await db.update('local_gl_setup', {'is_synced': 1},
+        where: 'organization_id = ?', whereArgs: [organizationId]);
   }
 
   // Daily Balance Methods
-  Future<DailyBalanceModel?> getLatestDailyBalance(String accountId, {int? organizationId}) async {
+  Future<DailyBalanceModel?> getLatestDailyBalance(String accountId,
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'local_daily_balances',
-      where: 'account_id = ? ${organizationId != null ? 'AND organization_id = ?' : ''}',
+      where:
+          'account_id = ? ${organizationId != null ? 'AND organization_id = ?' : ''}',
       whereArgs: [accountId, if (organizationId != null) organizationId],
       orderBy: 'date DESC',
       limit: 1,
@@ -938,14 +1075,17 @@ class LocalAccountingRepository {
     return DailyBalanceModel.fromJson(maps.first);
   }
 
-  Future<void> saveDailyBalance(DailyBalanceModel balance, {bool isSynced = false}) async {
+  Future<void> saveDailyBalance(DailyBalanceModel balance,
+      {bool isSynced = false}) async {
     final db = await _dbHelper.database;
     final map = balance.toJson();
     map['is_synced'] = isSynced ? 1 : 0;
-    await db.insert('local_daily_balances', map, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('local_daily_balances', map,
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<DailyBalanceModel>> getUnsyncedDailyBalances({int? organizationId}) async {
+  Future<List<DailyBalanceModel>> getUnsyncedDailyBalances(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -953,16 +1093,19 @@ class LocalAccountingRepository {
       where += ' AND (organization_id = ? OR organization_id IS NULL)';
       args.add(organizationId);
     }
-    final maps = await db.query('local_daily_balances', where: where, whereArgs: args);
+    final maps =
+        await db.query('local_daily_balances', where: where, whereArgs: args);
     return maps.map((e) => DailyBalanceModel.fromJson(e)).toList();
   }
 
   Future<void> markDailyBalanceAsSynced(String id) async {
     final db = await _dbHelper.database;
-    await db.update('local_daily_balances', {'is_synced': 1}, where: 'id = ?', whereArgs: [id]);
+    await db.update('local_daily_balances', {'is_synced': 1},
+        where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<AccountTypeModel>> getUnsyncedAccountTypes({int? organizationId}) async {
+  Future<List<AccountTypeModel>> getUnsyncedAccountTypes(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -970,22 +1113,27 @@ class LocalAccountingRepository {
       where += ' AND (organization_id = ? OR organization_id IS NULL)';
       args.add(organizationId);
     }
-    final maps = await db.query('local_account_types', where: where, whereArgs: args);
-    return maps.map((e) => AccountTypeModel(
-      id: e['id'] as int,
-      typeName: e['account_type'] as String,
-      status: e['status'] == 1,
-      isSystem: e['is_system'] == 1,
-      organizationId: e['organization_id'] as int? ?? 0,
-    )).toList();
+    final maps =
+        await db.query('local_account_types', where: where, whereArgs: args);
+    return maps
+        .map((e) => AccountTypeModel(
+              id: e['id'] as int,
+              typeName: e['account_type'] as String,
+              status: e['status'] == 1,
+              isSystem: e['is_system'] == 1,
+              organizationId: e['organization_id'] as int? ?? 0,
+            ))
+        .toList();
   }
 
   Future<void> markAccountTypeAsSynced(int id) async {
     final db = await _dbHelper.database;
-    await db.update('local_account_types', {'is_synced': 1}, where: 'id = ?', whereArgs: [id]);
+    await db.update('local_account_types', {'is_synced': 1},
+        where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<FinancialSessionModel>> getUnsyncedFinancialSessions({int? organizationId}) async {
+  Future<List<FinancialSessionModel>> getUnsyncedFinancialSessions(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -993,16 +1141,19 @@ class LocalAccountingRepository {
       where += ' AND (organization_id = ? OR organization_id IS NULL)';
       args.add(organizationId);
     }
-    final maps = await db.query('local_financial_sessions', where: where, whereArgs: args);
+    final maps = await db.query('local_financial_sessions',
+        where: where, whereArgs: args);
     return maps.map((e) => FinancialSessionModel.fromJson(e)).toList();
   }
 
   Future<void> markFinancialSessionAsSynced(int sYear) async {
     final db = await _dbHelper.database;
-    await db.update('local_financial_sessions', {'is_synced': 1}, where: 'syear = ?', whereArgs: [sYear]);
+    await db.update('local_financial_sessions', {'is_synced': 1},
+        where: 'syear = ?', whereArgs: [sYear]);
   }
 
-  Future<List<InvoiceTypeModel>> getUnsyncedInvoiceTypes({int? organizationId}) async {
+  Future<List<InvoiceTypeModel>> getUnsyncedInvoiceTypes(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -1010,13 +1161,15 @@ class LocalAccountingRepository {
       where += ' AND (organization_id = ? OR organization_id IS NULL)';
       args.add(organizationId);
     }
-    final maps = await db.query('local_invoice_types', where: where, whereArgs: args);
+    final maps =
+        await db.query('local_invoice_types', where: where, whereArgs: args);
     return maps.map((e) => InvoiceTypeModel.fromJson(e)).toList();
   }
 
   Future<void> markInvoiceTypeAsSynced(String id) async {
     final db = await _dbHelper.database;
-    await db.update('local_invoice_types', {'is_synced': 1}, where: 'id_invoice_type = ?', whereArgs: [id]);
+    await db.update('local_invoice_types', {'is_synced': 1},
+        where: 'id_invoice_type = ?', whereArgs: [id]);
   }
 
   Future<List<InvoiceItemModel>> getUnsyncedInvoiceItems() async {
@@ -1027,10 +1180,12 @@ class LocalAccountingRepository {
 
   Future<void> markInvoiceItemAsSynced(String id) async {
     final db = await _dbHelper.database;
-    await db.update('local_invoice_items', {'is_synced': 1}, where: 'id = ?', whereArgs: [id]);
+    await db.update('local_invoice_items', {'is_synced': 1},
+        where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<ChartOfAccountModel>> getUnsyncedChartOfAccounts({int? organizationId}) async {
+  Future<List<ChartOfAccountModel>> getUnsyncedChartOfAccounts(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -1038,11 +1193,13 @@ class LocalAccountingRepository {
       where += ' AND (organization_id = ? OR organization_id IS NULL)';
       args.add(organizationId);
     }
-    final maps = await db.query('local_chart_of_accounts', where: where, whereArgs: args);
+    final maps = await db.query('local_chart_of_accounts',
+        where: where, whereArgs: args);
     return maps.map((e) => _mapToModel(e)).toList();
   }
 
-  Future<List<PaymentTermModel>> getUnsyncedPaymentTerms({int? organizationId}) async {
+  Future<List<PaymentTermModel>> getUnsyncedPaymentTerms(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -1050,18 +1207,22 @@ class LocalAccountingRepository {
       where += ' AND (organization_id = ? OR organization_id IS NULL)';
       args.add(organizationId);
     }
-    final maps = await db.query('local_payment_terms', where: where, whereArgs: args);
-    return maps.map((e) => PaymentTermModel.fromJson({
-      'id': e['id'],
-      'payment_term': e['payment_term'],
-      'description': e['description'],
-      'is_active': e['is_active'] == 1,
-      'days': e['days'] ?? 0,
-      'organization_id': e['organization_id'],
-    })).toList();
+    final maps =
+        await db.query('local_payment_terms', where: where, whereArgs: args);
+    return maps
+        .map((e) => PaymentTermModel.fromJson({
+              'id': e['id'],
+              'payment_term': e['payment_term'],
+              'description': e['description'],
+              'is_active': e['is_active'] == 1,
+              'days': e['days'] ?? 0,
+              'organization_id': e['organization_id'],
+            }))
+        .toList();
   }
 
-  Future<List<VoucherPrefixModel>> getUnsyncedVoucherPrefixes({int? organizationId}) async {
+  Future<List<VoucherPrefixModel>> getUnsyncedVoucherPrefixes(
+      {int? organizationId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -1069,19 +1230,23 @@ class LocalAccountingRepository {
       where += ' AND (organization_id = ? OR organization_id IS NULL)';
       args.add(organizationId);
     }
-    final maps = await db.query('local_voucher_prefixes', where: where, whereArgs: args);
-    return maps.map((e) => VoucherPrefixModel(
-      id: e['id'] as int,
-      prefixCode: e['prefix_code'] as String,
-      description: e['description'] as String?,
-      voucherType: e['voucher_type'] as String? ?? 'GENERAL',
-      organizationId: (e['organization_id'] as int?) ?? 0,
-      status: e['status'] == 1,
-      isSystem: e['is_system'] == 1,
-    )).toList();
+    final maps =
+        await db.query('local_voucher_prefixes', where: where, whereArgs: args);
+    return maps
+        .map((e) => VoucherPrefixModel(
+              id: e['id'] as int,
+              prefixCode: e['prefix_code'] as String,
+              description: e['description'] as String?,
+              voucherType: e['voucher_type'] as String? ?? 'GENERAL',
+              organizationId: (e['organization_id'] as int?) ?? 0,
+              status: e['status'] == 1,
+              isSystem: e['is_system'] == 1,
+            ))
+        .toList();
   }
 
-  Future<List<BankCashModel>> getUnsyncedBankCashAccounts({int? organizationId, int? storeId}) async {
+  Future<List<BankCashModel>> getUnsyncedBankCashAccounts(
+      {int? organizationId, int? storeId}) async {
     final db = await _dbHelper.database;
     String where = 'is_synced = 0';
     List<dynamic> args = [];
@@ -1093,16 +1258,19 @@ class LocalAccountingRepository {
       where += ' AND store_id = ?';
       args.add(storeId);
     }
-    final maps = await db.query('local_bank_cash', where: where, whereArgs: args);
-    return maps.map((e) => BankCashModel(
-      id: e['id']?.toString() ?? '',
-      name: e['bank_name']?.toString() ?? '',
-      chartOfAccountId: e['account_id']?.toString() ?? '',
-      accountNumber: e['account_number']?.toString(),
-      branchName: e['branch_name']?.toString(),
-      organizationId: (e['organization_id'] as int?) ?? 0,
-      storeId: (e['store_id'] as int?) ?? 0,
-      status: e['is_active'] == 1,
-    )).toList();
+    final maps =
+        await db.query('local_bank_cash', where: where, whereArgs: args);
+    return maps
+        .map((e) => BankCashModel(
+              id: e['id']?.toString() ?? '',
+              name: e['bank_name']?.toString() ?? '',
+              chartOfAccountId: e['account_id']?.toString() ?? '',
+              accountNumber: e['account_number']?.toString(),
+              branchName: e['branch_name']?.toString(),
+              organizationId: (e['organization_id'] as int?) ?? 0,
+              storeId: (e['store_id'] as int?) ?? 0,
+              status: e['is_active'] == 1,
+            ))
+        .toList();
   }
 }

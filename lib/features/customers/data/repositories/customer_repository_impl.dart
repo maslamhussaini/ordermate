@@ -84,7 +84,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
 
       final json = customerModel.toJson();
       json.remove(
-          'id',); // Force DB to generate ID to avoid collisions (or resubmits of same ID)
+        'id',
+      ); // Force DB to generate ID to avoid collisions (or resubmits of same ID)
 
       final response = await SupabaseConfig.client
           .from('omtbl_customers')

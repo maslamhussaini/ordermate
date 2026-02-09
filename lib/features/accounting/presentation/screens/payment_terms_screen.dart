@@ -7,7 +7,6 @@ import '../providers/accounting_provider.dart';
 import '../../domain/entities/chart_of_account.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
-
 class PaymentTermsScreen extends ConsumerStatefulWidget {
   const PaymentTermsScreen({super.key});
 
@@ -42,7 +41,7 @@ class _PaymentTermsScreenState extends ConsumerState<PaymentTermsScreen> {
     final state = ref.watch(accountingProvider);
     final filtered = state.paymentTerms.where((p) {
       return p.name.toLowerCase().contains(_searchQuery) ||
-             (p.description?.toLowerCase().contains(_searchQuery) ?? false);
+          (p.description?.toLowerCase().contains(_searchQuery) ?? false);
     }).toList();
 
     return Scaffold(
@@ -52,8 +51,11 @@ class _PaymentTermsScreenState extends ConsumerState<PaymentTermsScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              final orgId = ref.read(organizationProvider).selectedOrganization?.id;
-              ref.read(accountingProvider.notifier).loadAll(organizationId: orgId);
+              final orgId =
+                  ref.read(organizationProvider).selectedOrganization?.id;
+              ref
+                  .read(accountingProvider.notifier)
+                  .loadAll(organizationId: orgId);
             },
           ),
         ],
@@ -71,10 +73,13 @@ class _PaymentTermsScreenState extends ConsumerState<PaymentTermsScreen> {
                         decoration: InputDecoration(
                           hintText: 'Search payment terms...',
                           prefixIcon: const Icon(Icons.search),
-                          suffixIcon: _searchQuery.isNotEmpty 
-                            ? IconButton(icon: const Icon(Icons.clear), onPressed: () => _searchController.clear())
-                            : null,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () => _searchController.clear())
+                              : null,
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -86,19 +91,30 @@ class _PaymentTermsScreenState extends ConsumerState<PaymentTermsScreen> {
                           final term = filtered[index];
                           return Card(
                             child: ListTile(
-                              onTap: () => context.push('/accounting/payment-terms/edit/${term.id}'),
-                              leading: const Icon(Icons.payment, color: Colors.blue),
-                              title: Text(term.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: term.description != null ? Text(term.description!) : null,
+                              onTap: () => context.push(
+                                  '/accounting/payment-terms/edit/${term.id}'),
+                              leading:
+                                  const Icon(Icons.payment, color: Colors.blue),
+                              title: Text(term.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              subtitle: term.description != null
+                                  ? Text(term.description!)
+                                  : null,
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    term.isActive ? Icons.check_circle : Icons.cancel,
-                                    color: term.isActive ? Colors.green : Colors.red,
+                                    term.isActive
+                                        ? Icons.check_circle
+                                        : Icons.cancel,
+                                    color: term.isActive
+                                        ? Colors.green
+                                        : Colors.red,
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, color: Colors.grey),
+                                    icon: const Icon(Icons.delete_outline,
+                                        color: Colors.grey),
                                     onPressed: () => _confirmDelete(term),
                                   ),
                                 ],
@@ -124,7 +140,9 @@ class _PaymentTermsScreenState extends ConsumerState<PaymentTermsScreen> {
         title: const Text('Delete Payment Term'),
         content: Text('Are you sure you want to delete "${term.name}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -137,7 +155,9 @@ class _PaymentTermsScreenState extends ConsumerState<PaymentTermsScreen> {
     if (confirmed == true && mounted) {
       try {
         final orgId = ref.read(organizationProvider).selectedOrganization?.id;
-        await ref.read(accountingProvider.notifier).deletePaymentTerm(term.id, organizationId: orgId);
+        await ref
+            .read(accountingProvider.notifier)
+            .deletePaymentTerm(term.id, organizationId: orgId);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Payment term deleted successfully')),

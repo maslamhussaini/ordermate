@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class LoadingOverlay extends StatelessWidget {
@@ -27,7 +26,8 @@ class LoadingOverlay extends StatelessWidget {
         children: [
           Opacity(
             opacity: opacity,
-            child: ModalBarrier(dismissible: false, color: color ?? Colors.black),
+            child:
+                ModalBarrier(dismissible: false, color: color ?? Colors.black),
           ),
           Center(
             child: Column(

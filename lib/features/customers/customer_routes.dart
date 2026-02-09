@@ -34,7 +34,8 @@ final List<AppRoute> customerRoutes = [
         module: 'customers',
         showInMenu: false,
         roles: [UserRole.admin, UserRole.staff],
-        builder: (_, state) => CustomerFormScreen(customerId: state.pathParameters['id']!),
+        builder: (_, state) =>
+            CustomerFormScreen(customerId: state.pathParameters['id']!),
       ),
       AppRoute(
         path: ':id/invoices',
@@ -44,8 +45,9 @@ final List<AppRoute> customerRoutes = [
         showInMenu: false,
         roles: [UserRole.admin, UserRole.staff],
         builder: (_, state) {
-           final extra = state.extra as Map<String, dynamic>;
-           return CustomerInvoicesScreen(customer: extra['customer'] as BusinessPartner);
+          final extra = state.extra as Map<String, dynamic>;
+          return CustomerInvoicesScreen(
+              customer: extra['customer'] as BusinessPartner);
         },
       ),
     ],

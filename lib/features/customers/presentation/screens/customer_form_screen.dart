@@ -16,7 +16,6 @@ import 'package:ordermate/features/accounting/presentation/providers/accounting_
 import 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart';
 
 class CustomerFormScreen extends ConsumerStatefulWidget {
-
   const CustomerFormScreen({super.key, this.customerId});
   final String? customerId;
 
@@ -105,13 +104,15 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
 
     try {
       final khi = cities.firstWhere(
-          (c) => (c['city_name'] as String).toLowerCase() == 'karachi',);
+        (c) => (c['city_name'] as String).toLowerCase() == 'karachi',
+      );
       _selectedCityId = khi['id'];
     } catch (_) {}
 
     try {
       final pak = countries.firstWhere(
-          (c) => (c['country_name'] as String).toLowerCase() == 'pakistan',);
+        (c) => (c['country_name'] as String).toLowerCase() == 'pakistan',
+      );
       _selectedCountryId = pak['id'];
     } catch (_) {}
 
@@ -138,18 +139,21 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       _selectedChartOfAccountId = customer.chartOfAccountId;
       _zipController.text = customer.postalCode ?? '';
 
-      if (customer.cityId != null || customer.countryId != null || customer.stateId != null) {
-         _streetController.text = customer.address;
+      if (customer.cityId != null ||
+          customer.countryId != null ||
+          customer.stateId != null) {
+        _streetController.text = customer.address;
       } else {
         // Fallback for old records or migration
         final parts = customer.address.split(', ');
         if (parts.length >= 4) {
-           _streetController.text = parts.sublist(0, parts.length - 3).join(', ');
+          _streetController.text =
+              parts.sublist(0, parts.length - 3).join(', ');
         } else {
-           _streetController.text = customer.address;
+          _streetController.text = customer.address;
         }
       }
-      
+
       if (mounted) setState(() {});
     } catch (e) {
       if (mounted) {
@@ -173,14 +177,16 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
   Future<void> _setCityByName(String name) async {
     final cities = ref.read(businessPartnerProvider).cities;
     try {
-      final existing = cities.firstWhere((e) =>
-          (e['city_name'] as String).toLowerCase() == name.toLowerCase(),);
+      final existing = cities.firstWhere(
+        (e) => (e['city_name'] as String).toLowerCase() == name.toLowerCase(),
+      );
       _selectedCityId = existing['id'];
     } catch (_) {
       await ref.read(businessPartnerProvider.notifier).addCity(name);
       final newCities = ref.read(businessPartnerProvider).cities;
-      final newItem = newCities.firstWhere((e) =>
-          (e['city_name'] as String).toLowerCase() == name.toLowerCase(),);
+      final newItem = newCities.firstWhere(
+        (e) => (e['city_name'] as String).toLowerCase() == name.toLowerCase(),
+      );
       _selectedCityId = newItem['id'];
     }
     if (mounted) setState(() {});
@@ -189,14 +195,16 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
   Future<void> _setStateByName(String name) async {
     final states = ref.read(businessPartnerProvider).states;
     try {
-      final existing = states.firstWhere((e) =>
-          (e['state_name'] as String).toLowerCase() == name.toLowerCase(),);
+      final existing = states.firstWhere(
+        (e) => (e['state_name'] as String).toLowerCase() == name.toLowerCase(),
+      );
       _selectedStateId = existing['id'];
     } catch (_) {
       await ref.read(businessPartnerProvider.notifier).addState(name);
       final newItems = ref.read(businessPartnerProvider).states;
-      final newItem = newItems.firstWhere((e) =>
-          (e['state_name'] as String).toLowerCase() == name.toLowerCase(),);
+      final newItem = newItems.firstWhere(
+        (e) => (e['state_name'] as String).toLowerCase() == name.toLowerCase(),
+      );
       _selectedStateId = newItem['id'];
     }
     if (mounted) setState(() {});
@@ -205,14 +213,18 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
   Future<void> _setCountryByName(String name) async {
     final countries = ref.read(businessPartnerProvider).countries;
     try {
-      final existing = countries.firstWhere((e) =>
-          (e['country_name'] as String).toLowerCase() == name.toLowerCase(),);
+      final existing = countries.firstWhere(
+        (e) =>
+            (e['country_name'] as String).toLowerCase() == name.toLowerCase(),
+      );
       _selectedCountryId = existing['id'];
     } catch (_) {
       await ref.read(businessPartnerProvider.notifier).addCountry(name);
       final newItems = ref.read(businessPartnerProvider).countries;
-      final newItem = newItems.firstWhere((e) =>
-          (e['country_name'] as String).toLowerCase() == name.toLowerCase(),);
+      final newItem = newItems.firstWhere(
+        (e) =>
+            (e['country_name'] as String).toLowerCase() == name.toLowerCase(),
+      );
       _selectedCountryId = newItem['id'];
     }
     if (mounted) setState(() {});
@@ -229,14 +241,19 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       String? addressText;
       try {
         final placemark = await LocationHelper.getPlacemarkFromCoordinates(
-            position.latitude, position.longitude,);
+          position.latitude,
+          position.longitude,
+        );
 
         _streetController.text = placemark.street ?? '';
         _zipController.text = placemark.postalCode ?? '';
 
-        if (placemark.locality != null) await _setCityByName(placemark.locality!);
-        if (placemark.country != null) await _setCountryByName(placemark.country!);
-        if (placemark.administrativeArea != null) await _setStateByName(placemark.administrativeArea!);
+        if (placemark.locality != null)
+          await _setCityByName(placemark.locality!);
+        if (placemark.country != null)
+          await _setCountryByName(placemark.country!);
+        if (placemark.administrativeArea != null)
+          await _setStateByName(placemark.administrativeArea!);
 
         addressText = [
           placemark.street,
@@ -294,7 +311,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
   }
 
   String _cleanCityName(String rawCity) {
-     return rawCity
+    return rawCity
         .replaceAll(RegExp(r'\s+Division', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s+District', caseSensitive: false), '')
         .trim();
@@ -322,10 +339,12 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
           'addressdetails': 1,
           'limit': 5,
         },
-        options: Options(headers: {
-          'User-Agent': 'OrderMate_FlutterApp/1.0',
-          'Accept-Language': 'en',
-        },),
+        options: Options(
+          headers: {
+            'User-Agent': 'OrderMate_FlutterApp/1.0',
+            'Accept-Language': 'en',
+          },
+        ),
       );
       if (response.statusCode == 200) {
         return List<Map<String, dynamic>>.from(response.data);
@@ -351,7 +370,9 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       if (currentOrgId == null || currentStoreId == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: Organization or Store not selected. Please restart the app.')),
+            const SnackBar(
+                content: Text(
+                    'Error: Organization or Store not selected. Please restart the app.')),
           );
         }
         if (mounted) setState(() => _isSubmitting = false);
@@ -359,7 +380,9 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       }
 
       final existing = widget.customerId != null
-          ? ref.read(businessPartnerProvider).customers
+          ? ref
+              .read(businessPartnerProvider)
+              .customers
               .cast<BusinessPartner?>()
               .firstWhere((c) => c?.id == widget.customerId, orElse: () => null)
           : null;
@@ -367,10 +390,15 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       final partner = BusinessPartner(
         id: widget.customerId ?? const Uuid().v4(),
         name: _nameController.text.trim(),
-        contactPerson: _contactPersonController.text.trim().isEmpty ? null : _contactPersonController.text.trim(),
+        contactPerson: _contactPersonController.text.trim().isEmpty
+            ? null
+            : _contactPersonController.text.trim(),
         phone: _phoneController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-        address: _streetController.text.trim(), // Save street ONLY to address column, relying on IDs for rest
+        email: _emailController.text.trim().isEmpty
+            ? null
+            : _emailController.text.trim(),
+        address: _streetController.text
+            .trim(), // Save street ONLY to address column, relying on IDs for rest
         latitude: _latitude,
         longitude: _longitude,
         createdBy: existing?.createdBy ?? SupabaseConfig.currentUserId,
@@ -380,7 +408,9 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         cityId: _selectedCityId,
         stateId: _selectedStateId,
         countryId: _selectedCountryId,
-        postalCode: _zipController.text.trim().isEmpty ? null : _zipController.text.trim(),
+        postalCode: _zipController.text.trim().isEmpty
+            ? null
+            : _zipController.text.trim(),
         isCustomer: true,
         isActive: true,
         organizationId: existing?.organizationId ?? currentOrgId,
@@ -391,11 +421,14 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       if (widget.customerId == null) {
         await ref.read(businessPartnerProvider.notifier).addPartner(partner);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer created successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Customer created successfully')));
           context.pop();
         }
       } else {
-        final existing = ref.read(businessPartnerProvider).customers
+        final existing = ref
+            .read(businessPartnerProvider)
+            .customers
             .cast<BusinessPartner?>()
             .firstWhere((c) => c?.id == widget.customerId, orElse: () => null);
 
@@ -406,15 +439,19 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
           isCustomer: true,
         );
 
-        await ref.read(businessPartnerProvider.notifier).updatePartner(updatedPartner);
+        await ref
+            .read(businessPartnerProvider.notifier)
+            .updatePartner(updatedPartner);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer updated successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Customer updated successfully')));
           context.pop();
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -423,14 +460,15 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.customerId == null ? 'New Customer' : 'Edit Customer'),
+        title:
+            Text(widget.customerId == null ? 'New Customer' : 'Edit Customer'),
         actions: [
           IconButton(
-            onPressed: (_isSubmitting) ? null : _submitForm, // Allow click to show validation errors even if invalid location, or handle in _submitForm
+            onPressed: (_isSubmitting)
+                ? null
+                : _submitForm, // Allow click to show validation errors even if invalid location, or handle in _submitForm
             icon: const Icon(Icons.save),
           ),
         ],
@@ -439,355 +477,505 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         controller: _scrollController,
         child: SingleChildScrollView(
           controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Added bottom padding
+          padding: const EdgeInsets.fromLTRB(
+              16, 16, 16, 100), // Added bottom padding
           child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Basic Info
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Basic Info
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
                         TextFormField(
                           controller: _nameController,
-                          decoration: const InputDecoration(labelText: 'Customer Name *', prefixIcon: Icon(Icons.person)),
-                          validator: (v) => v?.isEmpty ?? false ? 'Required' : null,
+                          decoration: const InputDecoration(
+                              labelText: 'Customer Name *',
+                              prefixIcon: Icon(Icons.person)),
+                          validator: (v) =>
+                              v?.isEmpty ?? false ? 'Required' : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _contactPersonController,
-                          decoration: const InputDecoration(labelText: 'Contact Person', prefixIcon: Icon(Icons.badge_outlined)),
+                          decoration: const InputDecoration(
+                              labelText: 'Contact Person',
+                              prefixIcon: Icon(Icons.badge_outlined)),
                         ),
                         const SizedBox(height: 16),
-                      LookupField<Map<String, dynamic>, int>(
-                        label: 'Business Type',
-                        value: _selectedBusinessTypeId,
-                        items: ref.watch(businessPartnerProvider).businessTypes,
-                        onChanged: (v) => setState(() => _selectedBusinessTypeId = v),
-                        labelBuilder: (item) => item['business_type'] as String? ?? 'Unknown',
-                        valueBuilder: (item) => item['id'] as int,
-                        onAdd: (name) async {
-                           await ref.read(businessPartnerProvider.notifier).addBusinessType(name);
-                           // Simple refresh handled by provider updates
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: const InputDecoration(labelText: 'Phone *', prefixIcon: Icon(Icons.phone)),
-                        validator: (v) => v?.isEmpty ?? false ? 'Required' : null,
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email)),
-                      ),
-                      const SizedBox(height: 16),
-                      LookupField<ChartOfAccount, String>(
-                        label: 'Customer GL Account',
-                        value: _selectedChartOfAccountId,
-                        items: ref.watch(accountingProvider).accounts.where((a) {
-                           final categories = ref.read(accountingProvider).categories;
-                           final cat = categories.firstWhere((c) => c.id == a.accountCategoryId, orElse: () => const AccountCategory(id: 0, categoryName: '', accountTypeId: 0, status: true, organizationId: 0));
-                           return cat.categoryName.toLowerCase().contains('customer');
-                        }).toList(),
-                        onChanged: (v) => setState(() => _selectedChartOfAccountId = v),
-                        labelBuilder: (item) => '${item.accountCode} - ${item.accountTitle}',
-                        valueBuilder: (item) => item.id,
-                      ),
-                    ],
+                        LookupField<Map<String, dynamic>, int>(
+                          label: 'Business Type',
+                          value: _selectedBusinessTypeId,
+                          items:
+                              ref.watch(businessPartnerProvider).businessTypes,
+                          onChanged: (v) =>
+                              setState(() => _selectedBusinessTypeId = v),
+                          labelBuilder: (item) =>
+                              item['business_type'] as String? ?? 'Unknown',
+                          valueBuilder: (item) => item['id'] as int,
+                          onAdd: (name) async {
+                            await ref
+                                .read(businessPartnerProvider.notifier)
+                                .addBusinessType(name);
+                            // Simple refresh handled by provider updates
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _phoneController,
+                          decoration: const InputDecoration(
+                              labelText: 'Phone *',
+                              prefixIcon: Icon(Icons.phone)),
+                          validator: (v) =>
+                              v?.isEmpty ?? false ? 'Required' : null,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(
+                              labelText: 'Email',
+                              prefixIcon: Icon(Icons.email)),
+                        ),
+                        const SizedBox(height: 16),
+                        LookupField<ChartOfAccount, String>(
+                          label: 'Customer GL Account',
+                          value: _selectedChartOfAccountId,
+                          items:
+                              ref.watch(accountingProvider).accounts.where((a) {
+                            final categories =
+                                ref.read(accountingProvider).categories;
+                            final cat = categories.firstWhere(
+                                (c) => c.id == a.accountCategoryId,
+                                orElse: () => const AccountCategory(
+                                    id: 0,
+                                    categoryName: '',
+                                    accountTypeId: 0,
+                                    status: true,
+                                    organizationId: 0));
+                            return cat.categoryName
+                                .toLowerCase()
+                                .contains('customer');
+                          }).toList(),
+                          onChanged: (v) =>
+                              setState(() => _selectedChartOfAccountId = v),
+                          labelBuilder: (item) =>
+                              '${item.accountCode} - ${item.accountTitle}',
+                          valueBuilder: (item) => item.id,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Address & Location
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Address', style: Theme.of(context).textTheme.titleMedium),
-                          TextButton.icon(
-                            onPressed: _getCurrentLocation,
-                            icon: const Icon(Icons.my_location),
-                            label: const Text('Use GPS'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Address Autocomplete
-                      Autocomplete<Map<String, dynamic>>(
-                        optionsBuilder: (TextEditingValue textEditingValue) async {
-                          if (textEditingValue.text.length < 3) return const Iterable<Map<String, dynamic>>.empty();
-                          return _searchAddressWithOSM(textEditingValue.text);
-                        },
-                        displayStringForOption: (option) => option['display_name'] ?? '',
-                        fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-                          if (_streetController.text.isNotEmpty && textEditingController.text.isEmpty) {
-                            textEditingController.text = _streetController.text;
-                          }
-                          return TextFormField(
-                            controller: textEditingController,
-                            focusNode: focusNode,
-                            decoration: const InputDecoration(
-                              labelText: 'Street Address *',
-                              helperText: 'Type to search location',
-                              prefixIcon: Icon(Icons.search),
-                            ),
-                            validator: (v) => v?.isEmpty ?? false ? 'Required' : null,
-                            onChanged: (val) => _streetController.text = val,
-                          );
-                        },
-                        optionsViewBuilder: (context, onSelected, options) {
-                          return Align(
-                            alignment: Alignment.topLeft,
-                            child: Material(
-                              elevation: 4,
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxHeight: 300, maxWidth: 350),
-                                child: ListView.builder(
-                                  padding: EdgeInsets.zero,
-                                  shrinkWrap: true,
-                                  itemCount: options.length,
-                                  itemBuilder: (context, index) {
-                                    final option = options.elementAt(index);
-
-                                    return ListTile(
-                                      leading: const Icon(Icons.location_on_outlined),
-                                      title: Text(option['display_name'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
-                                      subtitle: Text('Lat: ${option['lat']}, Lon: ${option['lon']}', style: const TextStyle(fontSize: 12)),
-                                      onTap: () async {
-                                        onSelected(option);
-                                        
-                                        // DEBUG LOGS
-                                        // print('--- OSM Address Selection Debug ---');
-                                        // print('Raw Option: $option');
-                                        final address = option['address'] ?? {};
-                                        // print('Raw Address Map: $address');
-
-                                        final houseNumber = address['house_number'] ?? '';
-                                        final road = address['road'] ?? address['pedestrian'] ?? '';
-                                        final suburb = address['suburb'] ?? address['neighbourhood'] ?? address['residential'] ?? '';
-                                        final cityDistrict = address['city_district'] ?? address['district'] ?? '';
-                                        
-                                        // Include specific place names if available
-                                        final name = address['amenity'] ?? address['shop'] ?? address['building'] ?? address['office'] ?? address['leisure'] ?? address['tourism'] ?? '';
-                                        
-                                        // print('Parsed Parts -> Name: $name, House: $houseNumber, Road: $road, Suburb: $suburb, District: $cityDistrict');
-                                        
-                                        final rawCity = address['city'] ?? address['town'] ?? address['village'] ?? address['county'] ?? '';
-                                        final state = address['state'] ?? address['province'] ?? '';
-                                        final postcode = address['postcode'] ?? '';
-                                        final country = address['country'] ?? '';
-                                        
-                                        // print('Parsed Location -> City: $rawCity, State: $state, Postcode: $postcode, Country: $country');
-
-                                        final city = _cleanCityName(rawCity.toString());
-                                        // print('Cleaned City: $city');
-                                        
-                                        // 1. Try to build from granular parts
-                                        // We include cityDistrict/district now as user wants e.g. "Nazimabad District"
-                                        final streetParts = [
-                                          name,
-                                          houseNumber, 
-                                          road, 
-                                          suburb,
-                                          cityDistrict,
-                                        ].where((s) => s != null && s.toString().trim().isNotEmpty)
-                                         .map((s) => s.toString().trim())
-                                         .toSet() 
-                                         .toList();
-                                        
-                                        // print('Initial Street Parts: $streetParts');
-                                        
-                                        // 2. Fallback: Parse display_name if parts are insufficient
-                                        String streetText;
-                                        // Use fallback if we have very little info
-                                        
-                                        if (streetParts.length < 2) {
-                                            // print('Using Fallback (DisplayName parsing)');
-                                            final String refined = option['display_name'] ?? '';
-                                            // print('Original DisplayName: $refined');
-                                            
-                                            // Tokens to remove (case insensitive)
-                                            final removeTokens = [
-                                              city, 
-                                              state, 
-                                              country, 
-                                              postcode, 
-                                              'Pakistan', 
-                                              address['county'], 
-                                            ].where((t) => t != null && t.toString().isNotEmpty).toList();
-                                            
-                                            // print('Remove Tokens: $removeTokens');
-
-                                            final parts = refined.split(',').map((e) => e.trim()).toList();
-                                            final filteredParts = parts.where((part) {
-                                                for (final t in removeTokens) {
-                                                   if (part.toLowerCase() == t.toString().toLowerCase()) return false;
-                                                }
-                                                // Specific check for Postal Code (numeric 5 digits)
-                                                if (part == postcode.toString()) return false;
-                                                
-                                                // Check exact matches for city/state/country
-                                                if (part.toLowerCase() == city.toLowerCase()) return false;
-                                                if (part.toLowerCase() == state.toLowerCase()) return false;
-                                                if (part.toLowerCase() == 'pakistan') return false;
-                                                if (address['county'] != null && part.toLowerCase() == address['county'].toString().toLowerCase()) return false;
-                                                
-                                                return true;
-                                            }).toList();
-                                            
-                                            streetText = filteredParts.join(', ');
-                                            // print('Refined (Fallback) Street Text: $streetText');
-                                        } else {
-                                           streetText = streetParts.join(', ');
-                                           // print('Constructed Street Text: $streetText');
-                                        }
-                                        
-                                        _streetController.text = streetText;
-                                        _zipController.text = postcode.toString();
-
-                                        if (city.isNotEmpty) await _setCityByName(city);
-                                        if (state.toString().isNotEmpty) await _setStateByName(state.toString());
-                                        if (country.toString().isNotEmpty) await _setCountryByName(country);
-
-                                         if (mounted) {
-                                          setState(() {
-                                            _latitude = double.tryParse(option['lat'].toString());
-                                            _longitude = double.tryParse(option['lon'].toString());
-                                            _matchedAddress = option['display_name'];
-                                            _locationError = null;
-                                          });
-                                        }
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      // Row: City | Postal Code
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: LookupField<Map<String, dynamic>, int>(
-                              label: 'City',
-                              value: _selectedCityId,
-                              items: ref.watch(businessPartnerProvider).cities,
-                              onChanged: (v) => setState(() => _selectedCityId = v),
-                              labelBuilder: (item) => item['city_name'] as String? ?? '',
-                              valueBuilder: (item) => item['id'] as int,
-                              onAdd: (name) async => _setCityByName(name),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Postal Code', style: Theme.of(context).textTheme.bodyMedium),
-                                const SizedBox(height: 8),
-                                TextFormField(
-                                  controller: _zipController,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(), 
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                                  ),
-                                  onEditingComplete: _updateLocationFromAddress,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Row: State | Country
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                           Expanded(
-                            child: LookupField<Map<String, dynamic>, int>(
-                              label: 'State/Province',
-                              value: _selectedStateId,
-                              items: ref.watch(businessPartnerProvider).states,
-                              onChanged: (v) => setState(() => _selectedStateId = v),
-                              labelBuilder: (item) => item['state_name'] as String? ?? '',
-                              valueBuilder: (item) => item['id'] as int,
-                              onAdd: (name) async => _setStateByName(name),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: LookupField<Map<String, dynamic>, int>(
-                              label: 'Country',
-                              value: _selectedCountryId,
-                              items: ref.watch(businessPartnerProvider).countries,
-                              onChanged: (v) => setState(() => _selectedCountryId = v),
-                              labelBuilder: (item) => item['country_name'] as String? ?? '',
-                              valueBuilder: (item) => item['id'] as int,
-                              onAdd: (name) async => _setCountryByName(name),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _updateLocationFromAddress,
-                        child: const Text('Detect Location from Address'),
-                      ),
-                      if (_isFetchingLocation) const Padding(padding: EdgeInsets.all(8), child: Center(child: CircularProgressIndicator())),
-                      if (_locationError != null) Padding(padding: const EdgeInsets.all(8), child: Text(_locationError!, style: const TextStyle(color: Colors.red))),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
-                        child: Column(
+                const SizedBox(height: 16),
+                // Address & Location
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (_matchedAddress != null) ...[
-                              Text('Location found for: "$_matchedAddress"', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700), textAlign: TextAlign.center),
-                              const SizedBox(height: 8),
-                              const Divider(),
-                              const SizedBox(height: 8),
-                            ],
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Column(children: [
-                                  const Text('LATITUDE', style: TextStyle(color: Colors.black54, fontSize: 12)),
-                                  Text(_latitude?.toStringAsFixed(6) ?? '-', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87))
-                                ]),
-                                Column(children: [
-                                  const Text('LONGITUDE', style: TextStyle(color: Colors.black54, fontSize: 12)),
-                                  Text(_longitude?.toStringAsFixed(6) ?? '-', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87))
-                                ]),
-                              ],
+                            Text('Address',
+                                style: Theme.of(context).textTheme.titleMedium),
+                            TextButton.icon(
+                              onPressed: _getCurrentLocation,
+                              icon: const Icon(Icons.my_location),
+                              label: const Text('Use GPS'),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+
+                        // Address Autocomplete
+                        Autocomplete<Map<String, dynamic>>(
+                          optionsBuilder:
+                              (TextEditingValue textEditingValue) async {
+                            if (textEditingValue.text.length < 3)
+                              return const Iterable<
+                                  Map<String, dynamic>>.empty();
+                            return _searchAddressWithOSM(textEditingValue.text);
+                          },
+                          displayStringForOption: (option) =>
+                              option['display_name'] ?? '',
+                          fieldViewBuilder: (context, textEditingController,
+                              focusNode, onFieldSubmitted) {
+                            if (_streetController.text.isNotEmpty &&
+                                textEditingController.text.isEmpty) {
+                              textEditingController.text =
+                                  _streetController.text;
+                            }
+                            return TextFormField(
+                              controller: textEditingController,
+                              focusNode: focusNode,
+                              decoration: const InputDecoration(
+                                labelText: 'Street Address *',
+                                helperText: 'Type to search location',
+                                prefixIcon: Icon(Icons.search),
+                              ),
+                              validator: (v) =>
+                                  v?.isEmpty ?? false ? 'Required' : null,
+                              onChanged: (val) => _streetController.text = val,
+                            );
+                          },
+                          optionsViewBuilder: (context, onSelected, options) {
+                            return Align(
+                              alignment: Alignment.topLeft,
+                              child: Material(
+                                elevation: 4,
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                      maxHeight: 300, maxWidth: 350),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap: true,
+                                    itemCount: options.length,
+                                    itemBuilder: (context, index) {
+                                      final option = options.elementAt(index);
+
+                                      return ListTile(
+                                        leading: const Icon(
+                                            Icons.location_on_outlined),
+                                        title: Text(
+                                            option['display_name'] ?? '',
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis),
+                                        subtitle: Text(
+                                            'Lat: ${option['lat']}, Lon: ${option['lon']}',
+                                            style:
+                                                const TextStyle(fontSize: 12)),
+                                        onTap: () async {
+                                          onSelected(option);
+
+                                          // DEBUG LOGS
+                                          // print('--- OSM Address Selection Debug ---');
+                                          // print('Raw Option: $option');
+                                          final address =
+                                              option['address'] ?? {};
+                                          // print('Raw Address Map: $address');
+
+                                          final houseNumber =
+                                              address['house_number'] ?? '';
+                                          final road = address['road'] ??
+                                              address['pedestrian'] ??
+                                              '';
+                                          final suburb = address['suburb'] ??
+                                              address['neighbourhood'] ??
+                                              address['residential'] ??
+                                              '';
+                                          final cityDistrict =
+                                              address['city_district'] ??
+                                                  address['district'] ??
+                                                  '';
+
+                                          // Include specific place names if available
+                                          final name = address['amenity'] ??
+                                              address['shop'] ??
+                                              address['building'] ??
+                                              address['office'] ??
+                                              address['leisure'] ??
+                                              address['tourism'] ??
+                                              '';
+
+                                          // print('Parsed Parts -> Name: $name, House: $houseNumber, Road: $road, Suburb: $suburb, District: $cityDistrict');
+
+                                          final rawCity = address['city'] ??
+                                              address['town'] ??
+                                              address['village'] ??
+                                              address['county'] ??
+                                              '';
+                                          final state = address['state'] ??
+                                              address['province'] ??
+                                              '';
+                                          final postcode =
+                                              address['postcode'] ?? '';
+                                          final country =
+                                              address['country'] ?? '';
+
+                                          // print('Parsed Location -> City: $rawCity, State: $state, Postcode: $postcode, Country: $country');
+
+                                          final city = _cleanCityName(
+                                              rawCity.toString());
+                                          // print('Cleaned City: $city');
+
+                                          // 1. Try to build from granular parts
+                                          // We include cityDistrict/district now as user wants e.g. "Nazimabad District"
+                                          final streetParts = [
+                                            name,
+                                            houseNumber,
+                                            road,
+                                            suburb,
+                                            cityDistrict,
+                                          ]
+                                              .where((s) =>
+                                                  s != null &&
+                                                  s
+                                                      .toString()
+                                                      .trim()
+                                                      .isNotEmpty)
+                                              .map((s) => s.toString().trim())
+                                              .toSet()
+                                              .toList();
+
+                                          // print('Initial Street Parts: $streetParts');
+
+                                          // 2. Fallback: Parse display_name if parts are insufficient
+                                          String streetText;
+                                          // Use fallback if we have very little info
+
+                                          if (streetParts.length < 2) {
+                                            // print('Using Fallback (DisplayName parsing)');
+                                            final String refined =
+                                                option['display_name'] ?? '';
+                                            // print('Original DisplayName: $refined');
+
+                                            // Tokens to remove (case insensitive)
+                                            final removeTokens = [
+                                              city,
+                                              state,
+                                              country,
+                                              postcode,
+                                              'Pakistan',
+                                              address['county'],
+                                            ]
+                                                .where((t) =>
+                                                    t != null &&
+                                                    t.toString().isNotEmpty)
+                                                .toList();
+
+                                            // print('Remove Tokens: $removeTokens');
+
+                                            final parts = refined
+                                                .split(',')
+                                                .map((e) => e.trim())
+                                                .toList();
+                                            final filteredParts =
+                                                parts.where((part) {
+                                              for (final t in removeTokens) {
+                                                if (part.toLowerCase() ==
+                                                    t.toString().toLowerCase())
+                                                  return false;
+                                              }
+                                              // Specific check for Postal Code (numeric 5 digits)
+                                              if (part == postcode.toString())
+                                                return false;
+
+                                              // Check exact matches for city/state/country
+                                              if (part.toLowerCase() ==
+                                                  city.toLowerCase())
+                                                return false;
+                                              if (part.toLowerCase() ==
+                                                  state.toLowerCase())
+                                                return false;
+                                              if (part.toLowerCase() ==
+                                                  'pakistan') return false;
+                                              if (address['county'] != null &&
+                                                  part.toLowerCase() ==
+                                                      address['county']
+                                                          .toString()
+                                                          .toLowerCase())
+                                                return false;
+
+                                              return true;
+                                            }).toList();
+
+                                            streetText =
+                                                filteredParts.join(', ');
+                                            // print('Refined (Fallback) Street Text: $streetText');
+                                          } else {
+                                            streetText = streetParts.join(', ');
+                                            // print('Constructed Street Text: $streetText');
+                                          }
+
+                                          _streetController.text = streetText;
+                                          _zipController.text =
+                                              postcode.toString();
+
+                                          if (city.isNotEmpty)
+                                            await _setCityByName(city);
+                                          if (state.toString().isNotEmpty)
+                                            await _setStateByName(
+                                                state.toString());
+                                          if (country.toString().isNotEmpty)
+                                            await _setCountryByName(country);
+
+                                          if (mounted) {
+                                            setState(() {
+                                              _latitude = double.tryParse(
+                                                  option['lat'].toString());
+                                              _longitude = double.tryParse(
+                                                  option['lon'].toString());
+                                              _matchedAddress =
+                                                  option['display_name'];
+                                              _locationError = null;
+                                            });
+                                          }
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        // Row: City | Postal Code
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: LookupField<Map<String, dynamic>, int>(
+                                label: 'City',
+                                value: _selectedCityId,
+                                items:
+                                    ref.watch(businessPartnerProvider).cities,
+                                onChanged: (v) =>
+                                    setState(() => _selectedCityId = v),
+                                labelBuilder: (item) =>
+                                    item['city_name'] as String? ?? '',
+                                valueBuilder: (item) => item['id'] as int,
+                                onAdd: (name) async => _setCityByName(name),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Postal Code',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium),
+                                  const SizedBox(height: 8),
+                                  TextFormField(
+                                    controller: _zipController,
+                                    decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 16),
+                                    ),
+                                    onEditingComplete:
+                                        _updateLocationFromAddress,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Row: State | Country
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: LookupField<Map<String, dynamic>, int>(
+                                label: 'State/Province',
+                                value: _selectedStateId,
+                                items:
+                                    ref.watch(businessPartnerProvider).states,
+                                onChanged: (v) =>
+                                    setState(() => _selectedStateId = v),
+                                labelBuilder: (item) =>
+                                    item['state_name'] as String? ?? '',
+                                valueBuilder: (item) => item['id'] as int,
+                                onAdd: (name) async => _setStateByName(name),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: LookupField<Map<String, dynamic>, int>(
+                                label: 'Country',
+                                value: _selectedCountryId,
+                                items: ref
+                                    .watch(businessPartnerProvider)
+                                    .countries,
+                                onChanged: (v) =>
+                                    setState(() => _selectedCountryId = v),
+                                labelBuilder: (item) =>
+                                    item['country_name'] as String? ?? '',
+                                valueBuilder: (item) => item['id'] as int,
+                                onAdd: (name) async => _setCountryByName(name),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _updateLocationFromAddress,
+                          child: const Text('Detect Location from Address'),
+                        ),
+                        if (_isFetchingLocation)
+                          const Padding(
+                              padding: EdgeInsets.all(8),
+                              child:
+                                  Center(child: CircularProgressIndicator())),
+                        if (_locationError != null)
+                          Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Text(_locationError!,
+                                  style: const TextStyle(color: Colors.red))),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(8)),
+                          child: Column(
+                            children: [
+                              if (_matchedAddress != null) ...[
+                                Text('Location found for: "$_matchedAddress"',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.indigo.shade700),
+                                    textAlign: TextAlign.center),
+                                const SizedBox(height: 8),
+                                const Divider(),
+                                const SizedBox(height: 8),
+                              ],
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Column(children: [
+                                    const Text('LATITUDE',
+                                        style: TextStyle(
+                                            color: Colors.black54,
+                                            fontSize: 12)),
+                                    Text(_latitude?.toStringAsFixed(6) ?? '-',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87))
+                                  ]),
+                                  Column(children: [
+                                    const Text('LONGITUDE',
+                                        style: TextStyle(
+                                            color: Colors.black54,
+                                            fontSize: 12)),
+                                    Text(_longitude?.toStringAsFixed(6) ?? '-',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87))
+                                  ]),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-        ),
     );
   }
 }

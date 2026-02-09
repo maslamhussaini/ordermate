@@ -38,7 +38,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       var query = SupabaseConfig.client
           .from('omtbl_businesspartners')
           .select('*, omtbl_roles(role_name), omtbl_business_types(business_type), omtbl_depts(name)')
-          .eq('is_active', 1);
+          .eq('is_active', true);
       
       // Store Filter
       if (storeId != null) {
@@ -234,7 +234,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       // Soft Delete
       await SupabaseConfig.client
           .from('omtbl_businesspartners')
-          .update({'is_active': 0}) // Soft delete
+          .update({'is_active': false}) // Soft delete
           .eq('id', id);
       
       // Also delete from local if successful
@@ -415,20 +415,16 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     }
   }
 
-
-
   @override
-  Future<List<Map<String, dynamic>>> getRoles({int? organizationId}) async {
-     try {
-       var query = SupabaseConfig.client
-           .from('omtbl_roles')
-           .select();
-       
-       if (organizationId != null) {
-         query = query.eq('organization_id', organizationId);
-       }
-
-       final response = await query.timeout(const Duration(seconds: 3));
+   Future<List<Map<String, dynamic>>> getRoles({int? organizationId}) async {
+      try {
+        final query = SupabaseConfig.client
+            .from('omtbl_roles')
+            .select()
+            .eq('status', true)
+            .not('role_name', 'ilike', '%Super%');
+        
+        final response = await query.timeout(const Duration(seconds: 3));
        
        final list = List<Map<String, dynamic>>.from(response);
        await _localRepository.cacheRoles(list);
@@ -643,22 +639,23 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       // Assuming 'id' in AppUser matches Supabase 'id'.
       // If we created it locally, ID might be UUID.
       
-      final updateData = {
+      final upsertData = {
+        'id': user.id,
         'email': user.email,
         'full_name': user.fullName,
         'role_id': user.roleId,
         'is_active': user.isActive,
         'organization_id': user.organizationId,
         'store_id': user.storeId,
+        'business_partner_id': user.businessPartnerId,
       };
       if (password != null && password.isNotEmpty) {
-        updateData['password'] = password;
+        upsertData['password'] = password;
       }
-      
+
       await SupabaseConfig.client
           .from('omtbl_users')
-          .update(updateData)
-          .eq('business_partner_id', user.businessPartnerId);
+          .upsert(upsertData, onConflict: 'email');
           
       // Also update local
       await _localRepository.updateAppUser(user.toJson(), password: password);
@@ -975,12 +972,12 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       // Upsert to Supabase - Ensure boolean values
       final supabaseData = privileges.map((p) => {
         ...p,
-        'can_view': (p['can_view'] == 1 || p['can_view'] == true),
-        'can_add': (p['can_add'] == 1 || p['can_add'] == true),
-        'can_edit': (p['can_edit'] == 1 || p['can_edit'] == true),
-        'can_delete': (p['can_delete'] == 1 || p['can_delete'] == true),
-        'can_read': (p['can_read'] == 1 || p['can_read'] == true),
-        'can_print': (p['can_print'] == 1 || p['can_print'] == true),
+        'can_view': (p['can_view'] == 1 || p['can_view'] == true) ? 1 : 0,
+        'can_add': (p['can_add'] == 1 || p['can_add'] == true) ? 1 : 0,
+        'can_edit': (p['can_edit'] == 1 || p['can_edit'] == true) ? 1 : 0,
+        'can_delete': (p['can_delete'] == 1 || p['can_delete'] == true) ? 1 : 0,
+        'can_read': (p['can_read'] == 1 || p['can_read'] == true) ? 1 : 0,
+        'can_print': (p['can_print'] == 1 || p['can_print'] == true) ? 1 : 0,
       }).toList();
 
       debugPrint('Saving ${supabaseData.length} privileges to Supabase');
@@ -1183,7 +1180,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
         'business_partner_id': employee.id,
         'organization_id': employee.organizationId,
         'store_id': employee.storeId,
-        'is_active': 1,
+        'is_active': true,
         'password': password, // Sync password as requested
         'updated_at': DateTime.now().toIso8601String(),
       }, onConflict: 'email');

@@ -16,7 +16,8 @@ class InvoiceType extends Equatable {
   });
 
   @override
-  List<Object?> get props => [idInvoiceType, description, forUsed, organizationId, isActive];
+  List<Object?> get props =>
+      [idInvoiceType, description, forUsed, organizationId, isActive];
 }
 
 class Invoice extends Equatable {
@@ -58,10 +59,23 @@ class Invoice extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, invoiceNumber, invoiceDate, dueDate, idInvoiceType, 
-    businessPartnerId, orderId, totalAmount, paidAmount, 
-    status, notes, organizationId, storeId, sYear, createdAt, updatedAt
-  ];
+        id,
+        invoiceNumber,
+        invoiceDate,
+        dueDate,
+        idInvoiceType,
+        businessPartnerId,
+        orderId,
+        totalAmount,
+        paidAmount,
+        status,
+        notes,
+        organizationId,
+        storeId,
+        sYear,
+        createdAt,
+        updatedAt
+      ];
 
   Invoice copyWith({
     String? id,

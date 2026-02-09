@@ -55,13 +55,15 @@ class OrderNotifier extends StateNotifier<OrderState> {
     final store = ref.read(organizationProvider).selectedStore;
 
     // Use passed sYear or fallback to global selection
-    final effectiveSYear = sYear ?? ref.read(accountingProvider).selectedFinancialSession?.sYear;
+    final effectiveSYear =
+        sYear ?? ref.read(accountingProvider).selectedFinancialSession?.sYear;
 
     // Always load local data first as fallback
     List<Order> localData = [];
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      localData = await localRepository.getLocalOrders(organizationId: orgId, storeId: store?.id, sYear: effectiveSYear);
+      localData = await localRepository.getLocalOrders(
+          organizationId: orgId, storeId: store?.id, sYear: effectiveSYear);
     } catch (localError) {
       debugPrint('Local load failed: $localError');
     }
@@ -78,8 +80,10 @@ class OrderNotifier extends StateNotifier<OrderState> {
     // }
 
     try {
-      final remoteOrders =
-          await repository.getOrders(organizationId: store?.organizationId, storeId: store?.id, sYear: effectiveSYear);
+      final remoteOrders = await repository.getOrders(
+          organizationId: store?.organizationId,
+          storeId: store?.id,
+          sYear: effectiveSYear);
       if (!mounted) return;
       // Merge local and remote data
       List<Order> mergedOrders = [...localData];
@@ -105,10 +109,10 @@ class OrderNotifier extends StateNotifier<OrderState> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-           return order;
+          return order;
         }
       }
-      
+
       if (permission == LocationPermission.deniedForever) {
         return order;
       }
@@ -117,7 +121,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
         desiredAccuracy: LocationAccuracy.medium,
         timeLimit: const Duration(seconds: 5),
       );
-      
+
       // Get Login Location from Session
       final session = ref.read(sessionProvider);
 
@@ -133,7 +137,8 @@ class OrderNotifier extends StateNotifier<OrderState> {
       try {
         final session = ref.read(sessionProvider);
         if (session.loginLatitude != null) {
-          debugPrint('Attaching Login Location fallback: ${session.loginLatitude}');
+          debugPrint(
+              'Attaching Login Location fallback: ${session.loginLatitude}');
           return order.copyWith(
             loginLatitude: session.loginLatitude,
             loginLongitude: session.loginLongitude,
@@ -147,60 +152,72 @@ class OrderNotifier extends StateNotifier<OrderState> {
   int _validateAndGetSYear(DateTime date) {
     final accountingState = ref.read(accountingProvider);
     if (accountingState.financialSessions.isEmpty) {
-      throw Exception('No financial years configured. Please configure a financial session first.');
+      throw Exception(
+          'No financial years configured. Please configure a financial session first.');
     }
-    
+
     // Find a session that covers this date
-    final session = accountingState.financialSessions.cast<FinancialSession?>().firstWhere(
-      (s) => s != null && 
-             (date.isAtSameMomentAs(s.startDate) || date.isAfter(s.startDate)) &&
-             (date.isAtSameMomentAs(s.endDate) || date.isBefore(s.endDate.add(const Duration(days: 1)))), // inclusive
-      orElse: () => null,
-    );
+    final session =
+        accountingState.financialSessions.cast<FinancialSession?>().firstWhere(
+              (s) =>
+                  s != null &&
+                  (date.isAtSameMomentAs(s.startDate) ||
+                      date.isAfter(s.startDate)) &&
+                  (date.isAtSameMomentAs(s.endDate) ||
+                      date.isBefore(
+                          s.endDate.add(const Duration(days: 1)))), // inclusive
+              orElse: () => null,
+            );
 
     if (session == null) {
-       final dateStr = date.toIso8601String().split('T')[0];
-       throw Exception('Date $dateStr does not fall within any configured Financial Year.');
+      final dateStr = date.toIso8601String().split('T')[0];
+      throw Exception(
+          'Date $dateStr does not fall within any configured Financial Year.');
     }
-    
+
     if (session.isClosed) {
-       throw Exception('Financial Year ${session.sYear} is closed. Cannot transact.');
+      throw Exception(
+          'Financial Year ${session.sYear} is closed. Cannot transact.');
     }
-    
+
     return session.sYear;
   }
 
   Future<Order> createOrder(Order order) async {
-     state = state.copyWith(isLoading: true);
-     final orgId = ref.read(organizationProvider).selectedOrganizationId;
-     
-     try {
-       final sYear = _validateAndGetSYear(order.orderDate);
-       final orderWithOrg = order.copyWith(organizationId: orgId, sYear: sYear);
-       final orderWithLocation = await _attachLocation(orderWithOrg);
-       
-       try {
-         final newOrder = await repository.createOrder(orderWithLocation);
-         if (!mounted) return orderWithLocation; // Or some default
-         // Ideally cache local too
-         state = state.copyWith(isLoading: false, orders: [newOrder, ...state.orders]);
-         ref.read(dashboardProvider.notifier).refresh();
-         return newOrder;
-       } catch (netErr) {
-          if (netErr.toString().contains('SocketException') || netErr.toString().contains('Network')) {
-              debugPrint('Network error, saving locally');
-              await localRepository.addOrder(orderWithLocation);
-              if (!mounted) return orderWithLocation;
-              state = state.copyWith(isLoading: false, orders: [orderWithLocation, ...state.orders]);
-              ref.read(dashboardProvider.notifier).refresh();
-              return orderWithLocation;
-          }
-          rethrow;
-       }
-     } catch (e) {
-       if (mounted) state = state.copyWith(isLoading: false, error: e.toString());
-       rethrow;
-     }
+    state = state.copyWith(isLoading: true);
+    final orgId = ref.read(organizationProvider).selectedOrganizationId;
+
+    try {
+      final sYear = _validateAndGetSYear(order.orderDate);
+      final orderWithOrg = order.copyWith(organizationId: orgId, sYear: sYear);
+      final orderWithLocation = await _attachLocation(orderWithOrg);
+
+      try {
+        final newOrder = await repository.createOrder(orderWithLocation);
+        if (!mounted) return orderWithLocation; // Or some default
+        // Ideally cache local too
+        state = state
+            .copyWith(isLoading: false, orders: [newOrder, ...state.orders]);
+        ref.read(dashboardProvider.notifier).refresh();
+        return newOrder;
+      } catch (netErr) {
+        if (netErr.toString().contains('SocketException') ||
+            netErr.toString().contains('Network')) {
+          debugPrint('Network error, saving locally');
+          await localRepository.addOrder(orderWithLocation);
+          if (!mounted) return orderWithLocation;
+          state = state.copyWith(
+              isLoading: false, orders: [orderWithLocation, ...state.orders]);
+          ref.read(dashboardProvider.notifier).refresh();
+          return orderWithLocation;
+        }
+        rethrow;
+      }
+    } catch (e) {
+      if (mounted)
+        state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
   }
 
   Future<void> updateOrder(Order order) async {
@@ -211,7 +228,9 @@ class OrderNotifier extends StateNotifier<OrderState> {
       await repository.updateOrder(orderWithYear);
       if (!mounted) return;
       state = state.copyWith(
-        orders: state.orders.map((o) => o.id == order.id ? orderWithYear : o).toList(),
+        orders: state.orders
+            .map((o) => o.id == order.id ? orderWithYear : o)
+            .toList(),
       );
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
@@ -219,18 +238,19 @@ class OrderNotifier extends StateNotifier<OrderState> {
           e.toString().contains('Network')) {
         debugPrint('Network error updating order, saving locally: $e');
         try {
-           // We should try to update locally with sYear too
-           // If original 'order' didn't have sYear, we need validate first.
-           // We can't easily jump to 'orderWithYear' here if it wasn't created.
-           // So repeat validation:
-           final sYearLocal = _validateAndGetSYear(order.orderDate);
-           final orderLocal = order.copyWith(sYear: sYearLocal);
+          // We should try to update locally with sYear too
+          // If original 'order' didn't have sYear, we need validate first.
+          // We can't easily jump to 'orderWithYear' here if it wasn't created.
+          // So repeat validation:
+          final sYearLocal = _validateAndGetSYear(order.orderDate);
+          final orderLocal = order.copyWith(sYear: sYearLocal);
 
           await localRepository.updateOrder(orderLocal);
           if (!mounted) return;
           state = state.copyWith(
-            orders:
-                state.orders.map((o) => o.id == order.id ? orderLocal : o).toList(),
+            orders: state.orders
+                .map((o) => o.id == order.id ? orderLocal : o)
+                .toList(),
           );
           ref.read(dashboardProvider.notifier).refresh();
           return;
@@ -255,10 +275,11 @@ class OrderNotifier extends StateNotifier<OrderState> {
     // Note: updating status doesn't change Date usually, so existing sYear should be fine.
     // If we want to be strict, we can re-validate orderDate.
     try {
-        _validateAndGetSYear(updatedOrder.orderDate); // validate but no need to update sYear if not invalid
-    } catch(e) {
-       state = state.copyWith(error: e.toString());
-       return;
+      _validateAndGetSYear(updatedOrder
+          .orderDate); // validate but no need to update sYear if not invalid
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return;
     }
 
     try {
@@ -327,11 +348,11 @@ class OrderNotifier extends StateNotifier<OrderState> {
       Order order, List<Map<String, dynamic>> items) async {
     state = state.copyWith(isLoading: true);
     final orgId = ref.read(organizationProvider).selectedOrganizationId;
-    
+
     try {
       final sYear = _validateAndGetSYear(order.orderDate);
       final orderWithOrg = order.copyWith(organizationId: orgId, sYear: sYear);
-      
+
       // 1. Attach Location
       final orderWithLocation = await _attachLocation(orderWithOrg);
 
@@ -362,8 +383,9 @@ class OrderNotifier extends StateNotifier<OrderState> {
         debugPrint(
             'Network error creating order with items, saving locally: $e');
         try {
-           final sYear = _validateAndGetSYear(order.orderDate);
-           final orderWithOrg = order.copyWith(organizationId: orgId, sYear: sYear);
+          final sYear = _validateAndGetSYear(order.orderDate);
+          final orderWithOrg =
+              order.copyWith(organizationId: orgId, sYear: sYear);
 
           await localRepository.addOrder(orderWithOrg, items: items);
           if (!mounted) return;
@@ -382,7 +404,8 @@ class OrderNotifier extends StateNotifier<OrderState> {
           rethrow;
         }
       }
-      if (mounted) state = state.copyWith(isLoading: false, error: e.toString());
+      if (mounted)
+        state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
   }
@@ -406,7 +429,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
     try {
       final sYear = _validateAndGetSYear(order.orderDate);
       final orderWithYear = order.copyWith(sYear: sYear);
-      
+
       // 1. Update Order Details
       await repository.updateOrder(orderWithYear);
 
@@ -429,21 +452,24 @@ class OrderNotifier extends StateNotifier<OrderState> {
       if (!mounted) return;
 
       // 4. Update State
-      final updatedOrders =
-          state.orders.map((o) => o.id == order.id ? orderWithYear : o).toList();
+      final updatedOrders = state.orders
+          .map((o) => o.id == order.id ? orderWithYear : o)
+          .toList();
       state = state.copyWith(isLoading: false, orders: updatedOrders);
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
       if (e.toString().contains('SocketException') ||
           e.toString().contains('Network')) {
         try {
-           final sYear = _validateAndGetSYear(order.orderDate); // validate again for safe local
-           final orderWithYear = order.copyWith(sYear: sYear);
-           
+          final sYear = _validateAndGetSYear(
+              order.orderDate); // validate again for safe local
+          final orderWithYear = order.copyWith(sYear: sYear);
+
           await localRepository.updateOrder(orderWithYear, items: items);
           if (!mounted) return;
-          final updatedOrders =
-              state.orders.map((o) => o.id == order.id ? orderWithYear : o).toList();
+          final updatedOrders = state.orders
+              .map((o) => o.id == order.id ? orderWithYear : o)
+              .toList();
           state = state.copyWith(isLoading: false, orders: updatedOrders);
           ref.read(dashboardProvider.notifier).refresh();
           return;
@@ -459,11 +485,16 @@ class OrderNotifier extends StateNotifier<OrderState> {
     }
   }
 
-  Future<void> updateDispatchInfo(String orderId, String status, DateTime date) async {
+  Future<void> updateDispatchInfo(
+      String orderId, String status, DateTime date) async {
     try {
       await repository.updateDispatchInfo(orderId, status, date);
       state = state.copyWith(
-        orders: state.orders.map((o) => o.id == orderId ? o.copyWith(dispatchStatus: status, dispatchDate: date) : o).toList(),
+        orders: state.orders
+            .map((o) => o.id == orderId
+                ? o.copyWith(dispatchStatus: status, dispatchDate: date)
+                : o)
+            .toList(),
       );
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -475,7 +506,10 @@ class OrderNotifier extends StateNotifier<OrderState> {
     try {
       await repository.updateOrderInvoiced(orderId, isInvoiced);
       state = state.copyWith(
-        orders: state.orders.map((o) => o.id == orderId ? o.copyWith(isInvoiced: isInvoiced) : o).toList(),
+        orders: state.orders
+            .map(
+                (o) => o.id == orderId ? o.copyWith(isInvoiced: isInvoiced) : o)
+            .toList(),
       );
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -496,10 +530,10 @@ final orderLocalRepositoryProvider = Provider<OrderLocalRepository>((ref) {
 final orderProvider = StateNotifierProvider<OrderNotifier, OrderState>((ref) {
   final repository = ref.watch(orderRepositoryProvider);
   final localRepository = ref.watch(orderLocalRepositoryProvider);
-  
+
   // Watch store to trigger refresh
   ref.watch(organizationProvider.select((s) => s.selectedStore?.id));
-  
+
   final notifier = OrderNotifier(ref, repository, localRepository);
   // Auto-load on init/rebuild
   Future.microtask(() => notifier.loadOrders());

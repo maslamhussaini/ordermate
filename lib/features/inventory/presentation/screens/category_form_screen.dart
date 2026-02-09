@@ -31,9 +31,10 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
     if (id == null) return;
 
     final category = ref.read(inventoryProvider).categories.firstWhere(
-      (c) => c.id == id,
-      orElse: () => ProductCategory(id: 0, name: '', createdAt: DateTime.now(), organizationId: 0),
-    );
+          (c) => c.id == id,
+          orElse: () => ProductCategory(
+              id: 0, name: '', createdAt: DateTime.now(), organizationId: 0),
+        );
     if (category.id != 0) {
       _nameController.text = category.name;
     }
@@ -52,16 +53,21 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
 
     try {
       if (widget.categoryId == null) {
-        await ref.read(inventoryProvider.notifier).addCategory(_nameController.text.trim());
+        await ref
+            .read(inventoryProvider.notifier)
+            .addCategory(_nameController.text.trim());
       } else {
         final id = int.tryParse(widget.categoryId!);
         if (id != null) {
-          final existing = ref.read(inventoryProvider).categories.firstWhere((c) => c.id == id);
+          final existing = ref
+              .read(inventoryProvider)
+              .categories
+              .firstWhere((c) => c.id == id);
           final updated = existing.copyWith(name: _nameController.text.trim());
           await ref.read(inventoryProvider.notifier).updateCategory(updated);
         }
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Category saved successfully')),
@@ -83,7 +89,8 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.categoryId == null ? 'New Category' : 'Edit Category'),
+        title:
+            Text(widget.categoryId == null ? 'New Category' : 'Edit Category'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -110,8 +117,11 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _saveCategory,
-                  icon: _isLoading 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.save),
                   label: Text(_isLoading ? 'Saving...' : 'Save Category'),
                   style: ElevatedButton.styleFrom(

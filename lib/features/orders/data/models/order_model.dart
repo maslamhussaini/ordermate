@@ -38,9 +38,11 @@ class OrderModel extends Order {
     List<OrderItem> parsedItems = [];
     if (json['items'] != null) {
       if (json['items'] is List) {
-        parsedItems = (json['items'] as List).map((i) => OrderItem.fromJson(i)).toList();
+        parsedItems =
+            (json['items'] as List).map((i) => OrderItem.fromJson(i)).toList();
       }
-    } else if (json['items_payload'] != null && json['items_payload'].toString().isNotEmpty) {
+    } else if (json['items_payload'] != null &&
+        json['items_payload'].toString().isNotEmpty) {
       try {
         final List<dynamic> list = jsonDecode(json['items_payload']);
         parsedItems = list.map((e) => OrderItem.fromJson(e)).toList();
@@ -48,19 +50,25 @@ class OrderModel extends Order {
     }
 
     return OrderModel(
-      id: json['id'] as String? ?? '', 
+      id: json['id'] as String? ?? '',
       orderNumber: json['order_number'] as String? ?? 'UNKNOWN',
       businessPartnerId: json['business_partner_id'] as String? ?? '',
-      businessPartnerName: json['business_partner_name'] as String?, 
-      orderType: json['order_type'] as String? ?? 'SO', 
+      businessPartnerName: json['business_partner_name'] as String?,
+      orderType: json['order_type'] as String? ?? 'SO',
       createdBy: json['created_by'] as String? ?? '',
       createdByName: json['created_by_name'] as String?,
       status: OrderStatus.fromString(json['status'] as String? ?? 'Booked'),
       totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       notes: json['notes'] as String?,
-      orderDate: json['order_date'] != null ? DateTime.parse(json['order_date'] as String) : DateTime.now(),
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
-      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : DateTime.now(),
+      orderDate: json['order_date'] != null
+          ? DateTime.parse(json['order_date'] as String)
+          : DateTime.now(),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
+          : DateTime.now(),
       organizationId: (json['organization_id'] as int?) ?? 0,
       storeId: (json['store_id'] as int?) ?? 0,
       latitude: (json['latitude'] as num?)?.toDouble(),
@@ -69,8 +77,12 @@ class OrderModel extends Order {
       loginLongitude: (json['login_longitude'] as num?)?.toDouble(),
       paymentTermId: json['payment_term_id'] as int?,
       dispatchStatus: json['dispatch_status'] as String? ?? 'pending',
-      dispatchDate: json['dispatch_date'] != null ? DateTime.parse(json['dispatch_date'] as String) : null,
-      dueDate: json['due_date'] != null ? DateTime.parse(json['due_date'] as String) : null,
+      dispatchDate: json['dispatch_date'] != null
+          ? DateTime.parse(json['dispatch_date'] as String)
+          : null,
+      dueDate: json['due_date'] != null
+          ? DateTime.parse(json['due_date'] as String)
+          : null,
       isInvoiced: json['is_invoiced'] == true || json['is_invoiced'] == 1,
       sYear: json['syear'] as int?,
       items: parsedItems,

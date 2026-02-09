@@ -15,7 +15,8 @@ class DepartmentListScreen extends ConsumerStatefulWidget {
   const DepartmentListScreen({super.key});
 
   @override
-  ConsumerState<DepartmentListScreen> createState() => _DepartmentListScreenState();
+  ConsumerState<DepartmentListScreen> createState() =>
+      _DepartmentListScreenState();
 }
 
 class _DepartmentListScreenState extends ConsumerState<DepartmentListScreen> {
@@ -67,7 +68,8 @@ class _DepartmentListScreenState extends ConsumerState<DepartmentListScreen> {
             onPressed: () {
               if (org == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please select an organization first')),
+                  const SnackBar(
+                      content: Text('Please select an organization first')),
                 );
                 return;
               }
@@ -156,15 +158,21 @@ class _DepartmentListScreenState extends ConsumerState<DepartmentListScreen> {
                                         color: Colors.grey.shade600,
                                         fontSize: 12),
                                   ),
-                                  childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                  childrenPadding:
+                                      const EdgeInsets.fromLTRB(16, 0, 16, 16),
                                   children: [
                                     const Divider(),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         OutlinedButton.icon(
-                                          onPressed: () => context.pushNamed(RouteNames.departmentEdit, pathParameters: {'id': dept['id'].toString()}),
-                                          icon: const Icon(Icons.edit, size: 18),
+                                          onPressed: () => context.pushNamed(
+                                              RouteNames.departmentEdit,
+                                              pathParameters: {
+                                                'id': dept['id'].toString()
+                                              }),
+                                          icon:
+                                              const Icon(Icons.edit, size: 18),
                                           label: const Text('Edit'),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: Colors.indigo,
@@ -176,7 +184,8 @@ class _DepartmentListScreenState extends ConsumerState<DepartmentListScreen> {
                                         OutlinedButton.icon(
                                           onPressed: () =>
                                               _showDeleteConfirmation(dept),
-                                          icon: const Icon(Icons.delete, size: 18),
+                                          icon: const Icon(Icons.delete,
+                                              size: 18),
                                           label: const Text('Delete'),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: Colors.red,
@@ -196,8 +205,6 @@ class _DepartmentListScreenState extends ConsumerState<DepartmentListScreen> {
       ),
     );
   }
-
-
 
   void _showDeleteConfirmation(Map<String, dynamic> dept) {
     final orgId = ref.read(organizationProvider).selectedOrganization?.id;

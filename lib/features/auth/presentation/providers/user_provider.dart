@@ -21,13 +21,15 @@ final userProfileProvider = FutureProvider<User?>((ref) async {
         .select()
         .or('id.eq.$userId,auth_id.eq.$userId,email.eq.${sessionUser!.email!}')
         .maybeSingle();
-    
+
     if (response == null) return null;
     final data = response;
     var user = User(
       id: data['id'] as String,
       email: data['email'] as String,
-      fullName: (data['full_name'] as String?) ?? (sessionUser?.userMetadata?['full_name'] as String?) ?? '',
+      fullName: (data['full_name'] as String?) ??
+          (sessionUser.userMetadata?['full_name'] as String?) ??
+          '',
       phone: data['phone'] as String?,
       role: (data['role'] as String?) ?? 'employee',
       lastLatitude: (data['last_latitude'] as num?)?.toDouble(),
@@ -36,8 +38,10 @@ final userProfileProvider = FutureProvider<User?>((ref) async {
           ? DateTime.parse(data['last_location_updated_at'] as String)
           : null,
       isActive: (data['is_active'] as bool?) ?? true,
-      createdAt: DateTime.tryParse(data['created_at']?.toString() ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(data['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+      updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? '') ??
+          DateTime.now(),
       organizationId: data['organization_id'] as int?,
       storeId: data['store_id'] as int?,
       roleId: data['role_id'] as int?,
@@ -52,18 +56,18 @@ final userProfileProvider = FutureProvider<User?>((ref) async {
             .select('id')
             .eq('email', user.email)
             .maybeSingle();
-        
+
         if (partnerResponse != null) {
           final bpId = partnerResponse['id'] as String;
           user = user.copyWith(businessPartnerId: bpId);
-          
+
           // Optionally update the user record in Supabase to persist the link
           unawaited(SupabaseConfig.client
               .from('omtbl_users')
-              .update({'business_partner_id': bpId})
-              .eq('id', user.id));
-          
-          debugPrint('Auto-linked user ${user.email} to Business Partner $bpId');
+              .update({'business_partner_id': bpId}).eq('id', user.id));
+
+          debugPrint(
+              'Auto-linked user ${user.email} to Business Partner $bpId');
         }
       } catch (e) {
         debugPrint('Failed to auto-link BP: $e');
@@ -73,11 +77,26 @@ final userProfileProvider = FutureProvider<User?>((ref) async {
     // Cache locally
     try {
       final db = await DatabaseHelper.instance.database;
-      final existing = await db.query('local_users', where: 'id = ?', whereArgs: [user.id]);
+      final existing =
+          await db.query('local_users', where: 'id = ?', whereArgs: [user.id]);
       if (existing.isNotEmpty) {
-        await db.update('local_users', {'full_name': user.fullName, 'role': user.role, 'business_partner_id': user.businessPartnerId}, where: 'id = ?', whereArgs: [user.id]);
+        await db.update(
+            'local_users',
+            {
+              'full_name': user.fullName,
+              'role': user.role,
+              'business_partner_id': user.businessPartnerId
+            },
+            where: 'id = ?',
+            whereArgs: [user.id]);
       } else {
-        await db.insert('local_users', {'email': user.email, 'id': user.id, 'full_name': user.fullName, 'role': user.role, 'business_partner_id': user.businessPartnerId});
+        await db.insert('local_users', {
+          'email': user.email,
+          'id': user.id,
+          'full_name': user.fullName,
+          'role': user.role,
+          'business_partner_id': user.businessPartnerId
+        });
       }
     } catch (_) {}
 
@@ -86,7 +105,8 @@ final userProfileProvider = FutureProvider<User?>((ref) async {
     // Fallback 1: Local Database
     try {
       final db = await DatabaseHelper.instance.database;
-      final maps = await db.query('local_users', where: 'id = ?', whereArgs: [userId]);
+      final maps =
+          await db.query('local_users', where: 'id = ?', whereArgs: [userId]);
       if (maps.isNotEmpty) {
         final data = maps.first;
         return User(

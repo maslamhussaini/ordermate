@@ -12,7 +12,8 @@ class DepartmentModel extends Department {
   factory DepartmentModel.fromJson(Map<String, dynamic> json) {
     return DepartmentModel(
       id: json['id'] as int,
-      name: (json['name'] ?? json['dept_name']) as String, // Handle potential naming variations
+      name: (json['name'] ?? json['dept_name'])
+          as String, // Handle potential naming variations
       organizationId: (json['organization_id'] as int?) ?? 0,
       status: json['status'] == 1 || json['status'] == true,
       isSynced: json['is_synced'] == 1 || json['is_synced'] == true,

@@ -15,7 +15,7 @@ class RoleFormScreen extends ConsumerStatefulWidget {
 class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  
+
   int? _selectedDepartmentId;
   bool _canRead = false;
   bool _canWrite = false;
@@ -31,7 +31,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
       if (org != null) {
         ref.read(businessPartnerProvider.notifier).loadDepartments(org.id);
       }
-      
+
       if (widget.roleId != null) {
         _loadRoleData();
       }
@@ -40,15 +40,17 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
 
   void _loadRoleData() {
     final roles = ref.read(businessPartnerProvider).roles;
-    final roleData = roles.where((r) => r['id'].toString() == widget.roleId).firstOrNull;
+    final roleData =
+        roles.where((r) => r['id'].toString() == widget.roleId).firstOrNull;
     if (roleData != null) {
       _nameController.text = roleData['role_name'] ?? '';
-      
+
       final dynamic deptId = roleData['department_id'];
       if (deptId != null) {
-        _selectedDepartmentId = deptId is int ? deptId : int.tryParse(deptId.toString());
+        _selectedDepartmentId =
+            deptId is int ? deptId : int.tryParse(deptId.toString());
       }
-      
+
       setState(() {
         _canRead = roleData['can_read'] == 1 || roleData['can_read'] == true;
         _canWrite = roleData['can_write'] == 1 || roleData['can_write'] == true;
@@ -77,8 +79,9 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
 
     // Default dept if not selected manually
     final departments = ref.read(businessPartnerProvider).departments;
-    final deptId = _selectedDepartmentId ?? (departments.isNotEmpty ? departments.first['id'] as int? : null);
-    
+    final deptId = _selectedDepartmentId ??
+        (departments.isNotEmpty ? departments.first['id'] as int? : null);
+
     // Get Store and Financial Year
     final orgState = ref.read(organizationProvider);
     final storeId = orgState.selectedStore?.id;
@@ -99,7 +102,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
               syear: syear,
             );
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Role updated successfully')),
           );
         }
@@ -121,7 +124,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
           );
         }
       }
-      
+
       if (mounted) {
         context.pop();
       }
@@ -139,17 +142,19 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
   @override
   Widget build(BuildContext context) {
     final businessPartnerState = ref.watch(businessPartnerProvider);
-    final isSuperUserRole = _nameController.text.toUpperCase() == 'SUPER USER' || _nameController.text.toUpperCase() == 'OWNER';
+    final isSuperUserRole =
+        _nameController.text.toUpperCase() == 'SUPER USER' ||
+            _nameController.text.toUpperCase() == 'OWNER';
     final departments = businessPartnerState.departments;
 
     // Auto-fill logic: If not set and departments exist, pick first
     if (_selectedDepartmentId == null && departments.isNotEmpty) {
-       // We use a microtask or local logic to prevent build cycle if we were setting state, 
-       // but here we can just default the value in Dropdown or set it.
-       // However, setting it in build is bad practice if it triggers rebuilds.
-       // Better to just let the Dropdown show it as value if we want strict auto-fill,
-       // Or set it ONLY ONCE.
-       // For "Auto fill", selecting the first valid option as default value of Dropdown is enough.
+      // We use a microtask or local logic to prevent build cycle if we were setting state,
+      // but here we can just default the value in Dropdown or set it.
+      // However, setting it in build is bad practice if it triggers rebuilds.
+      // Better to just let the Dropdown show it as value if we want strict auto-fill,
+      // Or set it ONLY ONCE.
+      // For "Auto fill", selecting the first valid option as default value of Dropdown is enough.
     }
 
     return Scaffold(
@@ -168,7 +173,9 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
                 decoration: InputDecoration(
                   labelText: 'Role Name',
                   border: const OutlineInputBorder(),
-                  helperText: isSuperUserRole ? 'System core role. Cannot be renamed.' : null,
+                  helperText: isSuperUserRole
+                      ? 'System core role. Cannot be renamed.'
+                      : null,
                   helperStyle: const TextStyle(color: Colors.orange),
                 ),
                 validator: (value) {
@@ -180,7 +187,10 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
-                initialValue: _selectedDepartmentId ?? (departments.isNotEmpty ? departments.first['id'] as int? : null),
+                initialValue: _selectedDepartmentId ??
+                    (departments.isNotEmpty
+                        ? departments.first['id'] as int?
+                        : null),
                 decoration: const InputDecoration(
                   labelText: 'Department',
                   border: OutlineInputBorder(),
@@ -197,43 +207,53 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
                   });
                 },
                 validator: (value) {
-                   // Optional or Required? User said "auto fill", implying importance. 
-                   // Let's make it optional but auto-filled.
-                   return null; 
+                  // Optional or Required? User said "auto fill", implying importance.
+                  // Let's make it optional but auto-filled.
+                  return null;
                 },
               ),
               const SizedBox(height: 24),
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Privileges', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                child: Text('Privileges',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
               const Divider(),
               CheckboxListTile(
                 title: const Text('Can Read'),
                 subtitle: const Text('Allows viewing records'),
                 value: _canRead,
-                onChanged: isSuperUserRole ? null : (v) => setState(() => _canRead = v ?? false),
+                onChanged: isSuperUserRole
+                    ? null
+                    : (v) => setState(() => _canRead = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               CheckboxListTile(
                 title: const Text('Can Write'),
                 subtitle: const Text('Allows creating new records'),
                 value: _canWrite,
-                onChanged: isSuperUserRole ? null : (v) => setState(() => _canWrite = v ?? false),
+                onChanged: isSuperUserRole
+                    ? null
+                    : (v) => setState(() => _canWrite = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               CheckboxListTile(
                 title: const Text('Can Edit'),
                 subtitle: const Text('Allows modifying existing records'),
                 value: _canEdit,
-                onChanged: isSuperUserRole ? null : (v) => setState(() => _canEdit = v ?? false),
+                onChanged: isSuperUserRole
+                    ? null
+                    : (v) => setState(() => _canEdit = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               CheckboxListTile(
                 title: const Text('Can Print'),
                 subtitle: const Text('Allows printing/exporting reports'),
                 value: _canPrint,
-                onChanged: isSuperUserRole ? null : (v) => setState(() => _canPrint = v ?? false),
+                onChanged: isSuperUserRole
+                    ? null
+                    : (v) => setState(() => _canPrint = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               const SizedBox(height: 24),

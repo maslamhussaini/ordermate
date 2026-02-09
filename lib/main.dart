@@ -57,9 +57,9 @@ Future<void> main() async {
 
   // Initialize Notification Service
   try {
-     await NotificationService().init();
+    await NotificationService().init();
   } catch (e) {
-     AppLogger.error('Failed to init notifications', e);
+    AppLogger.error('Failed to init notifications', e);
   }
 
   // Initialize Logger
@@ -72,9 +72,9 @@ Future<void> main() async {
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
     container.read(bugReportServiceProvider).reportError(
-      details.exceptionAsString(),
-      details.stack,
-    );
+          details.exceptionAsString(),
+          details.stack,
+        );
   };
 
   // 2. Capture Platform/Async Errors

@@ -36,5 +36,6 @@ class Brand extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, status, organizationId, productCount, createdAt];
+  List<Object?> get props =>
+      [id, name, status, organizationId, productCount, createdAt];
 }

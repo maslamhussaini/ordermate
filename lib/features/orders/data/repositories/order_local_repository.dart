@@ -17,7 +17,8 @@ class OrderLocalRepository {
       columns: ['id'],
       where: 'is_synced = 0',
     );
-    final Set<String> unsyncedIds = unsyncedMaps.map((m) => m['id'] as String).toSet();
+    final Set<String> unsyncedIds =
+        unsyncedMaps.map((m) => m['id'] as String).toSet();
 
     for (final order in orders) {
       // Skip overwriting if local copy is dirty
@@ -31,7 +32,7 @@ class OrderLocalRepository {
           'id': order.id,
           'customer_id': order.businessPartnerId,
           'total_amount': order.totalAmount,
-          'status': order.status.name, 
+          'status': order.status.name,
           'order_date': order.orderDate.millisecondsSinceEpoch,
           'is_synced': 1,
           'items_payload': '{}',
@@ -54,7 +55,8 @@ class OrderLocalRepository {
     await batch.commit(noResult: true);
   }
 
-  Future<List<Order>> getLocalOrders({int? organizationId, int? storeId, int? sYear}) async {
+  Future<List<Order>> getLocalOrders(
+      {int? organizationId, int? storeId, int? sYear}) async {
     final db = await _dbHelper.database;
     final List<String> conditions = [];
     final List<dynamic> args = [];
@@ -90,13 +92,13 @@ class OrderLocalRepository {
 
       List<OrderItem> items = [];
       if (map['items_payload'] != null) {
-         try {
-           final payload = map['items_payload'] as String;
-           if (payload.isNotEmpty && payload != '{}') {
-              final List<dynamic> list = jsonDecode(payload);
-              items = list.map((e) => OrderItem.fromJson(e)).toList();
-           }
-         } catch (_) {}
+        try {
+          final payload = map['items_payload'] as String;
+          if (payload.isNotEmpty && payload != '{}') {
+            final List<dynamic> list = jsonDecode(payload);
+            items = list.map((e) => OrderItem.fromJson(e)).toList();
+          }
+        } catch (_) {}
       }
 
       return Order(
@@ -107,15 +109,19 @@ class OrderLocalRepository {
         createdBy: map['created_by'] as String? ?? '',
         status: status,
         totalAmount: (map['total_amount'] as num).toDouble(),
-        orderDate: DateTime.fromMillisecondsSinceEpoch(map['order_date'] as int),
+        orderDate:
+            DateTime.fromMillisecondsSinceEpoch(map['order_date'] as int),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        businessPartnerName: map['business_partner_name'] as String? ?? 'Offline Partner',
+        businessPartnerName:
+            map['business_partner_name'] as String? ?? 'Offline Partner',
         storeId: (map['store_id'] as int?) ?? 0,
         organizationId: (map['organization_id'] as int?) ?? 0,
         paymentTermId: map['payment_term_id'] as int?,
         dispatchStatus: map['dispatch_status'] as String? ?? 'pending',
-        dispatchDate: map['dispatch_date'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dispatch_date'] as int) : null,
+        dispatchDate: map['dispatch_date'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(map['dispatch_date'] as int)
+            : null,
         isInvoiced: map['is_invoiced'] == 1,
         sYear: map['syear'] as int?,
         items: items,
@@ -123,7 +129,8 @@ class OrderLocalRepository {
     }).toList();
   }
 
-  Future<List<Order>> getUnsyncedOrders({int? organizationId, int? storeId, int? sYear}) async {
+  Future<List<Order>> getUnsyncedOrders(
+      {int? organizationId, int? storeId, int? sYear}) async {
     final db = await _dbHelper.database;
     final List<String> conditions = ['is_synced = 0'];
     final List<dynamic> args = [];
@@ -156,13 +163,13 @@ class OrderLocalRepository {
 
       List<OrderItem> items = [];
       if (map['items_payload'] != null) {
-         try {
-           final payload = map['items_payload'] as String;
-           if (payload.isNotEmpty && payload != '{}') {
-              final List<dynamic> list = jsonDecode(payload);
-              items = list.map((e) => OrderItem.fromJson(e)).toList();
-           }
-         } catch (_) {}
+        try {
+          final payload = map['items_payload'] as String;
+          if (payload.isNotEmpty && payload != '{}') {
+            final List<dynamic> list = jsonDecode(payload);
+            items = list.map((e) => OrderItem.fromJson(e)).toList();
+          }
+        } catch (_) {}
       }
 
       return Order(
@@ -173,15 +180,19 @@ class OrderLocalRepository {
         createdBy: map['created_by'] as String? ?? '',
         status: status,
         totalAmount: (map['total_amount'] as num).toDouble(),
-        orderDate: DateTime.fromMillisecondsSinceEpoch(map['order_date'] as int),
+        orderDate:
+            DateTime.fromMillisecondsSinceEpoch(map['order_date'] as int),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        businessPartnerName: map['business_partner_name'] as String? ?? 'Offline Partner',
+        businessPartnerName:
+            map['business_partner_name'] as String? ?? 'Offline Partner',
         storeId: (map['store_id'] as int?) ?? 0,
         organizationId: (map['organization_id'] as int?) ?? 0,
         paymentTermId: map['payment_term_id'] as int?,
         dispatchStatus: map['dispatch_status'] as String? ?? 'pending',
-        dispatchDate: map['dispatch_date'] != null ? DateTime.fromMillisecondsSinceEpoch(map['dispatch_date'] as int) : null,
+        dispatchDate: map['dispatch_date'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(map['dispatch_date'] as int)
+            : null,
         isInvoiced: map['is_invoiced'] == 1,
         sYear: map['syear'] as int?,
         items: items,
@@ -208,7 +219,7 @@ class OrderLocalRepository {
       where: 'id = ?',
       whereArgs: [id],
     );
-    
+
     if (result.isNotEmpty && result.first['items_payload'] != null) {
       final payload = result.first['items_payload'] as String;
       if (payload.isNotEmpty && payload != '{}') {
@@ -223,7 +234,8 @@ class OrderLocalRepository {
   }
 
   // CRUD Operations
-  Future<void> addOrder(Order order, {List<Map<String, dynamic>>? items}) async {
+  Future<void> addOrder(Order order,
+      {List<Map<String, dynamic>>? items}) async {
     final db = await _dbHelper.database;
     final itemsPayload = items != null ? jsonEncode(items) : '{}';
 
@@ -233,7 +245,7 @@ class OrderLocalRepository {
         'id': order.id,
         'customer_id': order.businessPartnerId,
         'total_amount': order.totalAmount,
-        'status': order.status.name, 
+        'status': order.status.name,
         'order_date': order.orderDate.millisecondsSinceEpoch,
         'is_synced': 0, // Pending Sync
         'items_payload': itemsPayload,
@@ -253,13 +265,14 @@ class OrderLocalRepository {
     );
   }
 
-  Future<void> updateOrder(Order order, {List<Map<String, dynamic>>? items}) async {
+  Future<void> updateOrder(Order order,
+      {List<Map<String, dynamic>>? items}) async {
     final db = await _dbHelper.database;
-    
+
     final Map<String, dynamic> data = {
       'customer_id': order.businessPartnerId,
       'total_amount': order.totalAmount,
-      'status': order.status.name, 
+      'status': order.status.name,
       'order_date': order.orderDate.millisecondsSinceEpoch,
       'is_synced': 0, // Reset sync status on update
       'order_number': order.orderNumber,
@@ -275,7 +288,7 @@ class OrderLocalRepository {
     };
 
     if (items != null) {
-       data['items_payload'] = jsonEncode(items);
+      data['items_payload'] = jsonEncode(items);
     }
 
     await db.update(
@@ -286,12 +299,14 @@ class OrderLocalRepository {
     );
   }
 
-  Future<void> saveLocalOrderItems(String orderId, List<Map<String, dynamic>> items, {bool? isSynced}) async {
+  Future<void> saveLocalOrderItems(
+      String orderId, List<Map<String, dynamic>> items,
+      {bool? isSynced}) async {
     final db = await _dbHelper.database;
     final Map<String, dynamic> data = {
       'items_payload': jsonEncode(items),
     };
-    
+
     if (isSynced != null) {
       data['is_synced'] = isSynced ? 1 : 0;
     } else {
@@ -339,7 +354,8 @@ class OrderLocalRepository {
     });
   }
 
-  Future<void> updateDispatchInfo(String orderId, String status, DateTime date) async {
+  Future<void> updateDispatchInfo(
+      String orderId, String status, DateTime date) async {
     final db = await _dbHelper.database;
     await db.update(
       'local_orders',

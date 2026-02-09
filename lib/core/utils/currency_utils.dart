@@ -9,12 +9,12 @@ class CurrencyUtils {
   static String formatCurrency(double amount, String? currencyCode) {
     final code = currencyCode ?? 'USD'; // Default fallback
     final formattedAmount = amount.toStringAsFixed(2);
-    
+
     // Add thousand separators
     final parts = formattedAmount.split('.');
     final integerPart = parts[0];
     final decimalPart = parts.length > 1 ? parts[1] : '00';
-    
+
     // Add commas for thousands
     final buffer = StringBuffer();
     var count = 0;
@@ -25,24 +25,24 @@ class CurrencyUtils {
       buffer.write(integerPart[i]);
       count++;
     }
-    
+
     final formattedInteger = buffer.toString().split('').reversed.join();
-    
+
     return '$code $formattedInteger.$decimalPart';
   }
-  
+
   /// Format a numeric amount with currency symbol
   /// Common currency symbols mapping
   static String formatWithSymbol(double amount, String? currencyCode) {
     final code = currencyCode ?? 'USD';
     final symbol = _getCurrencySymbol(code);
     final formattedAmount = amount.toStringAsFixed(2);
-    
+
     // Add thousand separators
     final parts = formattedAmount.split('.');
     final integerPart = parts[0];
     final decimalPart = parts.length > 1 ? parts[1] : '00';
-    
+
     // Add commas for thousands
     final buffer = StringBuffer();
     var count = 0;
@@ -53,12 +53,12 @@ class CurrencyUtils {
       buffer.write(integerPart[i]);
       count++;
     }
-    
+
     final formattedInteger = buffer.toString().split('').reversed.join();
-    
+
     return '$symbol$formattedInteger.$decimalPart';
   }
-  
+
   /// Get currency symbol from code
   static String _getCurrencySymbol(String currencyCode) {
     switch (currencyCode.toUpperCase()) {

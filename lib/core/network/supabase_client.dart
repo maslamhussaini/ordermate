@@ -8,7 +8,8 @@ class SupabaseConfig {
   static SupabaseClient? _client;
 
   static const String _prodUrl = 'https://wbwsikbmnjmhqtlfocus.supabase.co';
-  static const String _prodKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indid3Npa2JtbmptaHF0bGZvY3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1OTQ0ODUsImV4cCI6MjA4MDE3MDQ4NX0.4WdKl_kwRk0GYi7Y6aOKt1MwOSuhEsf7aJ9cH64XWYs';
+  static const String _prodKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indid3Npa2JtbmptaHF0bGZvY3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1OTQ0ODUsImV4cCI6MjA4MDE3MDQ4NX0.4WdKl_kwRk0GYi7Y6aOKt1MwOSuhEsf7aJ9cH64XWYs';
 
   static Future<void> initialize() async {
     String url = (dotenv.env['SUPABASE_URL'] ?? '').trim();
@@ -16,12 +17,14 @@ class SupabaseConfig {
 
     // If environment variables are missing OR they contain the "placeholder" text
     if (url.isEmpty || url.contains('placeholder')) {
-      debugPrint('SupabaseConfig: Using hardcoded production URL (Environment Variable missing)');
+      debugPrint(
+          'SupabaseConfig: Using hardcoded production URL (Environment Variable missing)');
       url = _prodUrl;
     }
-    
+
     if (anonKey.isEmpty || anonKey.contains('placeholder')) {
-      debugPrint('SupabaseConfig: Using hardcoded production Key (Environment Variable missing)');
+      debugPrint(
+          'SupabaseConfig: Using hardcoded production Key (Environment Variable missing)');
       anonKey = _prodKey;
     }
 
@@ -45,7 +48,8 @@ class SupabaseConfig {
 
   static User? get currentUser => client.auth.currentUser;
 
-  static String? get currentUserId => currentUser?.id ?? (isOfflineLoggedIn ? 'test-user-id' : null);
+  static String? get currentUserId =>
+      currentUser?.id ?? (isOfflineLoggedIn ? 'test-user-id' : null);
 
   /// Flag to indicate if user is logged in via offline mode (bypassing Supabase session check)
   static bool isOfflineLoggedIn = false;
@@ -54,7 +58,7 @@ class SupabaseConfig {
     // 1. Check .env first (useful for local testing if someone set it to localhost)
     final envUrl = dotenv.env['FRONTEND_URL']?.trim();
     if (envUrl != null && envUrl.isNotEmpty) return envUrl;
-    
+
     // 2. Default to production Vercel URL for ALL platforms (Mobile, Mac, PC, Web)
     // This ensures links sent in emails always work for the recipient.
     return 'https://ordermate-v619.vercel.app';

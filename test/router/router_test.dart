@@ -30,10 +30,12 @@ void main() {
     router.go('/accounting');
     await tester.pumpAndSettle();
 
-    expect(router.routerDelegate.currentConfiguration.uri.toString(), '/accounting');
+    expect(router.routerDelegate.currentConfiguration.uri.toString(),
+        '/accounting');
   });
 
-  testWidgets('Staff CANNOT access Accounting (Redirects to Dashboard)', (tester) async {
+  testWidgets('Staff CANNOT access Accounting (Redirects to Dashboard)',
+      (tester) async {
     AuthService.testRole = UserRole.staff;
 
     await tester.pumpWidget(
@@ -50,7 +52,8 @@ void main() {
     router.go('/accounting');
     await tester.pumpAndSettle();
 
-    expect(router.routerDelegate.currentConfiguration.uri.toString(), '/dashboard');
+    expect(router.routerDelegate.currentConfiguration.uri.toString(),
+        '/dashboard');
   });
 }
 

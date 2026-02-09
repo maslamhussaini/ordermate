@@ -19,24 +19,25 @@ void main() {
   group('Offline Mode Self Checks', () {
     test('DatabaseHelper can create tables', () async {
       // Use in-memory database
-      // We manually invoke the _createDB logic or similar, 
+      // We manually invoke the _createDB logic or similar,
       // but DatabaseHelper is a singleton hardcoded to 'ordermate_local.db' and getDatabasesPath().
-      // To test DatabaseHelper strictly with FFI without modifying it, 
-      // we rely on the fact that databaseFactoryFfi supports getDatabasesPath on desktop/test env usually 
+      // To test DatabaseHelper strictly with FFI without modifying it,
+      // we rely on the fact that databaseFactoryFfi supports getDatabasesPath on desktop/test env usually
       // pointing to a temp dir or local dir.
-      
+
       // Let's rely on the actual valid instance.
       final instance = DatabaseHelper.instance;
       final database = await instance.database;
-      
+
       expect(database.isOpen, true);
-      
+
       // Verify tables exist
-      final tables = await database.query('sqlite_master', where: 'type = ?', whereArgs: ['table']);
+      final tables = await database
+          .query('sqlite_master', where: 'type = ?', whereArgs: ['table']);
       final tableNames = tables.map((e) => e['name']).toList();
-      
+
       print('Tables found: $tableNames');
-      
+
       expect(tableNames.contains('local_users'), true);
       expect(tableNames.contains('local_products'), true);
       expect(tableNames.contains('local_orders'), true);
@@ -44,12 +45,12 @@ void main() {
 
     test('Offline Login: Credential Caching and Retrieval', () async {
       final db = await DatabaseHelper.instance.database;
-      
+
       // 1. Simulate "Online Login" caching
       const email = 'test@offline.com';
       const password = 'password123';
       const userId = 'user_001';
-      
+
       await db.insert(
         'local_users',
         {
@@ -75,9 +76,10 @@ void main() {
       print('Offline Login Test: Successfully retrieved cached user.');
     });
 
-    test('Data Sync: Product Cache and Retrieval (Type Safety Check)', () async {
+    test('Data Sync: Product Cache and Retrieval (Type Safety Check)',
+        () async {
       final repo = ProductLocalRepository();
-      
+
       // 1. Mock Product
       final product = Product(
         id: 'prod_123',
@@ -100,23 +102,24 @@ void main() {
       // This will fail if Type conversion (Int -> TEXT -> Int) is broken
       try {
         final cachedProducts = await repo.getLocalProducts();
-        
+
         expect(cachedProducts.isNotEmpty, true);
         final retrieved = cachedProducts.first;
-        
+
         expect(retrieved.id, product.id);
         expect(retrieved.brandId, 1); // Verify int preservation
         expect(retrieved.categoryId, 2);
-        
+
         print('Data Sync Test: Successfully handled Product Types.');
       } catch (e) {
-        fail('Failed to retrieve products. Likely a Type mismatch in Repository: $e');
+        fail(
+            'Failed to retrieve products. Likely a Type mismatch in Repository: $e');
       }
     });
 
     test('Data Sync: Order Cache and Retrieval (numerics)', () async {
       final repo = OrderLocalRepository();
-      
+
       // 1. Mock Order with Integer Amount (to test casting)
       final order = Order(
         id: 'ord_1',
@@ -151,7 +154,7 @@ void main() {
 
     test('Offline CRUD: Business Partners', () async {
       final repo = BusinessPartnerLocalRepository();
-      
+
       // CREATE
       final partner = BusinessPartner(
         id: 'cust_offline_1',
@@ -169,32 +172,32 @@ void main() {
         organizationId: 1,
         storeId: 1,
       );
-      
+
       await repo.addPartner(partner);
-      
+
       // READ
       var partners = await repo.getLocalCustomers();
       expect(partners.any((p) => p.id == 'cust_offline_1'), true);
-      
+
       // UPDATE
       final updatedPartner = partner.copyWith(name: 'Offline Customer Updated');
       await repo.updatePartner(updatedPartner);
-      
+
       partners = await repo.getLocalCustomers();
       final fetched = partners.firstWhere((p) => p.id == 'cust_offline_1');
       expect(fetched.name, 'Offline Customer Updated');
-      
+
       // DELETE
       await repo.deletePartner('cust_offline_1');
       partners = await repo.getLocalCustomers();
       expect(partners.any((p) => p.id == 'cust_offline_1'), false);
-      
+
       print('Offline CRUD Test: Business Partner operations successful.');
     });
 
     test('Offline CRUD: Orders', () async {
       final repo = OrderLocalRepository();
-      
+
       // CREATE
       final order = Order(
         id: 'ord_offline_1',
@@ -210,26 +213,26 @@ void main() {
         organizationId: 1,
         storeId: 1,
       );
-      
+
       await repo.addOrder(order);
-      
+
       // READ
       var orders = await repo.getLocalOrders();
       expect(orders.any((o) => o.id == 'ord_offline_1'), true);
-      
+
       // UPDATE
       final updatedOrder = order.copyWith(totalAmount: 1200.0);
       await repo.updateOrder(updatedOrder);
-      
+
       orders = await repo.getLocalOrders();
       final fetched = orders.firstWhere((o) => o.id == 'ord_offline_1');
       expect(fetched.totalAmount, 1200.0);
-      
+
       // DELETE
       await repo.deleteOrder('ord_offline_1');
       orders = await repo.getLocalOrders();
       expect(orders.any((o) => o.id == 'ord_offline_1'), false);
-      
+
       print('Offline CRUD Test: Order operations successful.');
     });
   });

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/features/organization/data/models/organization_model.dart';
@@ -103,19 +102,20 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
   }
 
   @override
-  Future<String> uploadOrganizationLogo(File file) async {
+  Future<String> uploadOrganizationLogo(
+      Uint8List bytes, String fileName) async {
     try {
-      final extension = path.extension(file.path);
-      final fileName =
+      final extension = path.extension(fileName);
+      final finalFileName =
           'logo_${DateTime.now().millisecondsSinceEpoch}$extension';
 
       await SupabaseConfig.client.storage
           .from('organizations')
-          .upload(fileName, file);
+          .uploadBinary(finalFileName, bytes);
 
       final publicUrl = SupabaseConfig.client.storage
           .from('organizations')
-          .getPublicUrl(fileName);
+          .getPublicUrl(finalFileName);
 
       return publicUrl;
     } catch (e) {
@@ -153,11 +153,11 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
           .from('omtbl_organizations')
           .delete()
           .eq('id', id);
-      
+
       await _localRepository.deleteOrganization(id);
     } catch (e) {
       final errorString = e.toString();
-      if (errorString.contains('violates foreign key constraint') && 
+      if (errorString.contains('violates foreign key constraint') &&
           errorString.contains('omtbl_stores')) {
         throw Exception('First delete store or stores then you can delete orz');
       }
@@ -186,8 +186,9 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
           .select()
           .eq('organization_id', organizationId)
           .order('name', ascending: true);
-      
-      print('DEBUG_LOG: Fetched ${response.length} stores from Supabase: ${response.map((e) => "${e['id']}:${e['name']}").toList()}');
+
+      print(
+          'DEBUG_LOG: Fetched ${response.length} stores from Supabase: ${response.map((e) => "${e['id']}:${e['name']}").toList()}');
 
       final remoteStores = (response as List)
           .map((json) => StoreModel.fromJson(json as Map<String, dynamic>))
@@ -250,8 +251,8 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
     // Check Connectivity
     final connectivityResult = await ConnectivityHelper.check();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-       await _localRepository.updateLocalStore(store);
-       return;
+      await _localRepository.updateLocalStore(store);
+      return;
     }
 
     try {
@@ -282,34 +283,35 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
           .from('omtbl_stores')
           .update(json)
           .eq('id', store.id);
-      
-      // Update local as synced if successful (re-using updateLocalStore but relying on cacheStores typically, 
+
+      // Update local as synced if successful (re-using updateLocalStore but relying on cacheStores typically,
       // but here we just want to reflect change. Better to cache it as synced.)
       // Actually, updateLocalStore sets synced=0. We should overwrite it.
-      // reusing the internal map logic or just let refresh handle it? 
+      // reusing the internal map logic or just let refresh handle it?
       // For immediate UI update, we run updateLocalStore but we need it to be synced=1.
-      // So I'll just use updateLocalStore (synced=0) then immediately mark synced=1? 
+      // So I'll just use updateLocalStore (synced=0) then immediately mark synced=1?
       // Or I'll just rely on the fact that if it succeeded, it's on server.
       // BUT, to keep local consistent without full refresh, we should update local.
       // I'll update local and leave it as synced=0? No, that would trigger sync later.
       // Let's just use the same method but we need a way to say "it IS synced".
-      // Since I can't change the interface easily right now without more edits, 
+      // Since I can't change the interface easily right now without more edits,
       // I will assume standard flow: Optimistic update -> server.
       // If server succeeds, I technically should update local with is_synced=1.
       // For now, I will save it locally as unsynced (0) even if server succeeds? No, that prompts double update.
       // I'll just fallback:
-      
+
       // Update local (marked as unsynced) - wait, if I do this before server, UI updates instantly.
       // If server succeeds, I should mark it synced.
       // But I don't have a "markStoreSynced" method.
       // I will just let it be "unsynced" locally for now if falling back?
       // Or honestly, simple fallback is enough for "Unable to save".
-      
     } catch (e) {
-      if (e.toString().contains('SocketException') || e.toString().contains('Network') || e.toString().contains('ClientException')) {
-         await _localRepository.updateLocalStore(store);
-         return;
-       }
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Network') ||
+          e.toString().contains('ClientException')) {
+        await _localRepository.updateLocalStore(store);
+        return;
+      }
       throw Exception('Failed to update store: $e');
     }
   }

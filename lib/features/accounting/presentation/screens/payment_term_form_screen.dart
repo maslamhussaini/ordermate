@@ -12,7 +12,8 @@ class PaymentTermFormScreen extends ConsumerStatefulWidget {
   const PaymentTermFormScreen({super.key, this.paymentTermId});
 
   @override
-  ConsumerState<PaymentTermFormScreen> createState() => _PaymentTermFormScreenState();
+  ConsumerState<PaymentTermFormScreen> createState() =>
+      _PaymentTermFormScreenState();
 }
 
 class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
@@ -27,7 +28,9 @@ class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
   void initState() {
     super.initState();
     if (widget.paymentTermId != null) {
-      final term = ref.read(accountingProvider).paymentTerms
+      final term = ref
+          .read(accountingProvider)
+          .paymentTerms
           .where((t) => t.id == widget.paymentTermId)
           .firstOrNull;
       if (term != null) {
@@ -55,15 +58,19 @@ class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
     final orgId = ref.read(organizationProvider).selectedOrganization?.id;
 
     // Check for duplicate name
-    final existing = ref.read(accountingProvider).paymentTerms.where((t) => 
-      t.name.toLowerCase() == name.toLowerCase() && 
-      t.id != widget.paymentTermId &&
-      (t.organizationId == orgId)
-    ).firstOrNull;
+    final existing = ref
+        .read(accountingProvider)
+        .paymentTerms
+        .where((t) =>
+            t.name.toLowerCase() == name.toLowerCase() &&
+            t.id != widget.paymentTermId &&
+            (t.organizationId == orgId))
+        .firstOrNull;
 
     if (existing != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('A payment term with this name already exists.')),
+        const SnackBar(
+            content: Text('A payment term with this name already exists.')),
       );
       return;
     }
@@ -85,7 +92,7 @@ class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
       } else {
         await notifier.updatePaymentTerm(term, organizationId: orgId);
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Payment term saved successfully')),
@@ -107,7 +114,9 @@ class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.paymentTermId == null ? 'Add Payment Term' : 'Edit Payment Term'),
+        title: Text(widget.paymentTermId == null
+            ? 'Add Payment Term'
+            : 'Edit Payment Term'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -124,7 +133,8 @@ class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
                         hintText: 'e.g. Cash, Net 30, Due on Receipt',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -137,7 +147,8 @@ class _PaymentTermFormScreenState extends ConsumerState<PaymentTermFormScreen> {
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) return 'Required';
-                        if (int.tryParse(value) == null) return 'Enter a valid number';
+                        if (int.tryParse(value) == null)
+                          return 'Enter a valid number';
                         return null;
                       },
                     ),

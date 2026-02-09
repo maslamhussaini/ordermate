@@ -28,7 +28,8 @@ class _OrganizationListScreenState
   void initState() {
     super.initState();
     Future.microtask(
-        () => ref.read(organizationProvider.notifier).loadOrganizations(),);
+      () => ref.read(organizationProvider.notifier).loadOrganizations(),
+    );
   }
 
   Widget _buildOrganizationItem(dynamic org, bool isSelected) {
@@ -39,7 +40,8 @@ class _OrganizationListScreenState
       child: ExpansionTile(
         shape: Border.all(color: Colors.transparent),
         leading: CircleAvatar(
-          backgroundColor: isSelected ? Colors.green.shade50 : Colors.indigo.shade50,
+          backgroundColor:
+              isSelected ? Colors.green.shade50 : Colors.indigo.shade50,
           child: Icon(
             Icons.business,
             color: isSelected ? Colors.green : Colors.indigo,
@@ -90,8 +92,11 @@ class _OrganizationListScreenState
               if (ref.watch(authProvider).role == UserRole.superUser) ...[
                 OutlinedButton.icon(
                   onPressed: () {
-                    ref.read(organizationProvider.notifier).selectOrganization(org);
-                    context.pushNamed('organization-edit', pathParameters: {'id': org.id.toString()});
+                    ref
+                        .read(organizationProvider.notifier)
+                        .selectOrganization(org);
+                    context.pushNamed('organization-edit',
+                        pathParameters: {'id': org.id.toString()});
                   },
                   icon: const Icon(Icons.edit, size: 18),
                   label: const Text('Edit'),
@@ -112,7 +117,9 @@ class _OrganizationListScreenState
                     foregroundColor: Colors.red,
                     disabledForegroundColor: Colors.grey,
                     side: BorderSide(
-                        color: (org.storeCount == 0 && !isSelected) ? Colors.red.shade200 : Colors.grey.shade300),
+                        color: (org.storeCount == 0 && !isSelected)
+                            ? Colors.red.shade200
+                            : Colors.grey.shade300),
                   ),
                 ),
               ],
@@ -125,12 +132,12 @@ class _OrganizationListScreenState
 
   Future<void> _handleOrgSelection(dynamic org) async {
     final notifier = ref.read(organizationProvider.notifier);
-    
+
     // Select Org (this loads stores)
     await notifier.selectOrganization(org);
-    
+
     if (!mounted) return;
-    
+
     // Check stores
     final state = ref.read(organizationProvider);
     final stores = state.stores;
@@ -152,12 +159,14 @@ class _OrganizationListScreenState
     // PREVIOUSLY: context.goNamed('dashboard');
     // FIX: User requested "orzlist no route to list , wrongly route to dashboard".
     // We intrepret this as "Stay on the list after selection".
-    
+
     // We force a rebuild or just snackbar
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Selected $orgName${storeName != null ? ' - $storeName' : ''}')),
+      SnackBar(
+          content: Text(
+              'Selected $orgName${storeName != null ? ' - $storeName' : ''}')),
     );
-    
+
     // Optional: If we want to refresh the list UI to show the checkmark (it handles itself via Riverpod watch)
     setState(() {});
   }
@@ -190,9 +199,17 @@ class _OrganizationListScreenState
                       title: Text(store.name),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
-                         ref.read(organizationProvider.notifier).selectStore(store);
-                         Navigator.pop(ctx); // Close sheet
-                         _onSelectionComplete(ref.read(organizationProvider).selectedOrganization?.name ?? '', store.name);
+                        ref
+                            .read(organizationProvider.notifier)
+                            .selectStore(store);
+                        Navigator.pop(ctx); // Close sheet
+                        _onSelectionComplete(
+                            ref
+                                    .read(organizationProvider)
+                                    .selectedOrganization
+                                    ?.name ??
+                                '',
+                            store.name);
                       },
                     );
                   },
@@ -214,13 +231,13 @@ class _OrganizationListScreenState
         content: Text('Are you sure you want to delete ${org.name}?'),
         actions: [
           TextButton(
-             onPressed: () => Navigator.pop(ctx, false),
-             child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
           ),
           TextButton(
-             onPressed: () => Navigator.pop(ctx, true),
-             style: TextButton.styleFrom(foregroundColor: Colors.red),
-             child: const Text('Delete'),
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -229,13 +246,17 @@ class _OrganizationListScreenState
     if (confirm == true) {
       if (!mounted) return;
       try {
-        await ref.read(organizationProvider.notifier).deleteOrganization(org.id);
+        await ref
+            .read(organizationProvider.notifier)
+            .deleteOrganization(org.id);
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${org.name} deleted')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('${org.name} deleted')));
         }
       } catch (e) {
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       }
     }
@@ -269,12 +290,12 @@ class _OrganizationListScreenState
                 ref.read(organizationProvider.notifier).loadOrganizations(),
           ),
           if (ref.watch(authProvider).role == UserRole.superUser)
-          TextButton.icon(
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text('New', style: TextStyle(color: Colors.white)),
-            onPressed: () => context.goNamed('organization-create'),
-            style: TextButton.styleFrom(foregroundColor: Colors.white),
-          ),
+            TextButton.icon(
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text('New', style: TextStyle(color: Colors.white)),
+              onPressed: () => context.goNamed('organization-create'),
+              style: TextButton.styleFrom(foregroundColor: Colors.white),
+            ),
         ],
       ),
       body: Column(
@@ -302,40 +323,48 @@ class _OrganizationListScreenState
               },
             ),
           ),
-          
+
           Expanded(
             child: state.isLoading && orgs.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : state.error != null
-                    ? Center(child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text('Error loading data: ${state.error}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
-                      ))
-                : filteredOrgs.isEmpty
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.business, size: 64, color: Colors.grey.shade400),
-                            const SizedBox(height: 16),
-                            const Text('No organizations found', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () => context.pushNamed('organization-create'),
-                              child: const Text('Create Organization'),
+                        child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text('Error loading data: ${state.error}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.red)),
+                      ))
+                    : filteredOrgs.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.business,
+                                    size: 64, color: Colors.grey.shade400),
+                                const SizedBox(height: 16),
+                                const Text('No organizations found',
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 16)),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      context.pushNamed('organization-create'),
+                                  child: const Text('Create Organization'),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: filteredOrgs.length,
-                        padding: const EdgeInsets.only(bottom: 80),
-                        itemBuilder: (context, index) {
-                          final org = filteredOrgs[index];
-                          final isSelected = state.selectedOrganization?.id == org.id;
-                          return _buildOrganizationItem(org, isSelected);
-                        },
-                      ),
+                          )
+                        : ListView.builder(
+                            itemCount: filteredOrgs.length,
+                            padding: const EdgeInsets.only(bottom: 80),
+                            itemBuilder: (context, index) {
+                              final org = filteredOrgs[index];
+                              final isSelected =
+                                  state.selectedOrganization?.id == org.id;
+                              return _buildOrganizationItem(org, isSelected);
+                            },
+                          ),
           ),
         ],
       ),

@@ -37,10 +37,12 @@ class _GenericSelectionScreenState<T> extends State<GenericSelectionScreen<T>> {
 
     setState(() {
       _filteredItems = widget.items
-          .where((item) => widget
-              .labelBuilder(item)
-              .toLowerCase()
-              .contains(query.toLowerCase()),)
+          .where(
+            (item) => widget
+                .labelBuilder(item)
+                .toLowerCase()
+                .contains(query.toLowerCase()),
+          )
           .toList();
     });
   }
@@ -68,7 +70,8 @@ class _GenericSelectionScreenState<T> extends State<GenericSelectionScreen<T>> {
               onChanged: _filterItems,
               decoration: InputDecoration(
                 hintText: 'Search',
-                prefixIcon:  Icon(Icons.search, color: Theme.of(context).primaryColor),
+                prefixIcon:
+                    Icon(Icons.search, color: Theme.of(context).primaryColor),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(

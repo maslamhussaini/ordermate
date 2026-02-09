@@ -461,7 +461,8 @@ class ReportRepositoryImpl implements ReportRepository {
           if (typeIds.isNotEmpty) {
             final res = await _supabase
                 .from('omtbl_invoice_items')
-                .select('*, omtbl_invoices!inner(*, omtbl_businesspartners(name))')
+                .select(
+                    '*, omtbl_invoices!inner(*, omtbl_businesspartners(name))')
                 .eq('omtbl_invoices.organization_id', organizationId)
                 .filter('omtbl_invoices.id_invoice_type', 'in', typeIds)
                 .gte('omtbl_invoices.invoice_date',

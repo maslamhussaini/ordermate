@@ -3,8 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-
-
 class AccountingMenuScreen extends StatelessWidget {
   const AccountingMenuScreen({super.key});
 
@@ -105,7 +103,8 @@ class AccountingMenuScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard(BuildContext context, {required String title, required List<_MenuItem> items}) {
+  Widget _buildMenuCard(BuildContext context,
+      {required String title, required List<_MenuItem> items}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -133,7 +132,8 @@ class AccountingMenuScreen extends StatelessWidget {
               return Column(
                 children: [
                   ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -142,8 +142,10 @@ class AccountingMenuScreen extends StatelessWidget {
                       ),
                       child: Icon(item.icon, color: item.color),
                     ),
-                    title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(item.subtitle, style: const TextStyle(fontSize: 12)),
+                    title: Text(item.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(item.subtitle,
+                        style: const TextStyle(fontSize: 12)),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push(item.route),
                   ),

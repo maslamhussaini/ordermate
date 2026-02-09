@@ -7,7 +7,7 @@ import 'package:ordermate/core/theme/app_colors.dart';
 class AppTheme {
   static ThemeData lightTheme(String? fontFamily, [String? themeColor]) {
     final primary = _getThemeColor(themeColor);
-    
+
     // Skin-specific overrides
     Color? surfaceSeed;
     VisualDensity visualDensity = VisualDensity.standard;
@@ -29,7 +29,9 @@ class AppTheme {
         seedColor: primary,
         surface: surfaceSeed, // Will use default if null, or skin override
       ),
-      scaffoldBackgroundColor: themeColor == 'mint' ? const Color(0xFFE0F2F1) : (surfaceSeed ?? AppColors.background),
+      scaffoldBackgroundColor: themeColor == 'mint'
+          ? const Color(0xFFE0F2F1)
+          : (surfaceSeed ?? AppColors.background),
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
@@ -75,7 +77,7 @@ class AppTheme {
 
   static ThemeData darkTheme(String? fontFamily, [String? themeColor]) {
     final primary = _getThemeColor(themeColor);
-    
+
     // Skin-specific overrides for Dark Mode
     Color? scaffoldOverride;
     Color? cardOverride;
@@ -83,12 +85,12 @@ class AppTheme {
     double borderRadius = 8.0;
 
     if (themeColor == 'audit') {
-       // Midnight Audit - Pure Black
-       scaffoldOverride = Colors.black;
-       cardOverride = const Color(0xFF1E1E1E);
+      // Midnight Audit - Pure Black
+      scaffoldOverride = Colors.black;
+      cardOverride = const Color(0xFF1E1E1E);
     } else if (themeColor == 'slate') {
-       visualDensity = VisualDensity.compact;
-       borderRadius = 0.0;
+      visualDensity = VisualDensity.compact;
+      borderRadius = 0.0;
     }
 
     var baseTheme = ThemeData(
@@ -109,7 +111,8 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 2,
         color: cardOverride ?? const Color(0xFF1E1E1E),
-        surfaceTintColor: Colors.transparent, // Disable tint to keep pure dark grey
+        surfaceTintColor:
+            Colors.transparent, // Disable tint to keep pure dark grey
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius == 0 ? 0 : 12),
         ),
@@ -155,25 +158,37 @@ class AppTheme {
 
   static Color _getThemeColor(String? colorName) {
     switch (colorName) {
-      case 'crimson': return const Color(0xFFD32F2F);
-      case 'emerald': return const Color(0xFF2E7D32);
-      case 'sunset': return const Color(0xFFED6C02);
-      case 'royal': return const Color(0xFF7B1FA2);
-      case 'midnight': return const Color(0xFF37474F);
+      case 'crimson':
+        return const Color(0xFFD32F2F);
+      case 'emerald':
+        return const Color(0xFF2E7D32);
+      case 'sunset':
+        return const Color(0xFFED6C02);
+      case 'royal':
+        return const Color(0xFF7B1FA2);
+      case 'midnight':
+        return const Color(0xFF37474F);
       // New Skins
-      case 'ledger': return const Color(0xFF103766); // Professional Navy
-      case 'audit': return const Color(0xFF00E676); // Success Green
-      case 'mint': return const Color(0xFF00A36C); // Mint Green
-      case 'glass': return const Color(0xFF00BCD4); // Cyan (for glass effect base)
-      case 'slate': return const Color(0xFF455A64); // Slate Gray
-      
-      case 'classic': default: return const Color(0xFF054C78);
+      case 'ledger':
+        return const Color(0xFF103766); // Professional Navy
+      case 'audit':
+        return const Color(0xFF00E676); // Success Green
+      case 'mint':
+        return const Color(0xFF00A36C); // Mint Green
+      case 'glass':
+        return const Color(0xFF00BCD4); // Cyan (for glass effect base)
+      case 'slate':
+        return const Color(0xFF455A64); // Slate Gray
+
+      case 'classic':
+      default:
+        return const Color(0xFF054C78);
     }
   }
 
   static ThemeData _applyFont(ThemeData theme, String? fontFamily) {
     final isDark = theme.brightness == Brightness.dark;
-    
+
     final baseTextTheme = TextTheme(
       headlineLarge: TextStyle(
         fontSize: 32,
@@ -210,7 +225,7 @@ class AppTheme {
         textTheme: GoogleFonts.poppinsTextTheme(baseTextTheme),
       );
     }
-    
+
     TextTheme newTextTheme;
     switch (fontFamily) {
       case 'Roboto':
@@ -234,7 +249,7 @@ class AppTheme {
       default:
         newTextTheme = GoogleFonts.poppinsTextTheme(baseTextTheme);
     }
-    
+
     return theme.copyWith(textTheme: newTextTheme);
   }
 }

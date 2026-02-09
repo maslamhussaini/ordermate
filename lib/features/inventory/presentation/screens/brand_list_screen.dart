@@ -8,7 +8,6 @@ import 'package:ordermate/core/widgets/batch_import_dialog.dart';
 import 'package:ordermate/features/inventory/domain/entities/brand.dart';
 import 'package:ordermate/features/inventory/presentation/providers/inventory_provider.dart';
 
-
 class BrandListScreen extends ConsumerStatefulWidget {
   const BrandListScreen({super.key});
 
@@ -19,7 +18,7 @@ class BrandListScreen extends ConsumerStatefulWidget {
 class _BrandListScreenState extends ConsumerState<BrandListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  
+
   @override
   void initState() {
     super.initState();
@@ -70,7 +69,9 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
   Future<void> _removeDuplicates() async {
     final brands = ref.read(inventoryProvider).brands;
     if (brands.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No brands to check.')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('No brands to check.')));
       return;
     }
 
@@ -101,14 +102,16 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Remove Duplicates?'),
-        content: Text('Found ${duplicates.length} duplicate entries based on Name.\n\nAre you sure you want to delete them?'),
+        content: Text(
+            'Found ${duplicates.length} duplicate entries based on Name.\n\nAre you sure you want to delete them?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Delete Duplicates'),
           ),
@@ -123,7 +126,7 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
       ImportProgress(total: duplicates.length),
     );
     var isCancelled = false;
-    
+
     if (!mounted) return;
 
     showDialog(
@@ -146,20 +149,22 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
       if (isCancelled) break;
 
       try {
-        await ref.read(inventoryProvider.notifier).deleteBrand(duplicates[i].id);
+        await ref
+            .read(inventoryProvider.notifier)
+            .deleteBrand(duplicates[i].id);
         successCount++;
       } catch (e) {
         debugPrint('Failed to delete duplicate ${duplicates[i].name}: $e');
         failCount++;
       }
-      
+
       progressNotifier.value = ImportProgress(
         total: duplicates.length,
         processed: i + 1,
         success: successCount,
         failed: failCount,
       );
-      
+
       await Future.delayed(Duration.zero);
     }
 
@@ -168,12 +173,14 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) Navigator.of(context, rootNavigator: true).pop();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isCancelled 
-            ? 'Deletion Cancelled' 
-            : 'Removed $successCount duplicates. ($failCount failed)',),
+          content: Text(
+            isCancelled
+                ? 'Deletion Cancelled'
+                : 'Removed $successCount duplicates. ($failCount failed)',
+          ),
           backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
         ),
       );
@@ -235,8 +242,9 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
       final headers = [
         ['Name'],
       ];
-      final path = await CsvService().saveCsvFile('brand_template.csv', headers);
-       if (path != null && mounted) {
+      final path =
+          await CsvService().saveCsvFile('brand_template.csv', headers);
+      if (path != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Template saved to $path')),
         );
@@ -256,10 +264,12 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
       if (rows == null || rows.isEmpty) return;
 
       var startIndex = 0;
-      if (rows.isNotEmpty && rows[0].isNotEmpty && rows[0][0].toString().toLowerCase() == 'name') {
+      if (rows.isNotEmpty &&
+          rows[0].isNotEmpty &&
+          rows[0][0].toString().toLowerCase() == 'name') {
         startIndex = 1;
       }
-      
+
       final totalRecords = rows.length - startIndex;
       if (totalRecords <= 0) return;
 
@@ -269,9 +279,11 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
 
       var isCancelled = false;
 
-      final existing = ref.read(inventoryProvider).brands
-        .map((e) => e.name.toLowerCase().trim())
-        .toSet();
+      final existing = ref
+          .read(inventoryProvider)
+          .brands
+          .map((e) => e.name.toLowerCase().trim())
+          .toSet();
 
       if (!mounted) return;
 
@@ -282,8 +294,8 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
           title: 'Importing Brands',
           progressNotifier: progressNotifier,
           onStop: () {
-             isCancelled = true;
-             Navigator.of(context).pop();
+            isCancelled = true;
+            Navigator.of(context).pop();
           },
         ),
       );
@@ -293,20 +305,20 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
         var failCount = 0;
         var duplicateCount = 0;
         var processedCount = 0;
-        
+
         for (var i = startIndex; i < rows.length; i++) {
           if (isCancelled) break;
-          
+
           final row = rows[i];
           if (row.isEmpty) {
-             processedCount++;
-             progressNotifier.value = ImportProgress(
-                total: totalRecords,
-                processed: processedCount,
-                success: successCount,
-                failed: failCount,
-             );
-             continue;
+            processedCount++;
+            progressNotifier.value = ImportProgress(
+              total: totalRecords,
+              processed: processedCount,
+              success: successCount,
+              failed: failCount,
+            );
+            continue;
           }
 
           try {
@@ -325,38 +337,37 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
             failCount++;
           }
           processedCount++;
-          
+
           progressNotifier.value = ImportProgress(
-             total: totalRecords,
-             processed: processedCount,
-             success: successCount,
-             failed: failCount,
-             duplicate: duplicateCount,
+            total: totalRecords,
+            processed: processedCount,
+            success: successCount,
+            failed: failCount,
+            duplicate: duplicateCount,
           );
-          
+
           await Future.delayed(const Duration(milliseconds: 10));
         }
-        
+
         if (mounted) {
           if (!isCancelled) {
-             await Future.delayed(const Duration(milliseconds: 800));
-             if (mounted) Navigator.of(context, rootNavigator: true).pop();
+            await Future.delayed(const Duration(milliseconds: 800));
+            if (mounted) Navigator.of(context, rootNavigator: true).pop();
           }
-           
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isCancelled 
-                ? 'Import Cancelled' 
-                : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',),
+              content: Text(
+                isCancelled
+                    ? 'Import Cancelled'
+                    : 'Import Complete: $successCount added, $duplicateCount duplicates, $failCount failed',
+              ),
               backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
             ),
           );
           ref.read(inventoryProvider.notifier).loadBrands();
         }
       });
-      
-
-
     } catch (e) {
       if (mounted) {
         Navigator.of(context).maybePop();
@@ -366,6 +377,7 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(inventoryProvider);
@@ -439,8 +451,11 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.branding_watermark_rounded,
-                                    size: 64, color: Colors.grey.shade400,),
+                                Icon(
+                                  Icons.branding_watermark_rounded,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   brands.isEmpty
@@ -525,7 +540,8 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               OutlinedButton.icon(
-                onPressed: () => context.push('/inventory/brands/edit/${brand.id}'),
+                onPressed: () =>
+                    context.push('/inventory/brands/edit/${brand.id}'),
                 icon: const Icon(Icons.edit, size: 18),
                 label: const Text('Edit'),
                 style: OutlinedButton.styleFrom(

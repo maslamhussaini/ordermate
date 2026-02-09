@@ -11,10 +11,12 @@ class UnitOfMeasureFormScreen extends ConsumerStatefulWidget {
   const UnitOfMeasureFormScreen({super.key, this.uomId});
 
   @override
-  ConsumerState<UnitOfMeasureFormScreen> createState() => _UnitOfMeasureFormScreenState();
+  ConsumerState<UnitOfMeasureFormScreen> createState() =>
+      _UnitOfMeasureFormScreenState();
 }
 
-class _UnitOfMeasureFormScreenState extends ConsumerState<UnitOfMeasureFormScreen> {
+class _UnitOfMeasureFormScreenState
+    extends ConsumerState<UnitOfMeasureFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _symbolController = TextEditingController();
@@ -34,9 +36,10 @@ class _UnitOfMeasureFormScreenState extends ConsumerState<UnitOfMeasureFormScree
     if (id == null) return;
 
     final uom = ref.read(inventoryProvider).unitsOfMeasure.firstWhere(
-      (u) => u.id == id,
-      orElse: () => const UnitOfMeasure(id: 0, name: '', symbol: '', organizationId: 0),
-    );
+          (u) => u.id == id,
+          orElse: () => const UnitOfMeasure(
+              id: 0, name: '', symbol: '', organizationId: 0),
+        );
     if (uom.id != 0) {
       _nameController.text = uom.name;
       _symbolController.text = uom.symbol;
@@ -64,7 +67,8 @@ class _UnitOfMeasureFormScreenState extends ConsumerState<UnitOfMeasureFormScree
         name: _nameController.text.trim(),
         symbol: _symbolController.text.trim(),
         isDecimalAllowed: _isDecimalAllowed,
-        organizationId: ref.read(organizationProvider).selectedOrganizationId ?? 0,
+        organizationId:
+            ref.read(organizationProvider).selectedOrganizationId ?? 0,
       );
 
       if (widget.uomId == null) {
@@ -72,7 +76,7 @@ class _UnitOfMeasureFormScreenState extends ConsumerState<UnitOfMeasureFormScree
       } else {
         await ref.read(inventoryProvider.notifier).updateUnitOfMeasure(uom);
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Unit saved successfully')),
@@ -94,7 +98,9 @@ class _UnitOfMeasureFormScreenState extends ConsumerState<UnitOfMeasureFormScree
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.uomId == null ? 'New Unit of Measure' : 'Edit Unit of Measure'),
+        title: Text(widget.uomId == null
+            ? 'New Unit of Measure'
+            : 'Edit Unit of Measure'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -145,8 +151,11 @@ class _UnitOfMeasureFormScreenState extends ConsumerState<UnitOfMeasureFormScree
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _saveUom,
-                  icon: _isLoading 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.save),
                   label: Text(_isLoading ? 'Saving...' : 'Save Unit'),
                   style: ElevatedButton.styleFrom(

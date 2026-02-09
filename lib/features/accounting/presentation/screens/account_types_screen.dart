@@ -17,7 +17,6 @@ class AccountTypesScreen extends ConsumerStatefulWidget {
 }
 
 class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
-
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -91,9 +90,15 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
   Future<void> _downloadTemplate() async {
     try {
       final headers = [
-        ['ID', 'Type Name', 'Status (1=Active, 0=Inactive)', 'Is System (1=Yes, 0=No)'],
+        [
+          'ID',
+          'Type Name',
+          'Status (1=Active, 0=Inactive)',
+          'Is System (1=Yes, 0=No)'
+        ],
       ];
-      final path = await CsvService().saveCsvFile('account_types_template.csv', headers);
+      final path =
+          await CsvService().saveCsvFile('account_types_template.csv', headers);
       if (path != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Template saved to $path')),
@@ -114,7 +119,9 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
       if (rows == null || rows.isEmpty) return;
 
       var startIndex = 0;
-      if (rows.isNotEmpty && rows[0].isNotEmpty && rows[0][0].toString().toLowerCase().contains('id')) {
+      if (rows.isNotEmpty &&
+          rows[0].isNotEmpty &&
+          rows[0][0].toString().toLowerCase().contains('id')) {
         startIndex = 1;
       }
 
@@ -125,7 +132,7 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
         ImportProgress(total: totalRecords),
       );
       var isCancelled = false;
-      
+
       if (!mounted) return;
 
       showDialog(
@@ -150,8 +157,10 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
         try {
           final id = int.tryParse(row[0].toString()) ?? 0;
           final name = row.length > 1 ? row[1].toString().trim() : '';
-          final status = row.length > 2 ? int.tryParse(row[2].toString()) == 1 : true;
-          final isSystem = row.length > 3 ? int.tryParse(row[3].toString()) == 1 : false;
+          final status =
+              row.length > 2 ? int.tryParse(row[2].toString()) == 1 : true;
+          final isSystem =
+              row.length > 3 ? int.tryParse(row[3].toString()) == 1 : false;
 
           if (name.isNotEmpty) {
             importList.add(AccountType(
@@ -159,16 +168,19 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
               typeName: name,
               status: status,
               isSystem: isSystem,
-              organizationId: ref.read(organizationProvider).selectedOrganizationId ?? 0,
+              organizationId:
+                  ref.read(organizationProvider).selectedOrganizationId ?? 0,
             ));
           }
         } catch (e) {
-           debugPrint('Row $i error: $e');
+          debugPrint('Row $i error: $e');
         }
       }
 
       if (importList.isNotEmpty) {
-        await ref.read(accountingProvider.notifier).bulkAddAccountTypes(importList);
+        await ref
+            .read(accountingProvider.notifier)
+            .bulkAddAccountTypes(importList);
       }
 
       if (mounted && !isCancelled) {
@@ -176,13 +188,16 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
         if (mounted) {
           Navigator.of(context, rootNavigator: true).pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Import Complete: ${importList.length} types imported')),
+            SnackBar(
+                content: Text(
+                    'Import Complete: ${importList.length} types imported')),
           );
         }
       }
     } catch (e) {
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Import Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Import Error: $e')));
       }
     }
   }
@@ -219,10 +234,13 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
                         decoration: InputDecoration(
                           hintText: 'Search account types...',
                           prefixIcon: const Icon(Icons.search),
-                          suffixIcon: _searchQuery.isNotEmpty 
-                            ? IconButton(icon: const Icon(Icons.clear), onPressed: () => _searchController.clear())
-                            : null,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () => _searchController.clear())
+                              : null,
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -267,23 +285,27 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
                 const SizedBox(width: 8),
                 if (!type.isSystem)
                   FutureBuilder<bool>(
-                    future: ref.read(accountingRepositoryProvider).isAccountTypeUsed(type.id),
-                    builder: (context, snapshot) {
-                      final isUsed = snapshot.data ?? true;
-                      if (isUsed) return const SizedBox.shrink();
-                      return IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () => _confirmDelete(type),
-                      );
-                    }
-                  ),
+                      future: ref
+                          .read(accountingRepositoryProvider)
+                          .isAccountTypeUsed(type.id),
+                      builder: (context, snapshot) {
+                        final isUsed = snapshot.data ?? true;
+                        if (isUsed) return const SizedBox.shrink();
+                        return IconButton(
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.red),
+                          onPressed: () => _confirmDelete(type),
+                        );
+                      }),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
-                  onPressed: () => context.push('/accounting/account-types/edit/${type.id}'),
+                  onPressed: () =>
+                      context.push('/accounting/account-types/edit/${type.id}'),
                 ),
               ],
             ),
-            onTap: () => context.push('/accounting/account-types/edit/${type.id}'),
+            onTap: () =>
+                context.push('/accounting/account-types/edit/${type.id}'),
           ),
         );
       },
@@ -297,9 +319,11 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
         title: const Text('Confirm Delete'),
         content: Text('Delete Account Type "${type.typeName}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
-            onPressed: () => Navigator.pop(context, true), 
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
@@ -311,11 +335,13 @@ class _AccountTypesScreenState extends ConsumerState<AccountTypesScreen> {
       try {
         await ref.read(accountingProvider.notifier).deleteAccountType(type.id);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account type deleted')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Account type deleted')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       }
     }

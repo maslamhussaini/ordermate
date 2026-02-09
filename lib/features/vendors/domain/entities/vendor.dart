@@ -91,4 +91,3 @@ class Vendor extends Equatable {
         updatedAt,
       ];
 }
-

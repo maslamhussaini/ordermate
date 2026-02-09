@@ -160,7 +160,9 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
     final partners = ref.read(businessPartnerProvider).employees;
 
     try {
-      final employee = partners.cast<BusinessPartner>().firstWhere((c) => c.id == widget.employeeId);
+      final employee = partners
+          .cast<BusinessPartner>()
+          .firstWhere((c) => c.id == widget.employeeId);
       _nameController.text = employee.name;
       _contactPersonController.text = employee.contactPerson ?? '';
       _phoneController.text = employee.phone;
@@ -379,10 +381,12 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (_hasAppAccess && _selectedRoleId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an Employee Role to grant application access')),
+        const SnackBar(
+            content: Text(
+                'Please select an Employee Role to grant application access')),
       );
       return;
     }
@@ -421,15 +425,19 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
         isActive: true,
         organizationId: orgState.selectedOrganization?.id ?? 0,
         storeId: orgState.selectedStore?.id ?? 0,
-        password: _passwordController.text.trim().isEmpty ? null : _passwordController.text.trim(),
+        password: _passwordController.text.trim().isEmpty
+            ? null
+            : _passwordController.text.trim(),
       );
 
       if (widget.employeeId == null) {
         await ref.read(businessPartnerProvider.notifier).addPartner(partner);
-        await _handleAppUserSync(partner.id, partner.organizationId, partner.storeId);
+        await _handleAppUserSync(
+            partner.id, partner.organizationId, partner.storeId);
       } else {
         await ref.read(businessPartnerProvider.notifier).updatePartner(partner);
-        await _handleAppUserSync(partner.id, partner.organizationId, partner.storeId);
+        await _handleAppUserSync(
+            partner.id, partner.organizationId, partner.storeId);
       }
       if (mounted) context.pop();
     } catch (e) {
@@ -442,7 +450,8 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
     }
   }
 
-  Future<void> _handleAppUserSync(String partnerId, int? organizationId, int storeId) async {
+  Future<void> _handleAppUserSync(
+      String partnerId, int? organizationId, int storeId) async {
     if (_hasAppAccess) {
       if (_selectedRoleId == null || _emailController.text.isEmpty) return;
       if (_existingAppUser == null) {
@@ -572,7 +581,10 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                 label: 'Employee Role',
                                 value: _selectedRoleId,
                                 items: ref.watch(businessPartnerProvider).roles,
-                                validationError: (_hasAppAccess && _selectedRoleId == null) ? 'Role is required for app access' : null,
+                                validationError:
+                                    (_hasAppAccess && _selectedRoleId == null)
+                                        ? 'Role is required for app access'
+                                        : null,
                                 onChanged: (v) =>
                                     setState(() => _selectedRoleId = v),
                                 labelBuilder: (item) =>
@@ -601,19 +613,20 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                 keyboardType: TextInputType.phone,
                               ),
                               const SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _emailController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Email',
-                                      prefixIcon: Icon(Icons.email)),
-                                  keyboardType: TextInputType.emailAddress,
-                                  validator: (v) {
-                                    if (_hasAppAccess && (v == null || v.isEmpty)) {
-                                      return 'Email is required for app access';
-                                    }
-                                    return null;
-                                  },
-                                ),
+                              TextFormField(
+                                controller: _emailController,
+                                decoration: const InputDecoration(
+                                    labelText: 'Email',
+                                    prefixIcon: Icon(Icons.email)),
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (v) {
+                                  if (_hasAppAccess &&
+                                      (v == null || v.isEmpty)) {
+                                    return 'Email is required for app access';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ],
                           ),
                         ),
@@ -626,15 +639,19 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                             children: [
                               SwitchListTile(
                                 title: const Text('Grant Application Access'),
-                                subtitle: Text(_hasAppAccess 
-                                  ? 'An invitation email will be sent to the employee' 
-                                  : 'Allow this employee to log in to the application'),
+                                subtitle: Text(_hasAppAccess
+                                    ? 'An invitation email will be sent to the employee'
+                                    : 'Allow this employee to log in to the application'),
                                 value: _hasAppAccess,
-                                activeThumbColor: Theme.of(context).primaryColor,
+                                activeThumbColor:
+                                    Theme.of(context).primaryColor,
                                 onChanged: (val) {
-                                  if (val && _emailController.text.trim().isEmpty) {
+                                  if (val &&
+                                      _emailController.text.trim().isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Please provide an email address for app access')),
+                                      const SnackBar(
+                                          content: Text(
+                                              'Please provide an email address for app access')),
                                     );
                                   }
                                   setState(() {
@@ -648,7 +665,9 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
                                   decoration: InputDecoration(
-                                    labelText: _existingAppUser == null ? 'Password' : 'Change Password (optional)',
+                                    labelText: _existingAppUser == null
+                                        ? 'Password'
+                                        : 'Change Password (optional)',
                                     hintText: 'Minimum 6 characters',
                                     border: const OutlineInputBorder(),
                                     suffixIcon: Row(
@@ -659,15 +678,19 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                               ? Icons.visibility
                                               : Icons.visibility_off),
                                           onPressed: () => setState(() =>
-                                              _obscurePassword = !_obscurePassword),
+                                              _obscurePassword =
+                                                  !_obscurePassword),
                                         ),
                                         IconButton(
                                           icon: const Icon(Icons.refresh),
                                           tooltip: 'Generate Random Password',
                                           onPressed: () {
-                                            final randomPass = const Uuid().v4().substring(0, 8);
+                                            final randomPass = const Uuid()
+                                                .v4()
+                                                .substring(0, 8);
                                             setState(() {
-                                              _passwordController.text = randomPass;
+                                              _passwordController.text =
+                                                  randomPass;
                                               _obscurePassword = false;
                                             });
                                           },
@@ -676,10 +699,15 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                     ),
                                   ),
                                   validator: (v) {
-                                    if (_hasAppAccess && _existingAppUser == null && (v == null || v.isEmpty)) {
+                                    if (_hasAppAccess &&
+                                        _existingAppUser == null &&
+                                        (v == null || v.isEmpty)) {
                                       return 'Password is required for new app access';
                                     }
-                                    if (_hasAppAccess && v != null && v.isNotEmpty && v.length < 6) {
+                                    if (_hasAppAccess &&
+                                        v != null &&
+                                        v.isNotEmpty &&
+                                        v.length < 6) {
                                       return 'Password must be at least 6 characters';
                                     }
                                     return null;
@@ -791,7 +819,8 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                 Padding(
                                   padding: const EdgeInsets.all(8),
                                   child: Text(_locationError!,
-                                      style: const TextStyle(color: Colors.red, fontSize: 12)),
+                                      style: const TextStyle(
+                                          color: Colors.red, fontSize: 12)),
                                 ),
                               if (_matchedAddress != null)
                                 Padding(
@@ -805,16 +834,21 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton(
-                        onPressed: (_isSubmitting || _isLoading) ? null : _submitForm,
+                        onPressed:
+                            (_isSubmitting || _isLoading) ? null : _submitForm,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                           backgroundColor: Theme.of(context).primaryColor,
                           foregroundColor: Colors.white,
                         ),
-                        child: _isSubmitting 
-                          ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                          : Text(widget.employeeId == null ? 'Create Employee' : 'Save Changes'),
+                        child: _isSubmitting
+                            ? const CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2)
+                            : Text(widget.employeeId == null
+                                ? 'Create Employee'
+                                : 'Save Changes'),
                       ),
                     ],
                   ),

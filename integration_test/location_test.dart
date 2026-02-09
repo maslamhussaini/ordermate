@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -24,19 +23,21 @@ void main() {
 
     if (find.byType(DashboardScreen).evaluate().isNotEmpty) {
       // Logout
-       // Implementation depends on UI
+      // Implementation depends on UI
     }
 
     // 3. Login
     final emailFinder = find.widgetWithText(TextFormField, 'Email');
     final passwordFinder = find.widgetWithText(TextFormField, 'Password');
-    final loginBtnFinder = find.widgetWithText(ElevatedButton, 'Sign In'); // Or Login
+    final loginBtnFinder =
+        find.widgetWithText(ElevatedButton, 'Sign In'); // Or Login
 
     if (emailFinder.evaluate().isNotEmpty) {
       await tester.enterText(emailFinder, 'maslamhussaini@gmail.com');
       await tester.enterText(passwordFinder, '@Dmin12345');
       await tester.tap(loginBtnFinder);
-      await tester.pumpAndSettle(const Duration(seconds: 5)); // Wait for async login & location
+      await tester.pumpAndSettle(
+          const Duration(seconds: 5)); // Wait for async login & location
     }
 
     // 4. Handle Context Selection (if it appears)
@@ -47,13 +48,13 @@ void main() {
     }
 
     // 5. Navigate to Orders -> Create
-    // Drawer -> Orders -> Floating Action Button? 
+    // Drawer -> Orders -> Floating Action Button?
     // Or Dashboard -> Floating Action Button?
-    
+
     // Open Drawer
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
-    
+
     // Tap Orders
     await tester.tap(find.text('Orders'));
     await tester.pumpAndSettle();
@@ -66,12 +67,11 @@ void main() {
     // Customer Selection (Might likely be empty if no customers? Need to select one)
     // This is tricky if no data exists.
     // Assuming data exists.
-    
+
     // Just verify the flow opens.
     expect(find.byType(CreateOrderScreen), findsOneWidget);
 
     // If we can't easily auto-drive the full form without known data (Customer),
     // we stop here and confirm "Location logic matches".
-    
   });
 }

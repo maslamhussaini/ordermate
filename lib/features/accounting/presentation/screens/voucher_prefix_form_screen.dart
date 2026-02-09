@@ -12,10 +12,12 @@ class VoucherPrefixFormScreen extends ConsumerStatefulWidget {
   const VoucherPrefixFormScreen({super.key, this.prefixId});
 
   @override
-  ConsumerState<VoucherPrefixFormScreen> createState() => _VoucherPrefixFormScreenState();
+  ConsumerState<VoucherPrefixFormScreen> createState() =>
+      _VoucherPrefixFormScreenState();
 }
 
-class _VoucherPrefixFormScreenState extends ConsumerState<VoucherPrefixFormScreen> {
+class _VoucherPrefixFormScreenState
+    extends ConsumerState<VoucherPrefixFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _prefixCodeController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -27,7 +29,9 @@ class _VoucherPrefixFormScreenState extends ConsumerState<VoucherPrefixFormScree
   void initState() {
     super.initState();
     if (widget.prefixId != null) {
-      final prefix = ref.read(accountingProvider).voucherPrefixes
+      final prefix = ref
+          .read(accountingProvider)
+          .voucherPrefixes
           .where((p) => p.id == widget.prefixId)
           .firstOrNull;
       if (prefix != null) {
@@ -53,7 +57,7 @@ class _VoucherPrefixFormScreenState extends ConsumerState<VoucherPrefixFormScree
     setState(() => _isLoading = true);
     try {
       final orgId = ref.read(organizationProvider).selectedOrganization?.id;
-      
+
       final prefix = VoucherPrefix(
         id: widget.prefixId ?? 0,
         prefixCode: _prefixCodeController.text.trim().toUpperCase(),
@@ -69,7 +73,7 @@ class _VoucherPrefixFormScreenState extends ConsumerState<VoucherPrefixFormScree
       } else {
         await notifier.updateVoucherPrefix(prefix, organizationId: orgId);
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Voucher prefix saved successfully')),
@@ -91,7 +95,9 @@ class _VoucherPrefixFormScreenState extends ConsumerState<VoucherPrefixFormScree
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.prefixId == null ? 'Add Voucher Prefix' : 'Edit Voucher Prefix'),
+        title: Text(widget.prefixId == null
+            ? 'Add Voucher Prefix'
+            : 'Edit Voucher Prefix'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -108,7 +114,8 @@ class _VoucherPrefixFormScreenState extends ConsumerState<VoucherPrefixFormScree
                         hintText: 'e.g. INV, PV, RV, JV',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -118,7 +125,8 @@ class _VoucherPrefixFormScreenState extends ConsumerState<VoucherPrefixFormScree
                         hintText: 'e.g. SALES INVOICE, PAYMENT VOUCHER',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     TextFormField(

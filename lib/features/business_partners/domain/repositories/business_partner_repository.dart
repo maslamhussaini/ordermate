@@ -10,16 +10,16 @@ abstract class BusinessPartnerRepository {
     int? storeId,
     int? organizationId,
   });
-  
+
   Future<BusinessPartner> createPartner(BusinessPartner partner);
   Future<int> createPartners(List<BusinessPartner> partners);
   Future<void> updatePartner(BusinessPartner partner);
   Future<void> deletePartner(String id);
-  
+
   Future<BusinessPartner?> getPartnerById(String id);
-  
+
   Future<List<Map<String, dynamic>>> searchBusinessTypes(String query);
-  
+
   Future<List<Map<String, dynamic>>> getBusinessTypes();
   Future<void> addBusinessType(String name);
 
@@ -31,9 +31,12 @@ abstract class BusinessPartnerRepository {
 
   Future<List<Map<String, dynamic>>> getCountries();
   Future<void> addCountry(String name);
-  
+
   Future<List<Map<String, dynamic>>> getRoles({int? organizationId});
-  Future<void> addRole(String name, int organizationId, int? departmentId, {
+  Future<void> addRole(
+    String name,
+    int organizationId,
+    int? departmentId, {
     bool canRead = false,
     bool canWrite = false,
     bool canEdit = false,
@@ -41,7 +44,10 @@ abstract class BusinessPartnerRepository {
     int? storeId,
     int? syear,
   });
-  Future<void> updateRole(int id, String name, int? departmentId, {
+  Future<void> updateRole(
+    int id,
+    String name,
+    int? departmentId, {
     bool canRead = false,
     bool canWrite = false,
     bool canEdit = false,
@@ -60,7 +66,7 @@ abstract class BusinessPartnerRepository {
     required int storeId,
     String? password,
   });
-  
+
   Future<AppUser?> getAppUser(String partnerId);
   Future<List<AppUser>> getAppUsers(int organizationId);
   Future<void> updateAppUser(AppUser user, {String? password});
@@ -71,14 +77,18 @@ abstract class BusinessPartnerRepository {
   Future<void> deleteDepartment(int id);
 
   Future<List<Map<String, dynamic>>> getAppForms();
-  Future<List<Map<String, dynamic>>> getFormPrivileges({int? roleId, String? employeeId});
+  Future<List<Map<String, dynamic>>> getFormPrivileges(
+      {int? roleId, String? employeeId});
   Future<void> saveBatchFormPrivileges(List<Map<String, dynamic>> privileges);
 
   // Store Access Methods
   Future<List<int>> getRoleStoreAccess(int roleId);
-  Future<void> saveRoleStoreAccess(int roleId, List<int> storeIds, int organizationId);
+  Future<void> saveRoleStoreAccess(
+      int roleId, List<int> storeIds, int organizationId);
   Future<List<int>> getUserStoreAccess(String employeeId);
-  Future<void> saveUserStoreAccess(String employeeId, List<int> storeIds, int organizationId);
-  
-  Future<void> sendEmployeeCredentials(BusinessPartner employee, String password);
+  Future<void> saveUserStoreAccess(
+      String employeeId, List<int> storeIds, int organizationId);
+
+  Future<void> sendEmployeeCredentials(
+      BusinessPartner employee, String password);
 }

@@ -49,12 +49,12 @@ class _ProductDebugScreenState extends ConsumerState<ProductDebugScreen> {
 
   Future<void> _runDiagnostics() async {
     _addLog('Starting Diagnostics...');
-    
+
     final orgState = ref.read(organizationProvider);
     _addLog('Current Org ID: ${orgState.selectedOrganizationId}');
     _addLog('Current Org Name: ${orgState.selectedOrganization?.name}');
     _addLog('Current Store ID: ${orgState.selectedStoreId}');
-    
+
     _addLog('Triggering Inventory Load...');
     try {
       await ref.read(inventoryProvider.notifier).loadAll();
@@ -65,8 +65,11 @@ class _ProductDebugScreenState extends ConsumerState<ProductDebugScreen> {
 
     _addLog('Triggering Accounting Load...');
     try {
-      await ref.read(accountingProvider.notifier).loadAll(organizationId: orgState.selectedOrganizationId);
-      _addLog('Accounting Load Finished. GL Setup: ${ref.read(accountingProvider).glSetup != null ? 'Found' : 'Not Found'}');
+      await ref
+          .read(accountingProvider.notifier)
+          .loadAll(organizationId: orgState.selectedOrganizationId);
+      _addLog(
+          'Accounting Load Finished. GL Setup: ${ref.read(accountingProvider).glSetup != null ? 'Found' : 'Not Found'}');
     } catch (e) {
       _addLog('Accounting Load Error: $e');
     }
@@ -124,37 +127,43 @@ class _ProductDebugScreenState extends ConsumerState<ProductDebugScreen> {
                 child: SingleChildScrollView(
                   child: Text(
                     _logString,
-                    style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontFamily: 'monospace'),
+                    style: const TextStyle(
+                        color: Colors.greenAccent,
+                        fontSize: 12,
+                        fontFamily: 'monospace'),
                   ),
                 ),
               ),
             ]),
-
             const SizedBox(height: 20),
-            
             _buildSection('Inventory Summary', [
               _buildCountRow('Categories', inventoryState.categories.length),
               _buildCountRow('Brands', inventoryState.brands.length),
-              _buildCountRow('Product Types', inventoryState.productTypes.length),
+              _buildCountRow(
+                  'Product Types', inventoryState.productTypes.length),
               _buildCountRow('UOMs', inventoryState.unitsOfMeasure.length),
             ]),
-
             _buildSection('Vendors & Partners Summary', [
-              _buildCountRow('Suppliers (is_supplier=1)', vendorState.suppliers.length),
-              _buildCountRow('Vendors (is_vendor=1)', vendorState.vendors.length),
-              _buildCountRow('Total Loaded (Union)', (<dynamic>{...vendorState.vendors, ...vendorState.suppliers}.length)),
+              _buildCountRow(
+                  'Suppliers (is_supplier=1)', vendorState.suppliers.length),
+              _buildCountRow(
+                  'Vendors (is_vendor=1)', vendorState.vendors.length),
+              _buildCountRow(
+                  'Total Loaded (Union)',
+                  (<dynamic>{...vendorState.vendors, ...vendorState.suppliers}
+                      .length)),
             ]),
-
             _buildSection('Accounting Summary', [
               _buildCountRow('Accounts', accountingState.accounts.length),
-              _buildCountRow('Financial Sessions', accountingState.financialSessions.length),
-              _buildCountRow('GLsetup Exists (1=Yes, 0=No)', accountingState.glSetup != null ? 1 : 0),
+              _buildCountRow('Financial Sessions',
+                  accountingState.financialSessions.length),
+              _buildCountRow('GLsetup Exists (1=Yes, 0=No)',
+                  accountingState.glSetup != null ? 1 : 0),
             ]),
-
             const Divider(height: 40),
-
             _buildSection('Test Interactive Field', [
-              const Text('These fields use the same logic as the Product Form:', style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+              const Text('These fields use the same logic as the Product Form:',
+                  style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
               const SizedBox(height: 8),
               LookupField<ProductCategory, int>(
                 label: 'Category (Test)',
@@ -168,82 +177,103 @@ class _ProductDebugScreenState extends ConsumerState<ProductDebugScreen> {
               const SizedBox(height: 10),
               if (accountingState.accounts.isNotEmpty)
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'GL Account (Test)', border: OutlineInputBorder()),
-                  items: accountingState.accounts.take(10).map((a) => DropdownMenuItem(
-                    value: a.id,
-                    child: Text('${a.accountCode} - ${a.accountTitle}', overflow: TextOverflow.ellipsis),
-                  )).toList(),
+                  decoration: const InputDecoration(
+                      labelText: 'GL Account (Test)',
+                      border: OutlineInputBorder()),
+                  items: accountingState.accounts
+                      .take(10)
+                      .map((a) => DropdownMenuItem(
+                            value: a.id,
+                            child: Text('${a.accountCode} - ${a.accountTitle}',
+                                overflow: TextOverflow.ellipsis),
+                          ))
+                      .toList(),
                   onChanged: (v) {},
                 )
               else
-                const Text('No GL Accounts found in provider.', style: TextStyle(color: Colors.red)),
+                const Text('No GL Accounts found in provider.',
+                    style: TextStyle(color: Colors.red)),
             ]),
-
             const Divider(height: 40),
-
             _buildSection('Test Create Product (Simplified)', [
-              const Text('Use this to verify if you can save a product ignoring the main form UI.', style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+              const Text(
+                  'Use this to verify if you can save a product ignoring the main form UI.',
+                  style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
               const SizedBox(height: 10),
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Test Name (Required)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                    labelText: 'Test Name (Required)',
+                    border: OutlineInputBorder()),
               ),
               const SizedBox(height: 10),
               TextField(
-                 controller: _skuController,
-                 decoration: const InputDecoration(labelText: 'Test SKU (Required)', border: OutlineInputBorder()),
+                controller: _skuController,
+                decoration: const InputDecoration(
+                    labelText: 'Test SKU (Required)',
+                    border: OutlineInputBorder()),
               ),
               const SizedBox(height: 10),
               TextField(
-                 controller: _priceController,
-                 decoration: const InputDecoration(labelText: 'Test Price', border: OutlineInputBorder()),
-                 keyboardType: TextInputType.number,
+                controller: _priceController,
+                decoration: const InputDecoration(
+                    labelText: 'Test Price', border: OutlineInputBorder()),
+                keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 icon: const Icon(Icons.save),
                 label: const Text('Try Login & Save'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white),
                 onPressed: () async {
-                   if (_nameController.text.isEmpty || _skuController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name and SKU required')));
-                      return;
-                   }
-                   
-                   _addLog('Attempting to save test product...');
-                   try {
-                     final orgState = ref.read(organizationProvider);
-                     // Create a minimal product
-                     final p = Product(
-                       id: '',
-                       name: _nameController.text,
-                       sku: _skuController.text,
-                       rate: double.tryParse(_priceController.text) ?? 10.0,
-                       cost: 5.0,
-                       categoryId: _selectedCategoryId, 
-                       // Minimal required fields
-                       storeId: orgState.selectedStoreId ?? 0,
-                       organizationId: orgState.selectedOrganizationId ?? 0,
-                       createdAt: DateTime.now(),
-                       updatedAt: DateTime.now(),
-                     );
-                     
-                     await ref.read(productProvider.notifier).addProduct(p);
-                     _addLog('SUCCESS: Product saved!');
-                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved successfully! Check Product List.')));
-                   } catch (e) {
-                     _addLog('FAILURE: Save failed: $e');
-                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
-                   }
+                  if (_nameController.text.isEmpty ||
+                      _skuController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Name and SKU required')));
+                    return;
+                  }
+
+                  _addLog('Attempting to save test product...');
+                  try {
+                    final orgState = ref.read(organizationProvider);
+                    // Create a minimal product
+                    final p = Product(
+                      id: '',
+                      name: _nameController.text,
+                      sku: _skuController.text,
+                      rate: double.tryParse(_priceController.text) ?? 10.0,
+                      cost: 5.0,
+                      categoryId: _selectedCategoryId,
+                      // Minimal required fields
+                      storeId: orgState.selectedStoreId ?? 0,
+                      organizationId: orgState.selectedOrganizationId ?? 0,
+                      createdAt: DateTime.now(),
+                      updatedAt: DateTime.now(),
+                    );
+
+                    await ref.read(productProvider.notifier).addProduct(p);
+                    _addLog('SUCCESS: Product saved!');
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content:
+                            Text('Saved successfully! Check Product List.')));
+                  } catch (e) {
+                    _addLog('FAILURE: Save failed: $e');
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text('Failed: $e')));
+                  }
                 },
               ),
             ]),
-            
             const SizedBox(height: 20),
-            const Text('Detailed Categories:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Detailed Categories:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             if (inventoryState.categories.isEmpty)
-              const Text('No categories found.', style: TextStyle(color: Colors.red)),
-            ...inventoryState.categories.map((c) => Text('• ${c.name} (ID: ${c.id}, OrgID: ${c.organizationId})')),
+              const Text('No categories found.',
+                  style: TextStyle(color: Colors.red)),
+            ...inventoryState.categories.map((c) =>
+                Text('• ${c.name} (ID: ${c.id}, OrgID: ${c.organizationId})')),
           ],
         ),
       ),
@@ -254,7 +284,11 @@ class _ProductDebugScreenState extends ConsumerState<ProductDebugScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.indigo)),
+        Text(title,
+            style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo)),
         const SizedBox(height: 8),
         ...children,
         const SizedBox(height: 20),
@@ -269,7 +303,8 @@ class _ProductDebugScreenState extends ConsumerState<ProductDebugScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label),
-          Text(count.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(count.toString(),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
     );

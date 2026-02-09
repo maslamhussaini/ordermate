@@ -6,8 +6,9 @@ class SessionState {
   final DateTime? loginTime;
 
   SessionState({this.loginLatitude, this.loginLongitude, this.loginTime});
-  
-  SessionState copyWith({double? loginLatitude, double? loginLongitude, DateTime? loginTime}) {
+
+  SessionState copyWith(
+      {double? loginLatitude, double? loginLongitude, DateTime? loginTime}) {
     return SessionState(
       loginLatitude: loginLatitude ?? this.loginLatitude,
       loginLongitude: loginLongitude ?? this.loginLongitude,
@@ -20,7 +21,8 @@ class SessionNotifier extends StateNotifier<SessionState> {
   SessionNotifier() : super(SessionState());
 
   void setLoginLocation(double lat, double lng) {
-    state = state.copyWith(loginLatitude: lat, loginLongitude: lng, loginTime: DateTime.now());
+    state = state.copyWith(
+        loginLatitude: lat, loginLongitude: lng, loginTime: DateTime.now());
   }
 
   void clear() {
@@ -28,6 +30,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
   }
 }
 
-final sessionProvider = StateNotifierProvider<SessionNotifier, SessionState>((ref) {
+final sessionProvider =
+    StateNotifierProvider<SessionNotifier, SessionState>((ref) {
   return SessionNotifier();
 });

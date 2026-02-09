@@ -25,19 +25,20 @@ class ProcessingDialog extends StatefulWidget {
   State<ProcessingDialog> createState() => _ProcessingDialogState();
 }
 
-class _ProcessingDialogState extends State<ProcessingDialog> with SingleTickerProviderStateMixin {
+class _ProcessingDialogState extends State<ProcessingDialog>
+    with SingleTickerProviderStateMixin {
   late String _message;
   bool _isSuccess = false;
   bool _isError = false;
-  
+
   @override
   void initState() {
     super.initState();
     _message = widget.initialMessage;
-    
+
     // Listen to message updates
     widget.messageNotifier?.addListener(_updateMessage);
-    
+
     _runTask();
   }
 
@@ -63,7 +64,7 @@ class _ProcessingDialogState extends State<ProcessingDialog> with SingleTickerPr
           _isSuccess = true;
           _message = widget.successMessage;
         });
-        
+
         // Wait and close
         await Future.delayed(widget.successDuration);
         if (mounted) {
@@ -76,7 +77,7 @@ class _ProcessingDialogState extends State<ProcessingDialog> with SingleTickerPr
           _isError = true;
           _message = '${widget.errorMessage}: $e';
         });
-        
+
         // Wait and close (longer for error)
         await Future.delayed(const Duration(seconds: 3));
         if (mounted) {
@@ -95,22 +96,22 @@ class _ProcessingDialogState extends State<ProcessingDialog> with SingleTickerPr
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-             BoxShadow(
-               color: Colors.black.withOpacity(0.2),
-               blurRadius: 10,
-               offset: const Offset(0, 4),
-             )
-          ]
-        ),
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
+            ]),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 500),
-              transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+              transitionBuilder: (child, anim) =>
+                  ScaleTransition(scale: anim, child: child),
               child: _buildIcon(),
             ),
             const SizedBox(height: 24),
@@ -137,7 +138,7 @@ class _ProcessingDialogState extends State<ProcessingDialog> with SingleTickerPr
         key: ValueKey('success'),
       );
     } else if (_isError) {
-       return const Icon(
+      return const Icon(
         Icons.error,
         color: Colors.red,
         size: 64,
@@ -150,7 +151,7 @@ class _ProcessingDialogState extends State<ProcessingDialog> with SingleTickerPr
         builder: (context, value, child) {
           // If value is 0 or indeterminate, show spinner, otherwise show progress
           // Actually user wants percentage, so if value is valid (>=0), show it.
-          // Let's assume passed 0.0 starts as 0%. 
+          // Let's assume passed 0.0 starts as 0%.
           return Stack(
             alignment: Alignment.center,
             children: [
@@ -166,7 +167,8 @@ class _ProcessingDialogState extends State<ProcessingDialog> with SingleTickerPr
               ),
               Text(
                 '${(value * 100).toInt()}%',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ],
           );

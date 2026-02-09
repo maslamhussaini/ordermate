@@ -42,7 +42,8 @@ class StepIndicator extends StatelessWidget {
                           boxShadow: isActive
                               ? [
                                   BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.3),
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   )
@@ -51,11 +52,14 @@ class StepIndicator extends StatelessWidget {
                         ),
                         child: Center(
                           child: isCompleted
-                              ? const Icon(Icons.check, color: Colors.white, size: 20)
+                              ? const Icon(Icons.check,
+                                  color: Colors.white, size: 20)
                               : Text(
                                   '${stepIndex + 1}',
                                   style: TextStyle(
-                                    color: isActive ? Colors.white : Colors.grey[600],
+                                    color: isActive
+                                        ? Colors.white
+                                        : Colors.grey[600],
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -67,8 +71,10 @@ class StepIndicator extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 10,
-                          color: isActive ? AppColors.primary : Colors.grey[600],
-                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                          color:
+                              isActive ? AppColors.primary : Colors.grey[600],
+                          fontWeight:
+                              isActive ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
                     ],

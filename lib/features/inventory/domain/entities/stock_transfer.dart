@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 
 class StockTransfer extends Equatable {
@@ -40,10 +39,23 @@ class StockTransfer extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, transferNumber, sourceStoreId, destinationStoreId, status, 
-    transferDate, createdBy, driverName, vehicleNumber, remarks, 
-    organizationId, sYear, createdAt, updatedAt, items, isSynced
-  ];
+        id,
+        transferNumber,
+        sourceStoreId,
+        destinationStoreId,
+        status,
+        transferDate,
+        createdBy,
+        driverName,
+        vehicleNumber,
+        remarks,
+        organizationId,
+        sYear,
+        createdAt,
+        updatedAt,
+        items,
+        isSynced
+      ];
 
   StockTransfer copyWith({
     String? id,
@@ -94,13 +106,13 @@ class StockTransferItem extends Equatable {
   final String uomSymbol;
 
   const StockTransferItem({
-     required this.id,
-     required this.transferId,
-     required this.productId,
-     required this.productName,
-     required this.quantity,
-     required this.uomId,
-     required this.uomSymbol,
+    required this.id,
+    required this.transferId,
+    required this.productId,
+    required this.productName,
+    required this.quantity,
+    required this.uomId,
+    required this.uomSymbol,
   });
 
   StockTransferItem copyWith({
@@ -124,8 +136,9 @@ class StockTransferItem extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, transferId, productId, productName, quantity, uomId, uomSymbol];
-  
+  List<Object?> get props =>
+      [id, transferId, productId, productName, quantity, uomId, uomSymbol];
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -137,7 +150,7 @@ class StockTransferItem extends Equatable {
       'uom_symbol': uomSymbol,
     };
   }
-  
+
   factory StockTransferItem.fromJson(Map<String, dynamic> json) {
     return StockTransferItem(
       id: json['id']?.toString() ?? '',
