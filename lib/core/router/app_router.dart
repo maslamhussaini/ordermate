@@ -134,6 +134,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final isExempt = location.startsWith('/onboarding') ||
               location == '/workspace-selection' ||
               location.startsWith('/organizations-list') ||
+              location.startsWith('/module-access') ||
               location == '/splash' ||
               location == '/login';
 
