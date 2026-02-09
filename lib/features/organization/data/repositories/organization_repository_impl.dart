@@ -29,10 +29,40 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
     }
 
     try {
-      final response = await SupabaseConfig.client
+      final user = SupabaseConfig.client.auth.currentUser;
+      if (user == null) return [];
+
+      // 1. Get User's Role & Org ID
+      final userData = await SupabaseConfig.client
+          .from('omtbl_users')
+          .select('role, organization_id')
+          .eq('auth_id', user.id)
+          .maybeSingle();
+      
+      final role = userData?['role'] as String?;
+      final orgId = userData?['organization_id'] as int?;
+      final isSuperUser = role?.toUpperCase() == 'SUPER USER';
+
+      // 2. Build Query
+      var query = SupabaseConfig.client
           .from('omtbl_organizations')
-          .select()
-          .order('name', ascending: true);
+          .select();
+      
+      // 3. Apply Filters
+      // Show only active organizations (unless Super User wants to see inactive ones? usually yes, but let's stick to active for selection)
+      // The requirement said "active = 1 or active = true".
+      query = query.eq('is_active', true);
+
+      if (!isSuperUser) {
+        if (orgId != null) {
+          query = query.eq('id', orgId);
+        } else {
+          // User has no org and is not super user -> return empty
+          return [];
+        }
+      }
+
+      final response = await query.order('name', ascending: true);
 
       final remoteOrgs = (response as List)
           .map((json) =>
