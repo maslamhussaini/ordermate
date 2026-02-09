@@ -182,6 +182,7 @@ class _OrganizationSetupScreenState
             'is_inventory': _isInventory,
             'is_hr': _isHR,
             'is_settings': _isSettings,
+            'auth_user_id': authResponse.user!.id,
           })
           .select()
           .single();

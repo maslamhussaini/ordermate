@@ -55,10 +55,12 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
 
       if (!isSuperUser) {
         if (orgId != null) {
-          query = query.eq('id', orgId);
+          // Check ownership OR assignment
+          // Note: OR logic in Supabase requires a string like "column.operator.value,column.operator.value"
+          query = query.or('auth_user_id.eq.${user.id},id.eq.$orgId');
         } else {
-          // User has no org and is not super user -> return empty
-          return [];
+          // Check only ownership
+          query = query.eq('auth_user_id', user.id);
         }
       }
 
