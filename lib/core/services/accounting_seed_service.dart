@@ -14,11 +14,7 @@ class AccountingSeedService {
       await _seedAccountTypesAndCategories(organizationId, data);
       await _seedChartOfAccounts(organizationId, data);
       await _seedGLSetup(organizationId, data);
-      // Roles and Privileges might be handled differently (system-wide vs org-specific roles),
-      // but if the table structure supports org-specific roles, we can seed them too.
-      // Based on previous conversations, roles might be shared or have an org_id. 
-      // The provided JSON includes roles, let's see if we should insert them.
-      // For now, I'll focus on Accounting as requested ("Import Default Chart of Accounts").
+      await _seedRolesAndPrivileges(organizationId, data);
       
       debugPrint('Accounting seeding completed for Org ID: $organizationId');
     } catch (e) {
@@ -173,6 +169,92 @@ class AccountingSeedService {
     // Actually, create usually requires them.
     // If null, we might have issues.
     
-    await SupabaseConfig.client.from('omtbl_gl_setup').insert(insertData);
+      await SupabaseConfig.client.from('omtbl_gl_setup').insert(insertData);
+    }
+  }
+
+  Future<void> _seedRolesAndPrivileges(int orgId, Map<String, dynamic> data) async {
+    if (!data.containsKey('roles') || !data.containsKey('role_privileges')) {
+      return;
+    }
+
+    final roles = List<Map<String, dynamic>>.from(data['roles']);
+    final privileges = List<Map<String, dynamic>>.from(data['role_privileges']);
+
+    // 1. Fetch Forms Map (Form Name -> Form ID)
+    final formsRes = await SupabaseConfig.client
+        .from('omtbl_forms')
+        .select('id, form_name');
+    
+    final formNameIdMap = {
+      for (var f in formsRes) 
+        (f['form_name'] as String).toLowerCase(): f['id'] as int
+    };
+
+    // 2. Insert Roles & Collect IDs
+    final roleNameIdMap = <String, int>{};
+
+    for (var role in roles) {
+      // Check if role exists (e.g. system default) or just insert
+      // For a new org, we likely creating fresh roles.
+      try {
+        final res = await SupabaseConfig.client
+            .from('omtbl_roles')
+            .insert({
+              'role_name': role['role_name'],
+              'organization_id': orgId,
+              'can_read': true, // Default permissions for the role itself?
+              'can_write': true,
+              'can_edit': true,
+              'can_print': true,
+              'status': true,
+            })
+            .select('id, role_name')
+            .single();
+        
+        roleNameIdMap[res['role_name']] = res['id'];
+      } catch (e) {
+        debugPrint('Error creating role ${role['role_name']}: $e');
+      }
+    }
+
+    // 3. Insert Privileges
+    final privilegeInserts = <Map<String, dynamic>>[];
+
+    for (var priv in privileges) {
+      final roleName = priv['role_name'];
+      final roleId = roleNameIdMap[roleName];
+      
+      if (roleId == null) {
+        continue; 
+      }
+
+      final formName = priv['form_name'];
+      final formId = formNameIdMap[formName.toString().toLowerCase()];
+
+      if (formId == null) {
+        debugPrint('Warning: Form "$formName" not found for role "$roleName"');
+        continue;
+      }
+
+      privilegeInserts.add({
+        'organization_id': orgId,
+        'role_id': roleId,
+        'form_id': formId,
+        'can_view': priv['can_view'] == true ? 1 : 0,
+        'can_add': priv['can_add'] == true ? 1 : 0,
+        'can_edit': priv['can_edit'] == true ? 1 : 0,
+        'can_delete': priv['can_delete'] == true ? 1 : 0,
+        'can_read': priv['can_read'] == true ? 1 : 0,
+        'can_print': priv['can_print'] == true ? 1 : 0,
+      });
+    }
+
+    if (privilegeInserts.isNotEmpty) {
+      // split into batches if too large, but typically small
+      await SupabaseConfig.client
+          .from('omtbl_role_form_privileges')
+          .upsert(privilegeInserts);
+    }
   }
 }

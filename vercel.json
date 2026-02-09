@@ -1,11 +1,10 @@
 {
     "buildCommand": "bash vercel_build.sh",
     "outputDirectory": "build/web",
-    "cleanUrls": true,
-    "trailingSlash": false,
+    "framework": null,
     "rewrites": [
         {
-            "source": "/((?!.*\\.).*)",
+            "source": "/(.*)",
             "destination": "/index.html"
         }
     ]
