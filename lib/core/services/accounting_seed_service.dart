@@ -170,7 +170,6 @@ class AccountingSeedService {
     // If null, we might have issues.
     
       await SupabaseConfig.client.from('omtbl_gl_setup').insert(insertData);
-    }
   }
 
   Future<void> _seedRolesAndPrivileges(int orgId, Map<String, dynamic> data) async {
