@@ -111,33 +111,10 @@ class _EmailVerificationScreenState
       // (Optional: perform any final verification flags in DB)
 
       if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (c) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('Registration Complete!',
-                style: TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold)),
-            content: const Text(
-                'Your email has been verified and your account is ready.',
-                style: TextStyle(color: Colors.black87)),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(c);
-                  context.go('/login');
-                },
-                child: const Text('Login Now',
-                    style: TextStyle(
-                        color: AppColors.loginGradientStart,
-                        fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        );
+        if (mounted) {
+           // Proceed to Next Step: Configure Organization
+           context.go('/onboarding/configure/$orgId');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -189,13 +166,14 @@ class _EmailVerificationScreenState
             children: [
               const StepIndicator(
                 currentStep: 4,
-                totalSteps: 5,
+                totalSteps: 6,
                 stepLabels: [
                   'Account',
                   'Organization',
                   'Branch',
                   'Team',
-                  'Verify'
+                  'Verify',
+                  'Config'
                 ],
               ),
               Expanded(

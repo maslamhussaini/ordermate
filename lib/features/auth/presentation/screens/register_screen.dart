@@ -289,13 +289,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             children: [
               const StepIndicator(
                 currentStep: 0,
-                totalSteps: 5,
+                totalSteps: 6,
                 stepLabels: [
                   'Account',
                   'Organization',
                   'Branch',
                   'Team',
-                  'Verify'
+                  'Verify',
+                  'Config'
                 ],
               ),
               Expanded(

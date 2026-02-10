@@ -22,6 +22,7 @@ class _ModuleAccessScreenState extends ConsumerState<ModuleAccessScreen> {
   bool _isInventory = true;
   bool _isHR = true;
   String _orgName = '';
+  String _planType = 'free';
 
   @override
   void initState() {
@@ -33,7 +34,7 @@ class _ModuleAccessScreenState extends ConsumerState<ModuleAccessScreen> {
     try {
       final data = await SupabaseConfig.client
           .from('omtbl_organizations')
-          .select('name, is_gl, is_sales, is_inventory, is_hr')
+          .select('name, is_gl, is_sales, is_inventory, is_hr, plan_type')
           .eq('id', widget.orgId)
           .single();
       
@@ -44,12 +45,17 @@ class _ModuleAccessScreenState extends ConsumerState<ModuleAccessScreen> {
           _isSales = data['is_sales'] ?? true;
           _isInventory = data['is_inventory'] ?? true;
           _isHR = data['is_hr'] ?? true;
+          _planType = data['plan_type'] ?? 'free';
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
+        // If plan_type doesn't exist yet, it's fine, we default to free
+        if (e.toString().contains('plan_type')) {
+           // Retry without plan_type or just ignore
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading data: $e'), backgroundColor: Colors.red),
         );
@@ -65,11 +71,12 @@ class _ModuleAccessScreenState extends ConsumerState<ModuleAccessScreen> {
         'is_sales': _isSales,
         'is_inventory': _isInventory,
         'is_hr': _isHR,
+        'plan_type': _planType,
       }).eq('id', widget.orgId);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Module access updated successfully'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Module and Plan updated successfully'), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
@@ -89,7 +96,7 @@ class _ModuleAccessScreenState extends ConsumerState<ModuleAccessScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Module Access Management'),
+        title: const Text('Module & Plan Configuration'),
         backgroundColor: AppColors.loginGradientStart,
         foregroundColor: Colors.white,
       ),
@@ -106,17 +113,56 @@ class _ModuleAccessScreenState extends ConsumerState<ModuleAccessScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Toggle the modules available for this organization.',
+                    'Configure subscription plan and available modules.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 24),
+                  
+                  // Plan Selection
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const Text('Subscription Plan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
+                          RadioListTile<String>(
+                            title: const Text('Free Plan'),
+                            subtitle: const Text('Restricted: 10 transactions/day/type, 10 products total'),
+                            value: 'free',
+                            groupValue: _planType,
+                            onChanged: (value) => setState(() => _planType = value!),
+                            activeColor: AppColors.loginGradientStart,
+                          ),
+                          RadioListTile<String>(
+                            title: const Text('Paid Plan'),
+                            subtitle: const Text('Unlimited Access'),
+                            value: 'paid',
+                            groupValue: _planType,
+                            onChanged: (value) => setState(() => _planType = value!),
+                            activeColor: AppColors.loginGradientStart,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Module Selection
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Active Modules', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
                           _buildModuleSwitch('General Ledger (Accounting)', _isGL, (v) => setState(() => _isGL = v)),
                           const Divider(),
                           _buildModuleSwitch('Sales & Billing', _isSales, (v) => setState(() => _isSales = v)),

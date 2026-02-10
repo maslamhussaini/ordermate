@@ -16,6 +16,7 @@ class OrganizationModel extends Organization {
     super.isInventory,
     super.isHR,
     super.isSettings,
+    super.planType,
   });
 
   factory OrganizationModel.fromJson(Map<String, dynamic> json) {
@@ -49,6 +50,7 @@ class OrganizationModel extends Organization {
       isInventory: json['is_inventory'] as bool? ?? false,
       isHR: json['is_hr'] as bool? ?? false,
       isSettings: json['is_settings'] as bool? ?? true,
+      planType: json['plan_type']?.toString() ?? 'free',
     );
   }
 
@@ -68,6 +70,7 @@ class OrganizationModel extends Organization {
       'is_inventory': isInventory,
       'is_hr': isHR,
       'is_settings': isSettings,
+      'plan_type': planType,
     };
   }
 }

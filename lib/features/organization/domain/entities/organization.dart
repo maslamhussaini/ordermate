@@ -16,6 +16,7 @@ class Organization extends Equatable {
     this.isInventory = false,
     this.isHR = false,
     this.isSettings = true,
+    this.planType = 'free',
   });
 
   final int id;
@@ -32,6 +33,7 @@ class Organization extends Equatable {
   final bool isInventory;
   final bool isHR;
   final bool isSettings;
+  final String planType;
 
   @override
   List<Object?> get props => [
@@ -49,5 +51,6 @@ class Organization extends Equatable {
         isInventory,
         isHR,
         isSettings,
+        planType,
       ];
 }

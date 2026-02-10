@@ -6,6 +6,11 @@ import 'package:ordermate/core/network/supabase_client.dart';
 class AccountingSeedService {
   static const String _jsonPath = 'assets/json/accounting/default_accounting_data.json';
 
+  Future<Map<String, dynamic>> fetchDefaultData() async {
+    final jsonString = await rootBundle.loadString(_jsonPath);
+    return jsonDecode(jsonString) as Map<String, dynamic>;
+  }
+
   Future<void> seedOrganization(int organizationId) async {
     try {
       final jsonString = await rootBundle.loadString(_jsonPath);
@@ -29,73 +34,98 @@ class AccountingSeedService {
     final types = List<Map<String, dynamic>>.from(data['account_types']);
     final categories = List<Map<String, dynamic>>.from(data['account_categories']);
 
-    // 1. Insert Account Types
-    // We need to map Type Name -> ID for querying later (or just insert and assume ID generation)
-    // Supabase insert returns data.
+    // 1. Insert/Fetch Account Types
     final typeNameIdMap = <String, int>{};
 
+    // Fetch existing types for this org
+    final existingTypesRes = await SupabaseConfig.client
+        .from('omtbl_account_types')
+        .select('id, account_type')
+        .eq('organization_id', orgId);
+    
+    final existingTypesMap = {
+      for (var t in existingTypesRes) t['account_type'] as String: t['id'] as int
+    };
+
     for (var type in types) {
-      final res = await SupabaseConfig.client
-          .from('omtbl_account_types')
-          .insert({
-            'type_name': type['type_name'],
-            'status': type['status'],
-            'is_system': true, // Mark as system/default
-            'organization_id': orgId,
-          })
-          .select('id, type_name')
-          .single();
+      final typeName = type['type_name'];
       
-      typeNameIdMap[res['type_name']] = res['id'];
+      if (existingTypesMap.containsKey(typeName)) {
+        typeNameIdMap[typeName] = existingTypesMap[typeName]!;
+        continue;
+      }
+
+      try {
+        final res = await SupabaseConfig.client
+            .from('omtbl_account_types')
+            .insert({
+              'account_type': typeName,
+              'is_system': true,
+              'organization_id': orgId,
+            })
+            .select('id, account_type')
+            .single();
+        
+        typeNameIdMap[res['account_type']] = res['id'];
+      } catch (e) {
+        debugPrint('Error inserting type $typeName: $e');
+        // Try to fetch again in case of race condition or if caught error was legitimate duplicate
+        // But for now, just skip
+      }
     }
 
-    // 2. Insert Account Categories
+    // 2. Insert/Fetch Account Categories
     final categoryNameIdMap = <String, int>{};
 
+    // Fetch existing categories
+    final existingCatsRes = await SupabaseConfig.client
+        .from('omtbl_account_categories')
+        .select('id, category_name')
+        .eq('organization_id', orgId);
+
+    final existingCatsMap = {
+      for (var c in existingCatsRes) c['category_name'] as String: c['id'] as int
+    };
+
     for (var cat in categories) {
+      final categoryName = cat['category_name'];
       final typeName = cat['type_name'];
       final typeId = typeNameIdMap[typeName];
       
       if (typeId == null) {
-        debugPrint('Warning: Account Type "$typeName" not found for category "${cat['category_name']}"');
+        debugPrint('Warning: Account Type "$typeName" not found for category "$categoryName"');
         continue;
       }
 
-      final res = await SupabaseConfig.client
-          .from('omtbl_account_categories')
-          .insert({
-            'category_name': cat['category_name'],
-            'account_type_id': typeId,
-            'status': cat['status'],
-            'is_system': true,
-            'organization_id': orgId,
-          })
-          .select('id, category_name')
-          .single();
-      
-      categoryNameIdMap[res['category_name']] = res['id'];
+      if (existingCatsMap.containsKey(categoryName)) {
+        categoryNameIdMap[categoryName] = existingCatsMap[categoryName]!;
+        continue;
+      }
+
+      try {
+        final res = await SupabaseConfig.client
+            .from('omtbl_account_categories')
+            .insert({
+              'category_name': categoryName,
+              'account_type_id': typeId,
+              'status': cat['status'],
+              'is_system': true,
+              'organization_id': orgId,
+            })
+            .select('id, category_name')
+            .single();
+        
+        categoryNameIdMap[res['category_name']] = res['id'];
+      } catch (e) {
+        debugPrint('Error inserting category $categoryName: $e');
+      }
     }
   }
 
   Future<void> _seedChartOfAccounts(int orgId, Map<String, dynamic> data) async {
     final accounts = List<Map<String, dynamic>>.from(data['chart_of_accounts']);
     
-    // We need to fetch category IDs first if we didn't pass the map. 
-    // Ideally we should cache them, but querying DB is safer for "transactional" integrity across functions.
-    // Let's fetch categories for this Org.
-    final categoriesRes = await SupabaseConfig.client
-        .from('omtbl_account_categories')
-        .select('id, category_name')
-        .eq('organization_id', orgId);
-    
-    final categoryMap = {for (var c in categoriesRes) c['category_name'] as String: c['id'] as int};
-
-    // Also need Types for CoA? The model allows null but schema might require it or it is redundant.
-    // The JSON for CoA doesn't have type, only category. Category implies type.
-    // The model `ChartOfAccountModel` has `accountTypeId` and `accountCategoryId`.
-    // We should probably fill both if possible by looking up the category's type.
-    
-    // Let's get Categories with their Type IDs.
+    // Fetch Categories and Types maps
     final categoriesWithTypes = await SupabaseConfig.client
         .from('omtbl_account_categories')
         .select('id, category_name, account_type_id')
@@ -103,7 +133,20 @@ class AccountingSeedService {
         
     final catInfoMap = {for (var c in categoriesWithTypes) c['category_name'] as String: c};
 
+    // Fetch existing accounts to prevent duplicates
+    final existingAccountsRes = await SupabaseConfig.client
+        .from('omtbl_chart_of_accounts')
+        .select('account_code')
+        .eq('organization_id', orgId);
+    
+    final existingCodes = existingAccountsRes.map((a) => a['account_code'] as String).toSet();
+
     for (var acc in accounts) {
+      final accCode = acc['account_code'];
+      if (existingCodes.contains(accCode)) {
+        continue;
+      }
+
       final catName = acc['category_name'];
       final catInfo = catInfoMap[catName];
       
@@ -112,16 +155,20 @@ class AccountingSeedService {
         continue;
       }
 
-      await SupabaseConfig.client.from('omtbl_chart_of_accounts').insert({
-        'account_code': acc['account_code'],
-        'account_title': acc['account_title'],
-        'account_category_id': catInfo['id'],
-        'account_type_id': catInfo['account_type_id'],
-        'level': acc['level'],
-        'is_system': acc['is_system'] ?? false,
-        'organization_id': orgId,
-        'is_active': true,
-      });
+      try {
+        await SupabaseConfig.client.from('omtbl_chart_of_accounts').insert({
+          'account_code': accCode,
+          'account_title': acc['account_title'],
+          'account_category_id': catInfo['id'],
+          'account_type_id': catInfo['account_type_id'],
+          'level': acc['level'],
+          'is_system': acc['is_system'] ?? false,
+          'organization_id': orgId,
+          'is_active': true,
+        });
+      } catch (e) {
+        debugPrint('Error inserting account $accCode: $e');
+      }
     }
   }
 
@@ -169,7 +216,23 @@ class AccountingSeedService {
     // Actually, create usually requires them.
     // If null, we might have issues.
     
+    // Check for existing setup
+    final existingSetup = await SupabaseConfig.client
+        .from('omtbl_gl_setup')
+        .select('id')
+        .eq('organization_id', orgId)
+        .maybeSingle();
+
+    if (existingSetup != null) {
+      debugPrint('GL Setup already exists for Org $orgId. Skipping.');
+      return;
+    }
+
+    try {
       await SupabaseConfig.client.from('omtbl_gl_setup').insert(insertData);
+    } catch (e) {
+      debugPrint('Error inserting GL Setup: $e');
+    }
   }
 
   Future<void> _seedRolesAndPrivileges(int orgId, Map<String, dynamic> data) async {
@@ -182,7 +245,7 @@ class AccountingSeedService {
 
     // 1. Fetch Forms Map (Form Name -> Form ID)
     final formsRes = await SupabaseConfig.client
-        .from('omtbl_forms')
+        .from('omtbl_app_forms')
         .select('id, form_name');
     
     final formNameIdMap = {
@@ -190,12 +253,26 @@ class AccountingSeedService {
         (f['form_name'] as String).toLowerCase(): f['id'] as int
     };
 
-    // 2. Insert Roles & Collect IDs
+    // 2. Insert/Fetch Roles
     final roleNameIdMap = <String, int>{};
 
+    final existingRoles = await SupabaseConfig.client
+        .from('omtbl_roles')
+        .select('id, role_name')
+        .eq('organization_id', orgId);
+    
+    final existingRolesMap = {
+      for (var r in existingRoles) r['role_name'] as String: r['id'] as int
+    };
+
     for (var role in roles) {
-      // Check if role exists (e.g. system default) or just insert
-      // For a new org, we likely creating fresh roles.
+      final roleName = role['role_name'];
+
+      if (existingRolesMap.containsKey(roleName)) {
+        roleNameIdMap[roleName] = existingRolesMap[roleName]!;
+        continue;
+      }
+
       try {
         final res = await SupabaseConfig.client
             .from('omtbl_roles')

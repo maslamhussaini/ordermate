@@ -18,6 +18,7 @@ import 'package:ordermate/features/auth/presentation/screens/register_screen.dar
 import 'package:ordermate/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:ordermate/features/auth/presentation/screens/splash_screen.dart';
 import 'package:ordermate/features/auth/presentation/screens/organization_setup_screen.dart';
+import 'package:ordermate/features/auth/presentation/screens/organization_configure_screen.dart';
 import 'package:ordermate/features/auth/presentation/screens/store_setup_screen.dart';
 import 'package:ordermate/features/auth/presentation/screens/team_setup_screen.dart';
 import 'package:ordermate/features/auth/presentation/screens/email_verification_screen.dart';
@@ -229,6 +230,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                   path: 'verify',
                   builder: (context, state) => EmailVerificationScreen(
                       onboardingData: state.extra as Map<String, dynamic>)),
+              GoRoute(
+                  path: 'configure/:orgId',
+                  builder: (context, state) {
+                    final orgIdStr = state.pathParameters['orgId'];
+                    final orgId = int.tryParse(orgIdStr ?? '') ?? 0;
+                    return OrganizationConfigureScreen(orgId: orgId);
+                  }),
             ]),
 
         ShellRoute(

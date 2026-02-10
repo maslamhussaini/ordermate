@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/core/enums/user_role.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
+import 'package:ordermate/core/network/supabase_client.dart';
+import 'package:ordermate/features/organization/presentation/screens/module_access_screen.dart';
 
 class OrganizationListScreen extends ConsumerStatefulWidget {
   const OrganizationListScreen({super.key});
@@ -77,6 +79,27 @@ class _OrganizationListScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              // Module Access Button (Restricted)
+              if (SupabaseConfig.client.auth.currentUser?.email == 'maslamhussaini@gmail.com') ...[
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ModuleAccessScreen(orgId: org.id.toString()),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.admin_panel_settings, size: 18),
+                  label: const Text('Modules'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.orange,
+                    side: BorderSide(color: Colors.orange.shade200),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+
               if (!isSelected) ...[
                 OutlinedButton.icon(
                   onPressed: () => _handleOrgSelection(org),

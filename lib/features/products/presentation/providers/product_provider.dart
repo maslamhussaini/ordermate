@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ordermate/core/services/subscription_service.dart';
 import 'package:ordermate/features/products/data/repositories/product_repository_impl.dart';
 import 'package:ordermate/features/products/domain/entities/product.dart';
 import 'package:ordermate/features/products/domain/repositories/product_repository.dart';
@@ -74,6 +75,16 @@ class ProductNotifier extends StateNotifier<ProductState> {
   Future<void> addProduct(Product product) async {
     state = state.copyWith(isLoading: true);
     final orgId = ref.read(organizationProvider).selectedOrganizationId;
+
+    try {
+      if (orgId != null) {
+        await ref.read(subscriptionServiceProvider).checkAction(orgId, 'product');
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return;
+    }
+
     final productWithOrg = product.copyWith(organizationId: orgId);
     try {
       await repository.createProduct(productWithOrg);

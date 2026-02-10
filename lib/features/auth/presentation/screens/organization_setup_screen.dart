@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
+import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/widgets/step_indicator.dart';
@@ -41,7 +42,7 @@ class _OrganizationSetupScreenState
   bool _isInventory = true;
   bool _isHR = true;
   final bool _isSettings = true;
-  bool _importDefaultAccounting = true;
+
   bool _isLoading = false;
   XFile? _pickedFile;
   Uint8List? _previewBytes;
@@ -110,7 +111,7 @@ class _OrganizationSetupScreenState
           'isInventory': _isInventory,
           'isHR': _isHR,
           'isSettings': _isSettings,
-          'importDefaultAccounting': _importDefaultAccounting,
+
         }
       });
     } else {
@@ -211,16 +212,10 @@ class _OrganizationSetupScreenState
         'role': 'owner',
       }).eq('auth_id', authResponse.user!.id);
 
-      // 5. Seed Accounting Data
-      if (_importDefaultAccounting) {
-        debugPrint('Seeding default accounting data for Org ID: $orgId');
-        try {
-          await AccountingSeedService().seedOrganization(orgId);
-        } catch (e) {
-           debugPrint('Error seeding accounting data: $e');
-           // Non-fatal, continue
-        }
-      }
+      // Force reload permissions to reflect the new role/org immediately
+      await ref.read(authProvider.notifier).loadDynamicPermissions();
+
+
 
       // Send Module Configuration Email with Deep Link
       try {
@@ -290,13 +285,14 @@ class _OrganizationSetupScreenState
             children: [
               const StepIndicator(
                 currentStep: 1,
-                totalSteps: 5,
+                totalSteps: 6,
                 stepLabels: [
                   'Account',
                   'Organization',
                   'Branch',
                   'Team',
-                  'Verify'
+                  'Verify',
+                  'Config'
                 ],
               ),
               Expanded(
@@ -422,27 +418,7 @@ class _OrganizationSetupScreenState
                           ),
                         ),
                         const SizedBox(height: 16),
-                        CheckboxListTile(
-                          title: const Text(
-                            'Import Default Chart of Accounts',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: const Text(
-                            'Recommended for new businesses',
-                            style: TextStyle(
-                                color: Colors.white70, fontSize: 12),
-                          ),
-                          value: _importDefaultAccounting,
-                          onChanged: (v) => setState(
-                              () => _importDefaultAccounting = v ?? true),
-                          activeColor: Colors.white,
-                          checkColor: AppColors.loginGradientStart,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          contentPadding: EdgeInsets.zero,
-                          side: const BorderSide(color: Colors.white),
-                        ),
+
                         const SizedBox(height: 16),
                         if (!_hasMultipleBranch) ...[
                           _buildLabel('Store Details (Main Branch)'),

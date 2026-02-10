@@ -1,6 +1,7 @@
 // lib/features/accounting/presentation/providers/accounting_provider.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import '../../domain/entities/chart_of_account.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/invoice_item.dart';
@@ -17,6 +18,7 @@ import 'package:uuid/uuid.dart';
 import 'package:ordermate/features/orders/presentation/providers/order_provider.dart';
 import 'package:ordermate/features/products/presentation/providers/product_provider.dart';
 import 'package:ordermate/core/services/sync_service.dart';
+import 'package:ordermate/core/services/subscription_service.dart';
 
 final localAccountingRepositoryProvider =
     Provider<LocalAccountingRepository>((ref) {
@@ -301,6 +303,11 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       // Validate SYear
       final sYear = _validateAndGetSYear(transaction.voucherDate);
 
+      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      await _ref.read(subscriptionServiceProvider).checkAction(
+          orgId ?? 0, 'transaction',
+          extra: {'prefixId': transaction.voucherPrefixId});
+
       final txWithYear = Transaction(
         id: transaction.id,
         voucherPrefixId: transaction.voucherPrefixId,
@@ -324,7 +331,6 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       );
 
       await _repository.createTransaction(txWithYear);
-      final orgId = _ref.read(organizationProvider).selectedOrganizationId;
       final storeId = _ref.read(organizationProvider).selectedStore?.id;
       await loadTransactions(organizationId: orgId, storeId: storeId);
     } catch (e) {
@@ -714,8 +720,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
 
   Future<void> addInvoice(Invoice invoice) async {
     try {
+
       final sYear = _validateAndGetSYear(invoice.invoiceDate);
       final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      await _ref.read(subscriptionServiceProvider).checkAction(orgId ?? 0, 'invoice');
       final storeId = _ref.read(organizationProvider).selectedStore?.id;
       final invoiceWithOrg = Invoice(
         id: invoice.id,
@@ -744,8 +752,10 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
   Future<void> createInvoiceWithItems(
       Invoice invoice, List<Map<String, dynamic>> itemMaps) async {
     try {
+
       final sYear = _validateAndGetSYear(invoice.invoiceDate);
       final orgId = _ref.read(organizationProvider).selectedOrganizationId;
+      await _ref.read(subscriptionServiceProvider).checkAction(orgId ?? 0, 'invoice');
       final storeId = _ref.read(organizationProvider).selectedStore?.id;
 
       final invoiceWithOrg = Invoice(
@@ -788,7 +798,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         await _createOrUpdateGLForInvoice(invoice, items: items);
       } catch (glError) {
         // Don't fail the invoice creation if GL fails, but log it
-        print('GL Transaction creation failed: $glError');
+        debugPrint('GL Transaction creation failed: $glError');
       }
       // ---------------------------------
 
@@ -855,7 +865,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       try {
         await _createOrUpdateGLForInvoice(invoice, items: items);
       } catch (glError) {
-        print('GL Transaction update failed: $glError');
+        debugPrint('GL Transaction update failed: $glError');
       }
       // ---------------------------------
 
@@ -1150,7 +1160,7 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         throw Exception('Partner or Partner GL Account missing.');
       }
     } catch (glError) {
-      print('GL Transaction Op failed: $glError');
+      debugPrint('GL Transaction Op failed: $glError');
       rethrow;
     }
   }

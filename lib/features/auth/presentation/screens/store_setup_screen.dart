@@ -135,15 +135,7 @@ class _StoreSetupScreenState extends ConsumerState<StoreSetupScreen> {
         'role': 'owner',
       }).eq('auth_id', authResponse.user!.id);
 
-      // 5. Seed Accounting Data
-      if (widget.orgData['importDefaultAccounting'] == true) {
-        debugPrint('Seeding default accounting data for Org ID: $orgId');
-        try {
-          await AccountingSeedService().seedOrganization(orgId);
-        } catch (e) {
-          debugPrint('Error seeding accounting data: $e');
-        }
-      }
+
 
       if (mounted) {
         context.push('/onboarding/team', extra: {
@@ -192,13 +184,14 @@ class _StoreSetupScreenState extends ConsumerState<StoreSetupScreen> {
             children: [
               const StepIndicator(
                 currentStep: 2,
-                totalSteps: 5,
+                totalSteps: 6,
                 stepLabels: [
                   'Account',
                   'Organization',
                   'Branch',
                   'Team',
-                  'Verify'
+                  'Verify',
+                  'Config'
                 ],
               ),
               Expanded(
