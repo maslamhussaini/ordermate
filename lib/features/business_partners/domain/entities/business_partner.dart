@@ -21,8 +21,8 @@ class BusinessPartner extends Equatable {
     this.createdBy,
     this.managerId,
     this.roleId,
-    required this.organizationId,
-    required this.storeId,
+    this.organizationId,
+    this.storeId,
     this.isCustomer = false,
     this.isVendor = false,
     this.isEmployee = false,
@@ -35,6 +35,7 @@ class BusinessPartner extends Equatable {
     this.chartOfAccountId,
     this.paymentTermId,
     this.password,
+    this.openingBalance = 0.0,
   });
 
   final String id;
@@ -57,8 +58,8 @@ class BusinessPartner extends Equatable {
   final String? createdBy;
   final String? managerId;
   final int? roleId;
-  final int organizationId;
-  final int storeId;
+  final int? organizationId;
+  final int? storeId;
   final int? businessTypeId;
   final int? cityId;
   final int? stateId;
@@ -120,6 +121,7 @@ class BusinessPartner extends Equatable {
     String? chartOfAccountId,
     int? paymentTermId,
     String? password,
+    double? openingBalance,
   }) {
     return BusinessPartner(
       id: id ?? this.id,
@@ -155,8 +157,11 @@ class BusinessPartner extends Equatable {
       chartOfAccountId: chartOfAccountId ?? this.chartOfAccountId,
       paymentTermId: paymentTermId ?? this.paymentTermId,
       password: password ?? this.password,
+      openingBalance: openingBalance ?? this.openingBalance,
     );
   }
+
+  final double openingBalance;
 
   @override
   List<Object?> get props => [

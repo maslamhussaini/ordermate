@@ -33,11 +33,16 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
       if (user == null) return [];
 
       // 1. Get User's Role & Org ID
-      final userData = await SupabaseConfig.client
+      final userDataList = await SupabaseConfig.client
           .from('omtbl_users')
           .select('role, organization_id')
           .eq('auth_id', user.id)
-          .maybeSingle();
+          .limit(1)
+          .timeout(const Duration(seconds: 15));
+
+      final userData = (userDataList as List?)?.isNotEmpty == true
+          ? userDataList.first
+          : null;
       
       final role = userData?['role'] as String?;
       final orgId = userData?['organization_id'] as int?;
@@ -64,7 +69,8 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
         }
       }
 
-      final response = await query.order('name', ascending: true);
+      final response = await query.order('name', ascending: true)
+          .timeout(const Duration(seconds: 15));
 
       final remoteOrgs = (response as List)
           .map((json) =>
@@ -219,7 +225,8 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
           .from('omtbl_stores')
           .select()
           .eq('organization_id', organizationId)
-          .order('name', ascending: true);
+          .order('name', ascending: true)
+          .timeout(const Duration(seconds: 15));
 
 
 

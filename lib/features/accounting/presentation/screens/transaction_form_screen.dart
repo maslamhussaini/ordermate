@@ -128,6 +128,15 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   }
 
   Future<void> _saveTransaction() async {
+    // Check for selected financial session first
+    final accountingState = ref.read(accountingProvider);
+    if (accountingState.selectedFinancialSession == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'No Financial Session selected. Please select one from the Dashboard.')));
+      return;
+    }
+
     if (_formKey.currentState?.saveAndValidate() ?? false) {
       final success = await showDialog<bool>(
         context: context,
@@ -143,8 +152,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
             final values = _formKey.currentState!.value;
             final org = ref.read(organizationProvider).selectedOrganization;
             final store = ref.read(organizationProvider).selectedStore;
-            final sYear = DateTime.now()
-                .year; // This should ideally be validated via logic, but keeping existing heuristic or use method
+            // sYear will be validated and set by the provider logic
+            const int sYear = 0;
 
             String voucherNumber = widget.transaction?.voucherNumber ?? '';
 

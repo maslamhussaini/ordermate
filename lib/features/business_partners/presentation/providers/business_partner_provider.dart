@@ -11,6 +11,9 @@ import 'package:ordermate/features/business_partners/data/repositories/business_
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
 import 'package:ordermate/features/dashboard/presentation/providers/dashboard_provider.dart';
+import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';
+import 'package:ordermate/features/accounting/domain/entities/chart_of_account.dart';
+import 'package:uuid/uuid.dart';
 
 // State
 class BusinessPartnerState {
@@ -122,13 +125,12 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
       final remoteCustomers = await repository.getPartners(
           isCustomer: true, storeId: storeId, organizationId: orgId);
-      // We might want to MERGE or just REPLACE?
-      // If filtering by store, remote returns exact match.
-      // Usually replace state with remote result.
-      state = state.copyWith(isLoading: false, customers: remoteCustomers);
+      final withBalances = await _populateOpeningBalances(remoteCustomers);
+      state = state.copyWith(isLoading: false, customers: withBalances);
     } catch (e) {
       debugPrint('Server load failed, using local cache: $e');
-      state = state.copyWith(isLoading: false, customers: localData);
+      final withBalances = await _populateOpeningBalances(localData);
+      state = state.copyWith(isLoading: false, customers: withBalances);
     }
   }
 
@@ -158,10 +160,12 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
       final remoteVendors = await repository.getPartners(
           isVendor: true, storeId: storeId, organizationId: orgId);
-      state = state.copyWith(isLoading: false, vendors: remoteVendors);
+      final withBalances = await _populateOpeningBalances(remoteVendors);
+      state = state.copyWith(isLoading: false, vendors: withBalances);
     } catch (e) {
       debugPrint('Server load failed, using local cache: $e');
-      state = state.copyWith(isLoading: false, vendors: localData);
+      final withBalances = await _populateOpeningBalances(localData);
+      state = state.copyWith(isLoading: false, vendors: withBalances);
     }
   }
 
@@ -191,10 +195,39 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
       final remoteEmployees = await repository.getPartners(
           isEmployee: true, storeId: storeId, organizationId: orgId);
-      state = state.copyWith(isLoading: false, employees: remoteEmployees);
+      final withBalances = await _populateOpeningBalances(remoteEmployees);
+      state = state.copyWith(isLoading: false, employees: withBalances);
     } catch (e) {
       debugPrint('Server load failed, using local cache: $e');
-      state = state.copyWith(isLoading: false, employees: localData);
+      final withBalances = await _populateOpeningBalances(localData);
+      state = state.copyWith(isLoading: false, employees: withBalances);
+    }
+  }
+
+  Future<List<BusinessPartner>> _populateOpeningBalances(
+      List<BusinessPartner> partners) async {
+    final sYear = ref.read(organizationProvider).selectedFinancialYear;
+    final orgId = ref.read(organizationProvider).selectedOrganizationId;
+    if (sYear == null || orgId == null) return partners;
+
+    try {
+      final repo = ref.read(accountingRepositoryProvider);
+      final openingBalances = await repo.getOpeningBalances(
+          organizationId: orgId, sYear: sYear);
+
+      return partners.map((p) {
+        final bal = openingBalances
+            .where(
+                (b) => b.entityId == p.id && b.entityType == 'BusinessPartner')
+            .firstOrNull;
+        if (bal != null) {
+          return p.copyWith(openingBalance: bal.amount);
+        }
+        return p;
+      }).toList();
+    } catch (e) {
+      // debugPrint('Error populating opening balances: $e');
+      return partners;
     }
   }
 
@@ -408,8 +441,17 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
   Future<void> addPartner(BusinessPartner partner) async {
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      final partnerWithOrg = partner.copyWith(organizationId: orgId);
+      final storeId = ref.read(organizationProvider).selectedStoreId;
+      final partnerWithOrg = partner.copyWith(
+        organizationId: partner.organizationId ?? orgId,
+        storeId: partner.storeId ?? storeId,
+      );
       await repository.createPartner(partnerWithOrg);
+      
+      if (partner.openingBalance != 0) {
+        await _saveOpeningBalance(partner.id, partner.openingBalance);
+      }
+
       _refreshLists(partnerWithOrg);
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
@@ -418,6 +460,9 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
         debugPrint('Network error adding partner, saving locally: $e');
         try {
           await localRepository.addPartner(partner);
+          if (partner.openingBalance != 0) {
+            await _saveOpeningBalance(partner.id, partner.openingBalance);
+          }
           _refreshLists(partner);
           ref.read(dashboardProvider.notifier).refresh();
           // TODO: Queue for sync
@@ -454,8 +499,17 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
   Future<void> updatePartner(BusinessPartner partner) async {
     try {
       final orgId = ref.read(organizationProvider).selectedOrganizationId;
-      final partnerWithOrg = partner.copyWith(organizationId: orgId);
+      final storeId = ref.read(organizationProvider).selectedStoreId;
+      final partnerWithOrg = partner.copyWith(
+        organizationId: partner.organizationId ?? orgId,
+        storeId: partner.storeId ?? storeId,
+      );
       await repository.updatePartner(partnerWithOrg);
+
+      if (partner.openingBalance != 0) {
+        await _saveOpeningBalance(partner.id, partner.openingBalance);
+      }
+
       _refreshLists(partnerWithOrg);
       ref.read(dashboardProvider.notifier).refresh();
     } catch (e) {
@@ -464,6 +518,9 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
         debugPrint('Network error updating partner, saving locally: $e');
         try {
           await localRepository.updatePartner(partner);
+          if (partner.openingBalance != 0) {
+            await _saveOpeningBalance(partner.id, partner.openingBalance);
+          }
           _refreshLists(partner);
           ref.read(dashboardProvider.notifier).refresh();
           return;
@@ -680,6 +737,40 @@ class BusinessPartnerNotifier extends StateNotifier<BusinessPartnerState> {
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
+    }
+  }
+
+  Future<void> _saveOpeningBalance(String entityId, double amount) async {
+    final sYear = ref.read(organizationProvider).selectedFinancialYear;
+    final orgId = ref.read(organizationProvider).selectedOrganizationId;
+
+    if (sYear == null || orgId == null) return;
+
+    final repo = ref.read(accountingRepositoryProvider);
+
+    try {
+      final existingBalances = await repo.getOpeningBalances(
+          organizationId: orgId, sYear: sYear);
+
+      final existing = existingBalances
+          .where((b) =>
+              b.entityId == entityId && b.entityType == 'BusinessPartner')
+          .firstOrNull;
+
+      final balance = OpeningBalance(
+        id: existing?.id ?? const Uuid().v4(),
+        sYear: sYear,
+        amount: amount,
+        entityId: entityId,
+        entityType: 'BusinessPartner',
+        organizationId: orgId,
+        createdAt: existing?.createdAt ?? DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await repo.saveOpeningBalance(balance);
+    } catch (e) {
+      debugPrint('Error saving opening balance for partner: $e');
     }
   }
 }

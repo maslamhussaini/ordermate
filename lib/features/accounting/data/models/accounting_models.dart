@@ -17,6 +17,7 @@ class ChartOfAccountModel extends ChartOfAccount {
     super.isSystem,
     required super.createdAt,
     required super.updatedAt,
+    super.openingBalance,
   });
 
   factory ChartOfAccountModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +42,7 @@ class ChartOfAccountModel extends ChartOfAccount {
           ? DateTime.fromMillisecondsSinceEpoch(json['updated_at'] as int)
           : DateTime.tryParse(json['updated_at']?.toString() ?? '') ??
               DateTime.now(),
+      openingBalance: (json['opening_balance'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -57,6 +59,7 @@ class ChartOfAccountModel extends ChartOfAccount {
       'is_system': isSystem,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'opening_balance': openingBalance,
     };
     if (id.isNotEmpty) {
       map['id'] = id;
@@ -255,6 +258,7 @@ class BankCashModel extends BankCash {
     required super.organizationId,
     required super.storeId,
     super.status,
+    super.openingBalance,
   });
 
   factory BankCashModel.fromJson(Map<String, dynamic> json) {
@@ -271,6 +275,7 @@ class BankCashModel extends BankCash {
           json['is_active'] == 1 ||
           json['status'] == 1 ||
           json['status'] == true,
+      openingBalance: (json['opening_balance'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -284,6 +289,7 @@ class BankCashModel extends BankCash {
       organizationId: entity.organizationId,
       storeId: entity.storeId,
       status: entity.status,
+      openingBalance: entity.openingBalance,
     );
   }
 
@@ -295,7 +301,25 @@ class BankCashModel extends BankCash {
       'branch_name': branchName,
       'organization_id': organizationId,
       'store_id': storeId,
+      'is_active': status,
+      'opening_balance': openingBalance,
+    };
+    if (id.isNotEmpty && id != '0') {
+      map['id'] = id;
+    }
+    return map;
+  }
+
+  Map<String, dynamic> toLocalMap() {
+    final map = {
+      'bank_name': name,
+      'account_id': chartOfAccountId,
+      'account_number': accountNumber,
+      'branch_name': branchName,
+      'organization_id': organizationId,
+      'store_id': storeId,
       'is_active': status ? 1 : 0,
+      'opening_balance': openingBalance,
     };
     if (id.isNotEmpty && id != '0') {
       map['id'] = id;
@@ -380,9 +404,9 @@ class FinancialSessionModel extends FinancialSession {
       'start_date': startDate.toIso8601String(),
       'end_date': endDate.toIso8601String(),
       'narration': narration,
-      'in_use': inUse ? 1 : 0,
-      'is_active': isActive ? 1 : 0,
-      'is_closed': isClosed ? 1 : 0,
+      'in_use': inUse,
+      'is_active': isActive,
+      'is_closed': isClosed,
       'organization_id': organizationId,
     };
   }

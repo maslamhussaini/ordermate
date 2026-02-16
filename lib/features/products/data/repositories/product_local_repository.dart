@@ -248,7 +248,7 @@ class ProductLocalRepository {
       categoryId: int.tryParse(map['category_id'] as String? ?? ''),
       productTypeId: int.tryParse(map['product_type_id'] as String? ?? ''),
       businessPartnerId: map['business_partner_id'] as String?,
-      isActive: true,
+      isActive: map['is_active'] == 1,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
       description: null,

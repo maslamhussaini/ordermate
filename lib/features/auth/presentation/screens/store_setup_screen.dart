@@ -6,10 +6,9 @@ import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/widgets/step_indicator.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
-import 'package:ordermate/core/services/accounting_seed_service.dart';
 
 class StoreSetupScreen extends ConsumerStatefulWidget {
-  final Map<String, String> userData;
+  final Map<String, dynamic> userData;
   final Map<String, dynamic> orgData;
 
   const StoreSetupScreen({

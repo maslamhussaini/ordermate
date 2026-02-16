@@ -403,16 +403,29 @@ final List<AppRoute> employeeRoutes = [
       module: 'employees',
       icon: Icons.badge,
       roles: [UserRole.admin, UserRole.staff],
-      builder: (_, __) => const EmployeeListScreen(),
+      builder: (_, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return EmployeeListScreen(
+          title: extra?['title'],
+          filterRole: extra?['filterRole'],
+          filterDept: extra?['filterDept'],
+        );
+      },
       children: [
-        AppRoute(
+            AppRoute(
             path: 'create',
             title: 'Add Employee',
             routeName: RouteNames.employeeCreate,
             module: 'employees',
             showInMenu: false,
             roles: [UserRole.admin, UserRole.staff],
-            builder: (_, __) => const EmployeeFormScreen()),
+            builder: (_, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              return EmployeeFormScreen(
+                title: extra?['title'],
+                initialRole: extra?['initialRole'],
+              );
+            }),
         AppRoute(
             path: 'edit/:id',
             title: 'Edit Employee',
@@ -420,8 +433,13 @@ final List<AppRoute> employeeRoutes = [
             module: 'employees',
             showInMenu: false,
             roles: [UserRole.admin, UserRole.staff],
-            builder: (_, state) =>
-                EmployeeFormScreen(employeeId: state.pathParameters['id']!)),
+            builder: (_, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              return EmployeeFormScreen(
+                employeeId: state.pathParameters['id']!,
+                title: extra?['title'],
+              );
+            }),
         AppRoute(
             path: 'departments',
             title: 'Departments',

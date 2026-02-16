@@ -58,10 +58,10 @@ class OrderNotifier extends StateNotifier<OrderState> {
     final effectiveSYear =
         sYear ?? ref.read(accountingProvider).selectedFinancialSession?.sYear;
 
+    final orgId = ref.read(organizationProvider).selectedOrganizationId;
     // Always load local data first as fallback
     List<Order> localData = [];
     try {
-      final orgId = ref.read(organizationProvider).selectedOrganizationId;
       localData = await localRepository.getLocalOrders(
           organizationId: orgId, storeId: store?.id, sYear: effectiveSYear);
     } catch (localError) {
@@ -81,7 +81,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
 
     try {
       final remoteOrders = await repository.getOrders(
-          organizationId: store?.organizationId,
+          organizationId: orgId,
           storeId: store?.id,
           sYear: effectiveSYear);
       if (!mounted) return;
@@ -156,6 +156,11 @@ class OrderNotifier extends StateNotifier<OrderState> {
           'No financial years configured. Please configure a financial session first.');
     }
 
+    if (accountingState.selectedFinancialSession == null) {
+      throw Exception(
+          'No Financial Year selected. Please select a Financial Session before creating orders.');
+    }
+
     // Find a session that covers this date
     final session =
         accountingState.financialSessions.cast<FinancialSession?>().firstWhere(
@@ -178,6 +183,11 @@ class OrderNotifier extends StateNotifier<OrderState> {
     if (session.isClosed) {
       throw Exception(
           'Financial Year ${session.sYear} is closed. Cannot transact.');
+    }
+
+    if (session.sYear != accountingState.selectedFinancialSession!.sYear) {
+      throw Exception(
+          'Date falls in Financial Year ${session.sYear}, but you have selected ${accountingState.selectedFinancialSession!.sYear}. Please switch financial years to create orders.');
     }
 
     return session.sYear;

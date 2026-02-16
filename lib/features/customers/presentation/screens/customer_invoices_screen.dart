@@ -315,9 +315,9 @@ class _CustomerInvoicesScreenState
     }
 
     final prefixes = await accountingRepo.getVoucherPrefixes(
-        organizationId: customer.organizationId);
+        organizationId: customer.organizationId ?? 0);
     final activeSession = await accountingRepo.getActiveFinancialSession(
-        organizationId: customer.organizationId);
+        organizationId: customer.organizationId ?? 0);
     final accounts = ref.read(accountingProvider).accounts;
 
     final cashAccountName = accounts
@@ -497,8 +497,8 @@ class _CustomerInvoicesScreenState
                   offsetModuleAccount: customer.id,
                   amount: enteredAmount,
                   description: narrationController.text,
-                  organizationId: customer.organizationId,
-                  storeId: customer.storeId,
+                  organizationId: customer.organizationId ?? 0,
+                  storeId: customer.storeId ?? 0,
                   sYear: activeSession?.sYear,
                   status: 'posted',
                   paymentMode: paymentType,

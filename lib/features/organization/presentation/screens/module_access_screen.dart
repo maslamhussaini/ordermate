@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/network/supabase_client.dart';
 
@@ -201,7 +200,7 @@ class _ModuleAccessScreenState extends ConsumerState<ModuleAccessScreen> {
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
       value: value,
       onChanged: onChanged,
-      activeColor: AppColors.loginGradientStart,
+      activeThumbColor: AppColors.loginGradientStart,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ordermate/core/database/database_helper.dart';
@@ -48,29 +49,119 @@ final userProfileProvider = FutureProvider<User?>((ref) async {
       businessPartnerId: data['business_partner_id'] as String?,
     );
 
-    // Auto-link Business Partner if missing but email matches
+      // Auto-link Business Partner if missing but email matches
     if (user.businessPartnerId == null && user.email.isNotEmpty) {
       try {
-        final partnerResponse = await SupabaseConfig.client
+        // Handle duplicates: Use limit(1) and get the first record instead of maybeSingle() which throws on duplicates
+        final partnerResponseList = await SupabaseConfig.client
             .from('omtbl_businesspartners')
             .select('id')
             .eq('email', user.email)
-            .maybeSingle();
+            .limit(1);
 
-        if (partnerResponse != null) {
-          final bpId = partnerResponse['id'] as String;
+        if (partnerResponseList.isNotEmpty) {
+          final bpId = partnerResponseList.first['id'] as String;
           user = user.copyWith(businessPartnerId: bpId);
 
-          // Optionally update the user record in Supabase to persist the link
+          // Update user to link to this existing BP
           unawaited(SupabaseConfig.client
               .from('omtbl_users')
               .update({'business_partner_id': bpId}).eq('id', user.id));
 
           debugPrint(
-              'Auto-linked user ${user.email} to Business Partner $bpId');
+              'Auto-linked user ${user.email} to existing Business Partner $bpId');
+        } else {
+          // Auto-create Business Partner
+          
+          // Resolve Organization ID
+          int? orgId = user.organizationId;
+          int? storeId = user.storeId;
+
+          if (orgId == null) {
+            try {
+              final ownedOrg = await SupabaseConfig.client
+                  .from('omtbl_organizations')
+                  .select('id')
+                  .eq('auth_user_id', user.id)
+                  .maybeSingle();
+              if (ownedOrg != null) {
+                orgId = ownedOrg['id'] as int;
+              }
+            } catch (e) {
+               debugPrint('Error finding org for new User BP: $e');
+            }
+          }
+
+          // Fetch Admin Role ID if we have an org context
+          int? adminRoleId;
+          if (orgId != null) {
+            try {
+              final roleRes = await SupabaseConfig.client
+                  .from('omtbl_roles')
+                  .select('id')
+                  .eq('organization_id', orgId)
+                  .ilike('role_name', '%Admin%')
+                  .limit(1)
+                  .maybeSingle(); // Use maybeSingle combined with limit 1 for safety
+              
+              if (roleRes != null) {
+                adminRoleId = roleRes['id'] as int;
+              }
+            } catch (e) {
+              debugPrint('Error fetching Admin role: $e');
+            }
+          }
+
+          final newBpId = const Uuid().v4();
+          final newPartner = {
+            'id': newBpId,
+            'name': user.fullName.isNotEmpty
+                ? user.fullName
+                : user.email.split('@')[0],
+            'email': user.email,
+            'phone': user.phone ?? '',
+            'address': '',
+            'is_employee': 1,
+            'is_active': true,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+            'organization_id': orgId,
+            'store_id': storeId,
+            'created_by': user.id,
+            'role_id': adminRoleId, // Assign Admin role to the BP
+          };
+
+          await SupabaseConfig.client
+              .from('omtbl_businesspartners')
+              .insert(newPartner);
+
+          final Map<String, dynamic> userUpdate = {
+            'business_partner_id': newBpId,
+          };
+          if (orgId != null && user.organizationId == null) {
+             userUpdate['organization_id'] = orgId;
+          }
+          // Also link the Role ID to the user record if found
+          if (adminRoleId != null && user.roleId == null) {
+            userUpdate['role_id'] = adminRoleId;
+          }
+
+          await SupabaseConfig.client
+              .from('omtbl_users')
+              .update(userUpdate).eq('id', user.id);
+
+          user = user.copyWith(
+              businessPartnerId: newBpId,
+              organizationId: orgId ?? user.organizationId,
+              storeId: storeId ?? user.storeId,
+              roleId: adminRoleId ?? user.roleId
+          );
+          
+          debugPrint(
+              'Auto-created and linked Employee record for ${user.email} (Org: $orgId, Role: $adminRoleId)');
         }
       } catch (e) {
-        debugPrint('Failed to auto-link BP: $e');
+        debugPrint('Failed to auto-link/create BP: $e');
       }
     }
 

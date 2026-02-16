@@ -150,16 +150,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _checkAuth() async {
     debugPrint('Splash: _checkAuth started.');
-    if (mounted) {
+    if (!mounted) return;
+
+    try {
       final hasSession = SupabaseConfig.currentUser != null ||
           SupabaseConfig.isOfflineLoggedIn;
       debugPrint('Splash: Has Session? $hasSession');
 
       if (hasSession) {
-        debugPrint('Splash: Session detected. Loading profile...');
+        debugPrint('Splash: Session detected. Loading profile (with safety timeout)...');
 
         // Ensure dynamic permissions/role are loaded before navigating
-        await ref.read(authProvider.notifier).loadDynamicPermissions();
+        // Added safety timeout to prevents stuck splash screen
+        await ref
+            .read(authProvider.notifier)
+            .loadDynamicPermissions()
+            .timeout(const Duration(seconds: 15))
+            .catchError((e) {
+              debugPrint('Splash: Permission load timed out or failed: $e');
+              return null;
+            });
+
+        if (!mounted) return;
 
         debugPrint('Splash: Triggering Sync...');
         ref.read(syncServiceProvider).syncAll();
@@ -168,8 +180,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         context.go('/workspace-selection');
       } else {
         debugPrint('Splash: No session, navigating to /login');
-        context.go('/login');
+        if (mounted) context.go('/login');
       }
+    } catch (e) {
+      debugPrint('Splash: Critical error in _checkAuth: $e');
+      if (mounted) context.go('/login');
     }
   }
 

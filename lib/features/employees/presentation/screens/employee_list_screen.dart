@@ -9,10 +9,20 @@ import 'package:ordermate/core/services/csv_service.dart';
 import 'package:ordermate/core/widgets/batch_import_dialog.dart';
 import 'package:ordermate/features/business_partners/domain/entities/business_partner.dart';
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
+import 'package:ordermate/core/router/route_names.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 
 class EmployeeListScreen extends ConsumerStatefulWidget {
-  const EmployeeListScreen({super.key});
+  const EmployeeListScreen({
+    super.key,
+    this.title,
+    this.filterRole,
+    this.filterDept,
+  });
+
+  final String? title;
+  final String? filterRole;
+  final String? filterDept;
 
   @override
   ConsumerState<EmployeeListScreen> createState() => _EmployeeListScreenState();
@@ -411,6 +421,14 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           c.phone.contains(query) ||
           c.address.toLowerCase().contains(query);
 
+      if (widget.filterDept != null &&
+          c.departmentName != widget.filterDept) {
+        return false;
+      }
+      if (widget.filterRole != null && c.roleName != widget.filterRole) {
+        return false;
+      }
+
       return matchesSearch;
     }).toList();
 
@@ -420,7 +438,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.goNamed('dashboard'),
         ),
-        title: const Text('Employees List'),
+        title: Text(widget.title ?? 'Employees List'),
         elevation: 0,
         actions: [
           IconButton(
@@ -440,7 +458,9 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           ),
           TextButton.icon(
             icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text('New', style: TextStyle(color: Colors.white)),
+            label: Text(
+                'Add ${widget.filterRole?.replaceAll('Man', 'man') ?? 'Employee'}',
+                style: const TextStyle(color: Colors.white)),
             onPressed: () async {
               // Dependency Check
               try {
@@ -490,7 +510,11 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                   return;
                 }
 
-                context.goNamed('employee-create');
+                final roleLabel = widget.filterRole ?? 'Employee';
+                context.goNamed(RouteNames.employeeCreate, extra: {
+                  'title': 'New $roleLabel',
+                  'initialRole': widget.filterRole,
+                });
               } catch (e) {
                 if (context.mounted) {
                   Navigator.pop(context);
@@ -511,7 +535,8 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search employees...',
+                hintText:
+                    'Search ${widget.filterRole != null ? '${widget.filterRole}...' : 'employees...'}',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -790,8 +815,9 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: () => context.goNamed(
-                    'employee-edit',
+                    RouteNames.employeeEdit,
                     pathParameters: {'id': employee.id},
+                    extra: {'title': 'Edit ${employee.name}'},
                   ),
                   icon: const Icon(Icons.edit, size: 18),
                   label: const Text('Edit'),

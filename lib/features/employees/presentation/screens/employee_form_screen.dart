@@ -21,8 +21,15 @@ import 'package:ordermate/features/accounting/domain/entities/chart_of_account.d
 import 'package:uuid/uuid.dart';
 
 class EmployeeFormScreen extends ConsumerStatefulWidget {
-  const EmployeeFormScreen({super.key, this.employeeId});
+  const EmployeeFormScreen({
+    super.key, 
+    this.employeeId,
+    this.title,
+    this.initialRole,
+  });
   final String? employeeId;
+  final String? title;
+  final String? initialRole;
 
   @override
   ConsumerState<EmployeeFormScreen> createState() => _EmployeeFormScreenState();
@@ -92,6 +99,16 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
           await _loadEmployeeData();
         } else {
           _setDefaultCityAndCountry();
+          if (widget.initialRole != null) {
+            final roles = ref.read(businessPartnerProvider).roles;
+            try {
+              final role = roles.firstWhere(
+                (r) => (r['role_name'] as String).toLowerCase() == 
+                       widget.initialRole!.toLowerCase(),
+              );
+              _selectedRoleId = role['id'];
+            } catch (_) {}
+          }
         }
       } catch (e) {
         debugPrint('Init error: $e');
@@ -345,40 +362,6 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
     }
   }
 
-  String _cleanCityName(String rawCity) {
-    return rawCity
-        .replaceAll(RegExp(r'\s+Division', caseSensitive: false), '')
-        .replaceAll(RegExp(r'\s+District', caseSensitive: false), '')
-        .trim();
-  }
-
-  Future<List<Map<String, dynamic>>> _searchAddressWithOSM(String query) async {
-    if (query.trim().isEmpty) return [];
-    var fullQuery = query;
-    final cName = _getCityName(_selectedCityId);
-    if (cName.isNotEmpty) fullQuery += ', $cName';
-
-    try {
-      final dio = Dio();
-      final response = await dio.get(
-        'https://nominatim.openstreetmap.org/search',
-        queryParameters: {
-          'q': fullQuery,
-          'format': 'json',
-          'addressdetails': 1,
-          'limit': 5,
-        },
-        options: Options(headers: {'User-Agent': 'OrderMate_FlutterApp/1.0'}),
-      );
-      if (response.statusCode == 200) {
-        return List<Map<String, dynamic>>.from(response.data);
-      }
-    } catch (e) {
-      debugPrint('OSM Search Error: $e');
-    }
-    return [];
-  }
-
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -423,8 +406,8 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
         isEmployee: true,
         roleId: _selectedRoleId,
         isActive: true,
-        organizationId: orgState.selectedOrganization?.id ?? 0,
-        storeId: orgState.selectedStore?.id ?? 0,
+        organizationId: orgState.selectedOrganization?.id,
+        storeId: orgState.selectedStore?.id,
         password: _passwordController.text.trim().isEmpty
             ? null
             : _passwordController.text.trim(),
@@ -432,6 +415,8 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
 
       if (widget.employeeId == null) {
         await ref.read(businessPartnerProvider.notifier).addPartner(partner);
+        // After addPartner, organizationId might have been updated by notifier
+        // But since we use the same provider state, it should be fine.
         await _handleAppUserSync(
             partner.id, partner.organizationId, partner.storeId);
       } else {
@@ -451,7 +436,7 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
   }
 
   Future<void> _handleAppUserSync(
-      String partnerId, int? organizationId, int storeId) async {
+      String partnerId, int? organizationId, int? storeId) async {
     if (_hasAppAccess) {
       if (_selectedRoleId == null || _emailController.text.isEmpty) return;
       if (_existingAppUser == null) {
@@ -495,14 +480,17 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+    final title = widget.title ?? (widget.employeeId == null ? 'New Employee' : 'Edit Employee');
+
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.employeeId == null ? 'New Employee' : 'Edit Employee'),
+        title: Text(title),
         actions: [
           IconButton(
             onPressed: (_isSubmitting || _isLoading) ? null : _submitForm,
             icon: const Icon(Icons.save),
+            tooltip: 'Save',
           ),
         ],
       ),
@@ -522,102 +510,58 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      _buildSectionHeader(context, 'Basic Information', Icons.badge),
                       Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             children: [
                               TextFormField(
                                 controller: _nameController,
-                                decoration: const InputDecoration(
-                                    labelText: 'Employee Name *',
-                                    prefixIcon: Icon(Icons.person)),
+                                decoration: InputDecoration(
+                                    labelText: 'Full Name *',
+                                    hintText: 'Enter employee full name',
+                                    prefixIcon: Icon(Icons.person, color: primaryColor),
+                                    border: const OutlineInputBorder()),
                                 validator: (v) =>
                                     v?.isEmpty ?? false ? 'Required' : null,
                               ),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: _contactPersonController,
-                                decoration: const InputDecoration(
-                                    labelText: 'Contact Person (Emergency)',
-                                    prefixIcon: Icon(Icons.contact_phone)),
+                              const SizedBox(height: 20),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _phoneController,
+                                      decoration: InputDecoration(
+                                          labelText: 'Phone *',
+                                          prefixIcon: Icon(Icons.phone, color: primaryColor),
+                                          border: const OutlineInputBorder()),
+                                      validator: (v) =>
+                                          v?.isEmpty ?? false ? 'Required' : null,
+                                      keyboardType: TextInputType.phone,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _contactPersonController,
+                                      decoration: InputDecoration(
+                                          labelText: 'Emergency Contact',
+                                          prefixIcon: Icon(Icons.contact_phone, color: primaryColor),
+                                          border: const OutlineInputBorder()),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 16),
-                              LookupField<Map<String, dynamic>, int>(
-                                label: 'Department',
-                                value: _selectedDepartmentId,
-                                items: ref
-                                    .watch(businessPartnerProvider)
-                                    .departments,
-                                onChanged: (v) =>
-                                    setState(() => _selectedDepartmentId = v),
-                                labelBuilder: (item) =>
-                                    item['name'] as String? ?? 'Unknown',
-                                valueBuilder: (item) => item['id'] as int,
-                                onAdd: (name) async {
-                                  final orgId = ref
-                                      .read(organizationProvider)
-                                      .selectedOrganizationId;
-                                  if (orgId != null) {
-                                    await ref
-                                        .read(businessPartnerProvider.notifier)
-                                        .addDepartment(name, orgId);
-                                  }
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              LookupField<ChartOfAccount, String>(
-                                label: 'Salary GL Account',
-                                value: _selectedChartOfAccountId,
-                                items: ref.watch(accountingProvider).accounts,
-                                onChanged: (v) => setState(
-                                    () => _selectedChartOfAccountId = v),
-                                labelBuilder: (item) =>
-                                    '${item.accountCode} - ${item.accountTitle}',
-                                valueBuilder: (item) => item.id,
-                              ),
-                              const SizedBox(height: 16),
-                              LookupField<Map<String, dynamic>, int>(
-                                label: 'Employee Role',
-                                value: _selectedRoleId,
-                                items: ref.watch(businessPartnerProvider).roles,
-                                validationError:
-                                    (_hasAppAccess && _selectedRoleId == null)
-                                        ? 'Role is required for app access'
-                                        : null,
-                                onChanged: (v) =>
-                                    setState(() => _selectedRoleId = v),
-                                labelBuilder: (item) =>
-                                    item['role_name'] as String? ?? 'Unknown',
-                                valueBuilder: (item) => item['id'] as int,
-                                onAdd: (name) async {
-                                  final orgId = ref
-                                      .read(organizationProvider)
-                                      .selectedOrganizationId;
-                                  if (orgId != null) {
-                                    await ref
-                                        .read(businessPartnerProvider.notifier)
-                                        .addRole(
-                                            name, orgId, _selectedDepartmentId);
-                                  }
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: _phoneController,
-                                decoration: const InputDecoration(
-                                    labelText: 'Phone *',
-                                    prefixIcon: Icon(Icons.phone)),
-                                validator: (v) =>
-                                    v?.isEmpty ?? false ? 'Required' : null,
-                                keyboardType: TextInputType.phone,
-                              ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
                               TextFormField(
                                 controller: _emailController,
-                                decoration: const InputDecoration(
-                                    labelText: 'Email',
-                                    prefixIcon: Icon(Icons.email)),
+                                decoration: InputDecoration(
+                                    labelText: 'Email Address',
+                                    prefixIcon: Icon(Icons.email, color: primaryColor),
+                                    border: const OutlineInputBorder()),
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (v) {
                                   if (_hasAppAccess &&
@@ -631,20 +575,104 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
+
+                      _buildSectionHeader(context, 'Assignments & Roles', Icons.work),
                       Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: LookupField<Map<String, dynamic>, int>(
+                                      label: 'Department',
+                                      value: _selectedDepartmentId,
+                                      items: ref
+                                          .watch(businessPartnerProvider)
+                                          .departments,
+                                      onChanged: (v) =>
+                                          setState(() => _selectedDepartmentId = v),
+                                      labelBuilder: (item) =>
+                                          item['name'] as String? ?? 'Unknown',
+                                      valueBuilder: (item) => item['id'] as int,
+                                      onAdd: (name) async {
+                                        final orgId = ref
+                                            .read(organizationProvider)
+                                            .selectedOrganizationId;
+                                        if (orgId != null) {
+                                          await ref
+                                              .read(businessPartnerProvider.notifier)
+                                              .addDepartment(name, orgId);
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: LookupField<Map<String, dynamic>, int>(
+                                      label: 'Employee Role *',
+                                      value: _selectedRoleId,
+                                      items: ref.watch(businessPartnerProvider).roles,
+                                      validationError:
+                                          (_hasAppAccess && _selectedRoleId == null)
+                                              ? 'Role is required for app access'
+                                              : null,
+                                      onChanged: (v) =>
+                                          setState(() => _selectedRoleId = v),
+                                      labelBuilder: (item) =>
+                                          item['role_name'] as String? ?? 'Unknown',
+                                      valueBuilder: (item) => item['id'] as int,
+                                      onAdd: (name) async {
+                                        final orgId = ref
+                                            .read(organizationProvider)
+                                            .selectedOrganizationId;
+                                        if (orgId != null) {
+                                          await ref
+                                              .read(businessPartnerProvider.notifier)
+                                              .addRole(
+                                                  name, orgId, _selectedDepartmentId);
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              LookupField<ChartOfAccount, String>(
+                                label: 'Salary Ledger Account',
+                                value: _selectedChartOfAccountId,
+                                items: ref.watch(accountingProvider).accounts,
+                                onChanged: (v) => setState(
+                                    () => _selectedChartOfAccountId = v),
+                                labelBuilder: (item) =>
+                                    '${item.accountCode} - ${item.accountTitle}',
+                                valueBuilder: (item) => item.id,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSectionHeader(context, 'App Access', Icons.security),
+                      Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Column(
                             children: [
                               SwitchListTile(
-                                title: const Text('Grant Application Access'),
+                                title: const Text('Grant Application Access', 
+                                  style: TextStyle(fontWeight: FontWeight.bold)),
                                 subtitle: Text(_hasAppAccess
-                                    ? 'An invitation email will be sent to the employee'
-                                    : 'Allow this employee to log in to the application'),
+                                    ? 'Invitation will be sent after saving'
+                                    : 'Enable login for this employee'),
                                 value: _hasAppAccess,
-                                activeThumbColor:
-                                    Theme.of(context).primaryColor,
+                                activeThumbColor: primaryColor,
                                 onChanged: (val) {
                                   if (val &&
                                       _emailController.text.trim().isEmpty) {
@@ -659,69 +687,74 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                   });
                                 },
                               ),
-                              if (_hasAppAccess) ...[
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _passwordController,
-                                  obscureText: _obscurePassword,
-                                  decoration: InputDecoration(
-                                    labelText: _existingAppUser == null
-                                        ? 'Password'
-                                        : 'Change Password (optional)',
-                                    hintText: 'Minimum 6 characters',
-                                    border: const OutlineInputBorder(),
-                                    suffixIcon: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(_obscurePassword
-                                              ? Icons.visibility
-                                              : Icons.visibility_off),
-                                          onPressed: () => setState(() =>
-                                              _obscurePassword =
-                                                  !_obscurePassword),
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                                    child: TextFormField(
+                                      controller: _passwordController,
+                                      obscureText: _obscurePassword,
+                                      decoration: InputDecoration(
+                                        labelText: _existingAppUser == null
+                                            ? 'Password'
+                                            : 'Change Password (optional)',
+                                        hintText: 'Minimum 6 characters',
+                                        prefixIcon: Icon(Icons.lock_outline, color: primaryColor),
+                                        border: const OutlineInputBorder(),
+                                        suffixIcon: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(_obscurePassword
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off),
+                                              onPressed: () => setState(() =>
+                                                  _obscurePassword =
+                                                      !_obscurePassword),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.refresh),
+                                              tooltip: 'Generate',
+                                              onPressed: () {
+                                                final randomPass = const Uuid()
+                                                    .v4()
+                                                    .substring(0, 8);
+                                                setState(() {
+                                                  _passwordController.text =
+                                                      randomPass;
+                                                  _obscurePassword = false;
+                                                });
+                                              },
+                                            ),
+                                          ],
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.refresh),
-                                          tooltip: 'Generate Random Password',
-                                          onPressed: () {
-                                            final randomPass = const Uuid()
-                                                .v4()
-                                                .substring(0, 8);
-                                            setState(() {
-                                              _passwordController.text =
-                                                  randomPass;
-                                              _obscurePassword = false;
-                                            });
-                                          },
-                                        ),
-                                      ],
+                                      ),
+                                      validator: (v) {
+                                        if (_hasAppAccess &&
+                                            _existingAppUser == null &&
+                                            (v == null || v.isEmpty)) {
+                                          return 'Password is required for new app access';
+                                        }
+                                        if (_hasAppAccess &&
+                                            v != null &&
+                                            v.isNotEmpty &&
+                                            v.length < 6) {
+                                          return 'Password must be at least 6 characters';
+                                        }
+                                        return null;
+                                      },
                                     ),
                                   ),
-                                  validator: (v) {
-                                    if (_hasAppAccess &&
-                                        _existingAppUser == null &&
-                                        (v == null || v.isEmpty)) {
-                                      return 'Password is required for new app access';
-                                    }
-                                    if (_hasAppAccess &&
-                                        v != null &&
-                                        v.isNotEmpty &&
-                                        v.length < 6) {
-                                      return 'Password must be at least 6 characters';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ],
-                            ],
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
+
+                      _buildSectionHeader(context, 'Location & Address', Icons.location_on),
                       Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -729,25 +762,25 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Address',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium),
+                                  const Text('Physical Address',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                   TextButton.icon(
                                       onPressed: _getCurrentLocation,
                                       icon: const Icon(Icons.my_location),
-                                      label: const Text('GPS')),
+                                      label: const Text('Get GPS')),
                                 ],
                               ),
                               const SizedBox(height: 16),
                               TextFormField(
                                 controller: _streetController,
                                 decoration: const InputDecoration(
-                                    labelText: 'Street Address *'),
+                                    labelText: 'Street Address *',
+                                    prefixIcon: Icon(Icons.home_outlined),
+                                    border: OutlineInputBorder()),
                                 validator: (v) =>
                                     v?.isEmpty ?? false ? 'Required' : null,
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
                               Row(
                                 children: [
                                   Expanded(
@@ -764,21 +797,22 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                           onChanged: (v) => setState(
                                               () => _selectedCityId = v),
                                           onAdd: _setCityByName)),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                       child: TextFormField(
                                           controller: _zipController,
                                           decoration: const InputDecoration(
-                                              labelText: 'ZIP'))),
+                                              labelText: 'Postal/ZIP',
+                                              border: OutlineInputBorder()))),
                                 ],
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
                               Row(
                                 children: [
                                   Expanded(
                                       child: LookupField<Map<String, dynamic>,
                                               int>(
-                                          label: 'State',
+                                          label: 'State/Province',
                                           value: _selectedStateId,
                                           items: ref
                                               .watch(businessPartnerProvider)
@@ -789,7 +823,7 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                                           onChanged: (v) => setState(
                                               () => _selectedStateId = v),
                                           onAdd: _setStateByName)),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                       child: LookupField<Map<String, dynamic>,
                                               int>(
@@ -843,20 +877,41 @@ class _EmployeeFormScreenState extends ConsumerState<EmployeeFormScreen> {
                           backgroundColor: Theme.of(context).primaryColor,
                           foregroundColor: Colors.white,
                         ),
-                        child: _isSubmitting
-                            ? const CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2)
-                            : Text(widget.employeeId == null
-                                ? 'Create Employee'
-                                : 'Save Changes'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                         child: _isSubmitting
+                             ? const CircularProgressIndicator(
+                                 color: Colors.white, strokeWidth: 2)
+                             : Text(widget.employeeId == null
+                                 ? 'Create ${widget.title?.split(' ').last ?? 'Employee'}'
+                                 : 'Save Changes'),
+                       ),
+                     ],
+                   ),
+                 ),
+               ),
+             ),
+           ),
+         ),
+       ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+          const SizedBox(width: 12),
+          Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+              color: Colors.grey.shade700,
             ),
           ),
-        ),
+        ],
       ),
     );
   }

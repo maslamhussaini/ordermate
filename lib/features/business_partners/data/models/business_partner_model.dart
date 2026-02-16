@@ -27,14 +27,15 @@ class BusinessPartnerModel extends BusinessPartner {
     super.roleId,
     super.roleName,
     super.managerId,
-    required super.organizationId,
-    required super.storeId,
+    super.organizationId,
+    super.storeId,
     super.distanceMeters,
     super.departmentId,
     super.departmentName,
     super.chartOfAccountId,
     super.paymentTermId,
     super.password,
+    super.openingBalance,
   });
 
   factory BusinessPartnerModel.fromJson(Map<String, dynamic> json) {
@@ -68,8 +69,8 @@ class BusinessPartnerModel extends BusinessPartner {
           ? (json['omtbl_roles'] as Map<String, dynamic>)['role_name']
               as String?
           : json['role_name'] as String?, // Fallback for local
-      organizationId: (json['organization_id'] as int?) ?? 0,
-      storeId: (json['store_id'] as int?) ?? 0,
+      organizationId: json['organization_id'] as int?,
+      storeId: json['store_id'] as int?,
       isCustomer: json['is_customer'] == 1 || json['is_customer'] == true,
       isVendor: json['is_vendor'] == 1 || json['is_vendor'] == true,
       isEmployee: json['is_employee'] == 1 || json['is_employee'] == true,
@@ -93,6 +94,8 @@ class BusinessPartnerModel extends BusinessPartner {
       chartOfAccountId: json['chart_of_account_id']?.toString(),
       paymentTermId: json['payment_term_id'] as int?,
       password: json['password'] as String?,
+      // opening_balance field removed - not in database schema
+      openingBalance: 0.0, // Always use default value
     );
   }
 
@@ -125,6 +128,7 @@ class BusinessPartnerModel extends BusinessPartner {
       'chart_of_account_id': chartOfAccountId,
       'payment_term_id': paymentTermId,
       'password': password,
+      // 'opening_balance': openingBalance, // Removed - column doesn't exist in database
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };

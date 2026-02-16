@@ -15,8 +15,14 @@ import 'package:ordermate/core/widgets/processing_dialog.dart';
 class TransactionsScreen extends ConsumerStatefulWidget {
   final String? accountId;
   final String? accountName;
+  final bool onlyBankCash;
 
-  const TransactionsScreen({super.key, this.accountId, this.accountName});
+  const TransactionsScreen({
+    super.key,
+    this.accountId,
+    this.accountName,
+    this.onlyBankCash = false,
+  });
 
   @override
   ConsumerState<TransactionsScreen> createState() => _TransactionsScreenState();
@@ -46,19 +52,34 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final state = ref.watch(accountingProvider);
     final partnerState = ref.watch(businessPartnerProvider);
 
-    final transactions = widget.accountId == null
-        ? state.transactions
-        : state.transactions
-            .where((t) =>
-                t.accountId == widget.accountId ||
-                t.offsetAccountId == widget.accountId)
-            .toList();
+    final transactions = state.transactions.where((t) {
+      if (widget.accountId != null) {
+        final matchesAccount = t.accountId == widget.accountId ||
+            t.offsetAccountId == widget.accountId;
+        if (!matchesAccount) return false;
+      }
+
+      if (widget.onlyBankCash) {
+        // A transaction is bank/cash related if either its account or offset account
+        // corresponds to a registered Bank or Cash account.
+        final bankAccountIds =
+            state.bankCashAccounts.map((b) => b.chartOfAccountId).toSet();
+        final isBankCash = bankAccountIds.contains(t.accountId) ||
+            (t.offsetAccountId != null &&
+                bankAccountIds.contains(t.offsetAccountId));
+        if (!isBankCash) return false;
+      }
+
+      return true;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.accountName != null
             ? 'Account: ${widget.accountName}'
-            : 'Transactions'),
+            : widget.onlyBankCash
+                ? 'Bank & Cash Transactions'
+                : 'Transactions'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

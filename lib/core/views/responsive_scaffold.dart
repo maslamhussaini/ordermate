@@ -47,13 +47,25 @@ class ResponsiveScaffold extends ConsumerWidget {
                     context: context,
                     builder: (context) {
                       return AlertDialog(
-                        title: const Text('Select Financial Year'),
+                        title: Row(
+                          children: [
+                            Icon(Icons.calendar_month,
+                                color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 12),
+                            const Text('Select Financial Year'),
+                          ],
+                        ),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         content: SizedBox(
                           width: double.maxFinite,
                           child: ListView(shrinkWrap: true, children: [
                             ListTile(
                               title: const Text('All Years'),
-                              leading: const Icon(Icons.calendar_view_week),
+                              subtitle: const Text('View aggregate data'),
+                              leading: const CircleAvatar(
+                                child: Icon(Icons.calendar_view_week),
+                              ),
                               selected: currentSession == null,
                               onTap: () {
                                 ref
@@ -64,40 +76,71 @@ class ResponsiveScaffold extends ConsumerWidget {
                             ),
                             const Divider(),
                             if (sessions.isEmpty)
-                              const ListTile(
-                                  title:
-                                      Text('No Financial Sessions Configured')),
-                            ...sessions.map((s) => ListTile(
-                                  title: Text('${s.sYear}'),
-                                  subtitle: Text(
-                                      '${DateFormat.yMMMd().format(s.startDate)} - ${DateFormat.yMMMd().format(s.endDate)}'),
-                                  leading: Icon(Icons.calendar_today,
+                              const Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Center(
+                                  child: Text('No Financial Sessions found',
+                                      style: TextStyle(color: Colors.grey)),
+                                ),
+                              ),
+                            ...sessions.map((s) {
+                              final isSelected = currentSession?.sYear == s.sYear;
+                              return ListTile(
+                                title: Text('${s.sYear}',
+                                    style: TextStyle(
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal)),
+                                subtitle: Text(
+                                    '${DateFormat.yMMMd().format(s.startDate)} - ${DateFormat.yMMMd().format(s.endDate)}'),
+                                leading: CircleAvatar(
+                                  backgroundColor: s.isClosed
+                                      ? Colors.grey.shade200
+                                      : (isSelected
+                                          ? Theme.of(context).colorScheme.primaryContainer
+                                          : Colors.green.shade50),
+                                  child: Icon(Icons.calendar_today,
+                                      size: 18,
                                       color: s.isClosed
                                           ? Colors.grey
-                                          : Colors.green),
-                                  trailing: s.isClosed
-                                      ? const Chip(
-                                          label: Text('Closed',
-                                              style: TextStyle(fontSize: 10)),
-                                          backgroundColor: Colors.redAccent)
-                                      : const Chip(
-                                          label: Text('Active',
-                                              style: TextStyle(fontSize: 10)),
-                                          backgroundColor: Colors.greenAccent),
-                                  selected: currentSession?.sYear == s.sYear,
-                                  onTap: () {
-                                    ref
-                                        .read(accountingProvider.notifier)
-                                        .selectFinancialSession(s);
-                                    Navigator.pop(context);
-                                  },
-                                )),
+                                          : (isSelected
+                                              ? Theme.of(context).colorScheme.primary
+                                              : Colors.green)),
+                                ),
+                                trailing: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (s.isClosed)
+                                      const Badge(
+                                          label: Text('CLOSED'),
+                                          backgroundColor: Colors.red)
+                                    else if (s.isActive)
+                                      const Badge(
+                                          label: Text('ACTIVE'),
+                                          backgroundColor: Colors.green)
+                                  ],
+                                ),
+                                selected: isSelected,
+                                selectedTileColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer
+                                    .withValues(alpha: 0.2),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                                onTap: () {
+                                  ref
+                                      .read(accountingProvider.notifier)
+                                      .selectFinancialSession(s);
+                                  Navigator.pop(context);
+                                },
+                              );
+                            }),
                           ]),
                         ),
                         actions: [
                           TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: const Text('Cancel')),
+                              child: const Text('Close')),
                         ],
                       );
                     });

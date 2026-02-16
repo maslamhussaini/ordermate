@@ -143,7 +143,7 @@ class OrderModel extends Order {
       'dispatch_status': dispatchStatus,
       'dispatch_date': dispatchDate?.toIso8601String(),
       'due_date': dueDate?.toIso8601String().split('T')[0],
-      'is_invoiced': isInvoiced ? 1 : 0,
+      'is_invoiced': isInvoiced,
       'syear': sYear,
       'items_payload': jsonEncode(items.map((e) => e.toJson()).toList()),
     };

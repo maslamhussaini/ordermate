@@ -133,6 +133,7 @@ class AuthNotifier extends Notifier<AuthState> {
   void _clearAuthState() {
     state = const AuthState();
     AuthService.testRole = null;
+    AuthService.setPermissions = null;
   }
 
   // Fetch Permissions from the RolePermissions Configuration (Static Defaults)
@@ -173,7 +174,8 @@ class AuthNotifier extends Notifier<AuthState> {
           .from('omtbl_users')
           .select('id, auth_id, role_id, role, full_name, organization_id')
           .eq('auth_id', sessionUser.id)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 15));
 
       // Fallback: Try by Email
       if (userResponse == null && sessionUser.email != null) {
@@ -181,7 +183,8 @@ class AuthNotifier extends Notifier<AuthState> {
             .from('omtbl_users')
             .select('id, auth_id, role_id, role, full_name, organization_id')
             .eq('email', sessionUser.email!)
-            .maybeSingle();
+            .maybeSingle()
+            .timeout(const Duration(seconds: 15));
       }
 
       if (userResponse == null) {
@@ -198,17 +201,46 @@ class AuthNotifier extends Notifier<AuthState> {
               .from('omtbl_organizations')
               .select('id')
               .eq('auth_user_id', sessionUser.id)
-              .maybeSingle();
+              .maybeSingle()
+              .timeout(const Duration(seconds: 15));
               
           if (ownedOrg != null) {
             userResponse['organization_id'] = ownedOrg['id'];
             debugPrint('AuthNotifier: Found owned organization ${ownedOrg['id']} for user');
             
-            // Self-heal: Update user profile
+            // Self-heal: Update user profile with Organization ID
+             var updateData = {'organization_id': ownedOrg['id']};
+
+            // ALSO: If I am the owner, ensure I have the OWNER role and Admin Role ID
+            // This fixes the issue where the first user (Owner) is stuck as 'Employee'
+             if (userResponse['role'] != 'OWNER' && userResponse['role'] != 'admin') {
+                userResponse['role'] = 'OWNER';
+                updateData['role'] = 'OWNER';
+
+                // Fetch Admin Role ID to keep DB consistent
+                try {
+                  final adminRoleRes = await SupabaseConfig.client
+                      .from('omtbl_roles')
+                      .select('id')
+                      .eq('organization_id', ownedOrg['id'])
+                      .ilike('role_name', '%Admin%')
+                      .limit(1)
+                      .maybeSingle()
+                      .timeout(const Duration(seconds: 10));
+                  
+                  if (adminRoleRes != null) {
+                    userResponse['role_id'] = adminRoleRes['id']; // Update local var
+                    updateData['role_id'] = adminRoleRes['id'];
+                  }
+                } catch (_) {}
+             }
+
              unawaited(SupabaseConfig.client
                 .from('omtbl_users')
-                .update({'organization_id': ownedOrg['id']})
-                .eq('id', userResponse['id']));
+                .update(updateData)
+                .eq('id', userResponse['id'])
+                .timeout(const Duration(seconds: 10))
+                .catchError((e) => debugPrint('AuthNotifier: Quick update failed: $e')));
           }
         } catch (e) {
           debugPrint('AuthNotifier: Error checking org ownership: $e');
@@ -234,13 +266,18 @@ class AuthNotifier extends Notifier<AuthState> {
       final fullName = userResponse['full_name'] as String?;
 
       // Determine the role
+      // Determine the role
       UserRole determinedRole = UserRole.staff;
-      if (roleStr == 'SUPER USER' || roleStr == 'OWNER') {
+      
+      // Strict Super User check - Only for specific system admin
+      if (sessionUser.email == 'maslamhussaini@gmail.com') {
         determinedRole = UserRole.superUser;
-      } else if (roleStr == 'CORPORATE_ADMIN' ||
-          roleStr == 'ADMIN' ||
-          roleStr == 'ORG_ADMIN' ||
-          roleStr == 'MANAGER') {
+      } else if (roleStr == 'OWNER' || 
+                 roleStr == 'SUPER USER' ||
+                 roleStr == 'CORPORATE_ADMIN' ||
+                 roleStr == 'ADMIN' ||
+                 roleStr == 'ORG_ADMIN' ||
+                 roleStr == 'MANAGER') {
         determinedRole = UserRole.admin;
       }
 
@@ -250,6 +287,7 @@ class AuthNotifier extends Notifier<AuthState> {
         role: determinedRole,
         organizationId: organizationId, // Update State
       );
+      AuthService.testRole = determinedRole; // Sync static role for permission checks
 
       // Super Users bypass all checks
       if (determinedRole == UserRole.superUser) {
@@ -356,10 +394,19 @@ class AuthNotifier extends Notifier<AuthState> {
         }
       }
 
+      final finalPermissions = permissionSet.toList();
       state = state.copyWith(
-        permissions: permissionSet.toList(),
+        permissions: finalPermissions,
         isPermissionLoading: false,
       );
+
+      // Sync with AuthService so PermissionUtils works
+      final Map<String, Set<Permission>> permissionMap = {};
+      for (var p in finalPermissions) {
+        permissionMap.putIfAbsent(p.module, () => {}).add(p.action);
+      }
+      AuthService.setPermissions = permissionMap;
+
     } catch (e) {
       debugPrint('Error loading dynamic permissions: $e');
       state = state.copyWith(isPermissionLoading: false);

@@ -19,11 +19,16 @@ class AppDrawer extends ConsumerStatefulWidget {
 class _AppDrawerState extends ConsumerState<AppDrawer> {
   bool _inventoryExpanded = false;
   bool _customersExpanded = false;
+  bool _customersSetupExpanded = false;
+  bool _customersReportsExpanded = false;
   bool _suppliersExpanded = false;
   bool _employeeExpanded = false;
   bool _managementExpanded = false;
   bool _setupsExpanded = false;
   bool _accountingExpanded = false;
+  bool _accountingSetupExpanded = false;
+  bool _bankCashExpanded = false;
+  bool _bankCashSetupExpanded = false;
   bool _reportsExpanded = false;
 
   void _closeDrawerIfOpen(BuildContext context) {
@@ -175,11 +180,12 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
 
                   const Divider(),
 
-                  // Accounting (Expandable)
+                  // GL Account (Expandable)
                   if (auth.can('accounting', Permission.read))
                     _buildExpandableMenuItem(
                       icon: Icons.account_balance_wallet_outlined,
-                      title: 'Accounting',
+                      title: AppLocalizations.of(context)?.get('gl_account') ??
+                          'GL Account',
                       isExpanded: _accountingExpanded,
                       onTap: () {
                         setState(
@@ -187,84 +193,141 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                       },
                       children: [
                         _buildSubMenuItem(
-                          title: 'Accounting Overview',
-                          icon: Icons.grid_view_outlined,
-                          onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/accounting');
-                          },
-                        ),
-                        _buildSubMenuItem(
-                          title: 'Chart of Accounts',
-                          icon: Icons.account_tree_outlined,
-                          onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/accounting/coa');
-                          },
-                        ),
-                        _buildSubMenuItem(
-                          title: 'General Ledger Setup',
-                          icon: Icons.settings_applications_outlined,
-                          onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/accounting/gl-setup');
-                          },
-                        ),
-                        _buildSubMenuItem(
-                          title: 'Account Types',
-                          icon: Icons.category_outlined,
-                          onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/accounting/account-types');
-                          },
-                        ),
-                        _buildSubMenuItem(
-                          title: 'Account Categories',
-                          icon: Icons.list_alt_outlined,
-                          onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/accounting/account-categories');
-                          },
-                        ),
-                        _buildSubMenuItem(
-                          title: 'Transactions',
+                          title: AppLocalizations.of(context)
+                                  ?.get('gl_transactions') ??
+                              'GL Transactions',
                           icon: Icons.receipt_long_outlined,
                           onTap: () {
                             _closeDrawerIfOpen(context);
                             context.push('/accounting/transactions');
                           },
                         ),
+                        _buildExpandableSubMenuItem(
+                          icon: Icons.settings_outlined,
+                          title: 'Setup Menu',
+                          isExpanded: _accountingSetupExpanded,
+                          onTap: () {
+                            setState(() => _accountingSetupExpanded =
+                                !_accountingSetupExpanded);
+                          },
+                          children: [
+                            _buildSubMenuItem(
+                              title: 'Accounting Overview',
+                              icon: Icons.grid_view_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title: 'Chart of Accounts',
+                              icon: Icons.account_tree_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting/coa');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title: 'General Ledger Setup',
+                              icon: Icons.settings_applications_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting/gl-setup');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title: 'Account Types',
+                              icon: Icons.category_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting/account-types');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title: 'Account Categories',
+                              icon: Icons.list_alt_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting/account-categories');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title: 'Payment Terms',
+                              icon: Icons.calendar_today_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting/payment-terms');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title: 'Voucher Prefixes',
+                              icon: Icons.label_outline,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting/voucher-prefixes');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title: 'Financial Sessions',
+                              icon: Icons.date_range_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting/financial-sessions');
+                              },
+                              leftPadding: 48,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                  // BankCash Management (Expandable)
+                  if (auth.can('accounting', Permission.read))
+                    _buildExpandableMenuItem(
+                      icon: Icons.account_balance_outlined,
+                      title: AppLocalizations.of(context)
+                              ?.get('bank_cash_management') ??
+                          'BankCash Management',
+                      isExpanded: _bankCashExpanded,
+                      onTap: () {
+                        setState(
+                            () => _bankCashExpanded = !_bankCashExpanded);
+                      },
+                      children: [
                         _buildSubMenuItem(
-                          title: 'Payment Terms',
-                          icon: Icons.calendar_today_outlined,
+                          title: 'Transactions',
+                          icon: Icons.receipt_long_outlined,
                           onTap: () {
                             _closeDrawerIfOpen(context);
-                            context.push('/accounting/payment-terms');
+                            context.push('/accounting/transactions?onlyBankCash=true');
                           },
                         ),
-                        _buildSubMenuItem(
-                          title: 'Bank & Cash',
-                          icon: Icons.account_balance_outlined,
+                        _buildExpandableSubMenuItem(
+                          icon: Icons.settings_outlined,
+                          title: 'Setup',
+                          isExpanded: _bankCashSetupExpanded,
                           onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/accounting/bank-cash');
+                            setState(() => _bankCashSetupExpanded =
+                                !_bankCashSetupExpanded);
                           },
-                        ),
-                        _buildSubMenuItem(
-                          title: 'Voucher Prefixes',
-                          icon: Icons.label_outline,
-                          onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/accounting/voucher-prefixes');
-                          },
-                        ),
-                        _buildSubMenuItem(
-                          title: 'Financial Sessions',
-                          icon: Icons.date_range_outlined,
-                          onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/accounting/financial-sessions');
-                          },
+                          children: [
+                            _buildSubMenuItem(
+                              title: 'Bank & Cash',
+                              icon: Icons.account_balance_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/accounting/bank-cash');
+                              },
+                              leftPadding: 48,
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -322,17 +385,6 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                             () => _customersExpanded = !_customersExpanded);
                       },
                       children: [
-                        if (auth.can('customers', Permission.read))
-                          _buildSubMenuItem(
-                            title: AppLocalizations.of(context)
-                                    ?.get('customer_list') ??
-                                'Customer List',
-                            icon: Icons.list_alt,
-                            onTap: () {
-                              _closeDrawerIfOpen(context);
-                              context.push('/customers');
-                            },
-                          ),
                         if (auth.can('orders', Permission.read))
                           _buildSubMenuItem(
                             title:
@@ -354,6 +406,131 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                               context.push('/invoices');
                             },
                           ),
+
+                        // Setup Sub-Menu
+                        _buildExpandableSubMenuItem(
+                          icon: Icons.settings_outlined,
+                          title:
+                              AppLocalizations.of(context)?.get('setups') ??
+                                  'Setup',
+                          isExpanded: _customersSetupExpanded,
+                          onTap: () {
+                            setState(() => _customersSetupExpanded =
+                                !_customersSetupExpanded);
+                          },
+                          children: [
+                            if (auth.can('customers', Permission.read))
+                              _buildSubMenuItem(
+                                title: AppLocalizations.of(context)
+                                        ?.get('customer_list') ??
+                                    'Customer List',
+                                icon: Icons.list_alt,
+                                onTap: () {
+                                  _closeDrawerIfOpen(context);
+                                  context.push('/customers');
+                                },
+                                leftPadding: 48,
+                              ),
+                            _buildSubMenuItem(
+                              title: AppLocalizations.of(context)
+                                      ?.get('sales_manager') ??
+                                  'SalesMan List',
+                              icon: Icons.badge_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push(
+                                  '/employees',
+                                  extra: {
+                                    'title': 'SalesMan List',
+                                    'filterRole': 'SalesMan',
+                                    'filterDept': 'Sales'
+                                  },
+                                );
+                              },
+                              leftPadding: 48,
+                            ),
+                          ],
+                        ),
+
+                        // Reports Sub-Menu
+                        _buildExpandableSubMenuItem(
+                          icon: Icons.bar_chart_outlined,
+                          title:
+                              AppLocalizations.of(context)?.get('reports') ??
+                                  'Reports',
+                          isExpanded: _customersReportsExpanded,
+                          onTap: () {
+                            setState(() => _customersReportsExpanded =
+                                !_customersReportsExpanded);
+                          },
+                          children: [
+                            // Sales Reports
+                            _buildSubMenuItem(
+                              title:
+                                  "${AppLocalizations.of(context)?.get('sales_reports') ?? 'Sales Reports'} (${AppLocalizations.of(context)?.get('product_wise') ?? 'Product Wise'})",
+                              icon: Icons.inventory_2_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/reports/sales/product');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title:
+                                  "${AppLocalizations.of(context)?.get('sales_reports') ?? 'Sales Reports'} (${AppLocalizations.of(context)?.get('customer_wise') ?? 'Customer Wise'})",
+                              icon: Icons.groups_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/reports/sales/customer');
+                              },
+                              leftPadding: 48,
+                            ),
+                            // Sales Return Reports
+                            _buildSubMenuItem(
+                              title:
+                                  "${AppLocalizations.of(context)?.get('sales_return_reports') ?? 'Sales Return Reports'} (${AppLocalizations.of(context)?.get('product_wise') ?? 'Product Wise'})",
+                              icon: Icons.assignment_return_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/reports/returns/product');
+                              },
+                              leftPadding: 48,
+                            ),
+                            _buildSubMenuItem(
+                              title:
+                                  "${AppLocalizations.of(context)?.get('sales_return_reports') ?? 'Sales Return Reports'} (${AppLocalizations.of(context)?.get('customer_wise') ?? 'Customer Wise'})",
+                              icon: Icons.person_remove_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/reports/returns/customer');
+                              },
+                              leftPadding: 48,
+                            ),
+                            // Customer Ledger
+                            _buildSubMenuItem(
+                              title: AppLocalizations.of(context)
+                                      ?.get('customer_ledger') ??
+                                  'Customer Ledger',
+                              icon: Icons.person_search_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/reports/ledger/customer');
+                              },
+                              leftPadding: 48,
+                            ),
+                            // Sales Manager (Location)
+                            _buildSubMenuItem(
+                              title:
+                                  "${AppLocalizations.of(context)?.get('sales_manager') ?? 'Sales Manager'} (Loc)",
+                              icon: Icons.location_on_outlined,
+                              onTap: () {
+                                _closeDrawerIfOpen(context);
+                                context.push('/reports/location');
+                              },
+                              leftPadding: 48,
+                            ),
+                          ],
+                        ),
                       ],
                     ),
 
@@ -529,16 +706,6 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                           onTap: () {
                             _closeDrawerIfOpen(context);
                             context.push('/reports/day-closing');
-                          },
-                        ),
-                        _buildSubMenuItem(
-                          title: AppLocalizations.of(context)
-                                  ?.get('sales_manager') ??
-                              'Sales Manager',
-                          icon: Icons.location_on_rounded,
-                          onTap: () {
-                            _closeDrawerIfOpen(context);
-                            context.push('/reports/location');
                           },
                         ),
                       ],
@@ -787,10 +954,10 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
     required String title,
     required VoidCallback onTap,
     IconData? icon,
+    double leftPadding = 32,
   }) {
     return ListTile(
-      contentPadding: const EdgeInsets.only(
-          left: 32, right: 16), // Reduced padding if icon exists
+      contentPadding: EdgeInsets.only(left: leftPadding, right: 16),
       leading: icon != null
           ? Icon(icon,
               size: 20,
@@ -800,9 +967,52 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
           : null,
       title: Text(
         title,
-        style: const TextStyle(fontSize: 15),
+        style: TextStyle(
+          fontSize: leftPadding > 32 ? 13 : 14,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black87,
+        ),
       ),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildExpandableSubMenuItem({
+    required IconData icon,
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onTap,
+    required List<Widget> children,
+  }) {
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.only(left: 32, right: 16),
+          leading: Icon(icon,
+              size: 20,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white70
+                  : Colors.grey.shade700),
+          title: Text(
+            title,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+          trailing: AnimatedRotation(
+            turns: isExpanded ? 0.5 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: const Icon(Icons.keyboard_arrow_down, size: 20),
+          ),
+          onTap: onTap,
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Column(children: children),
+          crossFadeState:
+              isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
+      ],
     );
   }
 }

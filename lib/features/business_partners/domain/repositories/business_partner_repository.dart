@@ -62,8 +62,8 @@ abstract class BusinessPartnerRepository {
     required String email,
     required int roleId,
     String? fullName,
-    required int organizationId,
-    required int storeId,
+    int? organizationId,
+    int? storeId,
     String? password,
   });
 

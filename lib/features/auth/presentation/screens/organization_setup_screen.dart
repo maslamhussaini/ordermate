@@ -10,10 +10,9 @@ import 'package:ordermate/core/theme/app_colors.dart';
 import 'package:ordermate/core/widgets/step_indicator.dart';
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
 import 'package:ordermate/core/services/email_service.dart';
-import 'package:ordermate/core/services/accounting_seed_service.dart';
 
 class OrganizationSetupScreen extends ConsumerStatefulWidget {
-  final Map<String, String> userData;
+  final Map<String, dynamic> userData;
 
   const OrganizationSetupScreen({super.key, required this.userData});
 
@@ -37,10 +36,10 @@ class _OrganizationSetupScreenState
 
   bool _hasMultipleBranch = false;
   int? _selectedBusinessTypeId;
-  bool _isGL = true;
-  bool _isSales = true;
-  bool _isInventory = true;
-  bool _isHR = true;
+  final bool _isGL = true;
+  final bool _isSales = true;
+  final bool _isInventory = true;
+  final bool _isHR = true;
   final bool _isSettings = true;
 
   bool _isLoading = false;
@@ -195,7 +194,7 @@ class _OrganizationSetupScreenState
 
       // 3. Create Store
       final locationString = '$address, $city, $country';
-      await SupabaseConfig.client.from('omtbl_stores').insert({
+      final storeResponse = await SupabaseConfig.client.from('omtbl_stores').insert({
         'organization_id': orgId,
         'name': storeName,
         'location': locationString,
@@ -204,7 +203,9 @@ class _OrganizationSetupScreenState
         'store_country': country,
         'store_postal_code': postal,
         'store_default_currency': currency,
-      });
+      }).select('id').single();
+
+      final storeId = storeResponse['id'];
 
       // 4. Update User Profile with Org ID
       await SupabaseConfig.client.from('omtbl_users').update({
@@ -214,8 +215,6 @@ class _OrganizationSetupScreenState
 
       // Force reload permissions to reflect the new role/org immediately
       await ref.read(authProvider.notifier).loadDynamicPermissions();
-
-
 
       // Send Module Configuration Email with Deep Link
       try {
@@ -234,17 +233,12 @@ class _OrganizationSetupScreenState
         debugPrint('Email sending failed: $e');
       }
 
-      if (mounted) {
-        context.push('/onboarding/team', extra: {
-          'orgId': orgId,
-          'storeId': (await SupabaseConfig.client
-              .from('omtbl_stores')
-              .select('id')
-              .eq('organization_id', orgId)
-              .single())['id'],
-          'email': email,
-        });
-      }
+      if (!mounted) return;
+      context.push('/onboarding/team', extra: {
+        'orgId': orgId,
+        'storeId': storeId,
+        'email': email,
+      });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

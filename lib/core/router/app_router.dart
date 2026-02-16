@@ -88,8 +88,9 @@ bool _pathMatches(String routePath, String location) {
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Use ref.read inside redirect to prevent router recreation on state changes
-  // Listens to provider changes via refreshListenable
+  // Use ref.read to keep the GoRouter instance stable across state changes.
+  // This prevents the application from resetting to the initial route (/splash) 
+  // every time a dependency changes, which was causing the infinite loop.
 
   return GoRouter(
       initialLocation: '/splash',
@@ -97,18 +98,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       redirect: (context, state) {
         final settings = ref.read(settingsProvider);
         final auth = ref.read(authProvider);
+        final location = state.matchedLocation;
+        debugPrint('Router: Redirect check for $location');
 
-        // 0. Safeguard for Supabase tokens in URL fragment being parsed as paths
-        if (state.matchedLocation.contains('access_token')) {
-          debugPrint(
-              'Router: Token detected in path, redirecting to splash/handle');
+        // 0. Safeguard for Supabase tokens
+        if (location.contains('access_token')) {
+          debugPrint('Router: Token detected in path, redirecting to splash');
           return '/splash';
         }
 
-        // 1. Password Recovery Guard (Highest Priority)
+        // 1. Password Recovery Guard
         if (auth.isPasswordRecovery &&
             state.matchedLocation != '/reset-password') {
-          debugPrint('Router: Redirecting to password recovery');
           return '/reset-password';
         }
 
@@ -117,72 +118,66 @@ final routerProvider = Provider<GoRouter>((ref) {
             authGuard(context, state, settings.landingPage, auth);
         if (authRedirect != null) return authRedirect;
 
-        // 3. Logic for Logged In Users (Redirect to login covered by authGuard)
+        // 3. Logic for Logged In Users
         if (!auth.isLoggedIn) return null;
 
-        // 4. Workspace Selection check (Org, Store, Year)
-        // Mandatory before dashboard access
+        if (settings.offlineMode) return null;
+
+        // 4. Workspace Selection check
         final orgState = ref.read(organizationProvider);
+        final isWorkspaceSelected = orgState.selectedOrganization != null &&
+            orgState.selectedStore != null &&
+            orgState.selectedFinancialYear != null;
 
-        if (orgState.isInitialized) {
-          final isWorkspaceSelected = orgState.selectedOrganization != null &&
-              orgState.selectedStore != null &&
-              orgState.selectedFinancialYear != null;
+        // final location = state.matchedLocation; // Moved to top
 
-          final location = state.matchedLocation;
+        // Exempt onboarding and workspace-selection
+        final isWorkspacePath = location.startsWith('/workspace-selection') ||
+            location == '/organizations-list' ||
+            location.startsWith('/onboarding') ||
+            location.startsWith('/module-access') ||
+            location == '/splash';
 
-          // Exempt onboarding and workspace-selection itself
-          final isExempt = location.startsWith('/onboarding') ||
-              location == '/workspace-selection' ||
-              location.startsWith('/organizations-list') ||
-              location.startsWith('/module-access') ||
-              location == '/splash' ||
-              location == '/login';
-
-          if (!isWorkspaceSelected && !isExempt) {
-            debugPrint(
-                'Router: Workspace not fully configured (Org: ${orgState.selectedOrganizationId}, Store: ${orgState.selectedStoreId}, Year: ${orgState.selectedFinancialYear}). Redirecting to workspace-selection.');
-            return '/workspace-selection';
-          }
-        } else {
-          // While initializing, if we're logged in, we stay on splash or whatever non-auth page we're at
-          debugPrint('Router: Workspace initializing...');
-          return null;
-        }
-
-        final location = state.matchedLocation;
-
-        // 4. Permission & Role Guard
-        // If permissions are still loading from the DB, don't redirect yet
-        if (auth.isPermissionLoading) {
+        if (!isWorkspaceSelected && !isWorkspacePath) {
           debugPrint(
-              'Router: Permissions loading, skipping RBAC for $location');
+              'Router: Workspace missing (Org: ${orgState.selectedOrganizationId}, Store: ${orgState.selectedStoreId}, Year: ${orgState.selectedFinancialYear}). Redirecting.');
+          return '/workspace-selection';
+        }
+
+        if (isWorkspaceSelected && location.startsWith('/workspace-selection')) {
           return null;
         }
+
+        // 5. Permission & Role Guard
+        if (auth.isPermissionLoading) {
+          debugPrint('Router: Permissions loading, skipping RBAC for $location');
+          return null;
+        }
+
+        if (location.startsWith('/workspace-selection')) return null;
 
         final route = findAppRoute(appRoutes, location);
 
         if (route != null) {
-          // A. Role Check
           if (auth.role != UserRole.superUser &&
               !route.roles.contains(auth.role)) {
             debugPrint('RBAC: Role ${auth.role} denied for $location');
             return '/dashboard';
           }
 
-          // B. Granular Permission Check (Read Access)
-          // DB-Driven logic: Check if user has 'read' permission for this module
           if (!auth.can(route.module, Permission.read)) {
-            debugPrint(
-                'RBAC: Permission Read denied for module ${route.module}');
+            debugPrint('RBAC: Permission Read denied for ${route.module}');
             return '/dashboard';
           }
         }
 
         return null;
       },
-      refreshListenable: _RiverpodListenable(
-          ref), // Listens to provider changes including Auth
+      // GoRouter automatically listens to this if it manages to survive rebuilds, 
+      // but since we watch at top level, recreated GoRouter will pick up new state.
+      // We can actually omit refreshListenable if we watch at top level, 
+      // but keeping it doesn't hurt as long as it doesn't use the ref in a stale way.
+      refreshListenable: _RiverpodListenable(ref), 
       routes: [
         GoRoute(
             path: '/splash',
@@ -213,13 +208,13 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                   path: 'organization',
                   builder: (context, state) => OrganizationSetupScreen(
-                      userData: state.extra as Map<String, String>)),
+                      userData: state.extra as Map<String, dynamic>)),
               GoRoute(
                   path: 'store',
                   builder: (context, state) {
                     final extra = state.extra as Map<String, dynamic>;
                     return StoreSetupScreen(
-                        userData: extra['userData'] as Map<String, String>,
+                        userData: extra['userData'] as Map<String, dynamic>,
                         orgData: extra['orgData'] as Map<String, dynamic>);
                   }),
               GoRoute(
@@ -257,8 +252,16 @@ final routerProvider = Provider<GoRouter>((ref) {
 // Helper class to make GoRouter listen to Riverpod
 class _RiverpodListenable extends ChangeNotifier {
   _RiverpodListenable(Ref ref) {
-    ref.listen(authProvider, (_, __) => notifyListeners());
-    ref.listen(settingsProvider, (_, __) => notifyListeners());
-    ref.listen(organizationProvider, (_, __) => notifyListeners());
+    ref.listen(authProvider, (_, __) => _safeNotify());
+    ref.listen(settingsProvider, (_, __) => _safeNotify());
+    ref.listen(organizationProvider, (_, __) => _safeNotify());
+  }
+
+  void _safeNotify() {
+    // notifyListeners() can lead to synchronous redirect() call.
+    // If redirect() uses ref.read(), it might trigger an assertion if called
+    // while a provider is still updating its dependencies.
+    // Using microtask ensures it runs after the current build/update cycle.
+    Future.microtask(() => notifyListeners());
   }
 }

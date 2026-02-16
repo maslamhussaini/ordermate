@@ -45,6 +45,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
   int? _selectedStateId;
   int? _selectedCountryId;
   String? _selectedChartOfAccountId;
+  String? _selectedSalesManId;
 
   @override
   void initState() {
@@ -54,6 +55,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       await ref.read(businessPartnerProvider.notifier).loadCities();
       await ref.read(businessPartnerProvider.notifier).loadStates();
       await ref.read(businessPartnerProvider.notifier).loadCountries();
+      await ref.read(businessPartnerProvider.notifier).loadEmployees();
       await ref.read(accountingProvider.notifier).loadAll();
 
       if (widget.customerId != null) {
@@ -137,6 +139,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
       _selectedStateId = customer.stateId;
       _selectedCountryId = customer.countryId;
       _selectedChartOfAccountId = customer.chartOfAccountId;
+      _selectedSalesManId = customer.managerId;
       _zipController.text = customer.postalCode ?? '';
 
       if (customer.cityId != null ||
@@ -419,6 +422,7 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
         organizationId: existing?.organizationId ?? currentOrgId,
         storeId: existing?.storeId ?? currentStoreId,
         chartOfAccountId: _selectedChartOfAccountId,
+        managerId: _selectedSalesManId,
       );
 
       if (widget.customerId == null) {
@@ -542,6 +546,26 @@ class _CustomerFormScreenState extends ConsumerState<CustomerFormScreen> {
                           decoration: const InputDecoration(
                               labelText: 'Email',
                               prefixIcon: Icon(Icons.email)),
+                        ),
+                        const SizedBox(height: 16),
+                        LookupField<BusinessPartner, String>(
+                          label: 'SalesMan',
+                          value: _selectedSalesManId,
+                          items: ref
+                              .watch(businessPartnerProvider)
+                              .employees
+                              .where((e) {
+                            final dept = e.departmentName?.toLowerCase() ?? '';
+                            final role = e.roleName?.toLowerCase() ?? '';
+                            return dept == 'sales' && role == 'salesman';
+                          }).toList(),
+                          onChanged: (v) =>
+                              setState(() => _selectedSalesManId = v),
+                          labelBuilder: (item) => item.name,
+                          valueBuilder: (item) => item.id,
+                          onAdd: (name) async {
+                            // Optional: Redirect to create salesperson if needed
+                          },
                         ),
                         const SizedBox(height: 16),
                         LookupField<ChartOfAccount, String>(

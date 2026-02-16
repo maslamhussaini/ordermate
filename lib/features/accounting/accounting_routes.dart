@@ -40,7 +40,11 @@ final List<AppRoute> accountingRoutes = [
             routeName: RouteNames.transactions,
             module: 'accounting',
             roles: [UserRole.admin, UserRole.staff],
-            builder: (_, __) => const TransactionsScreen()),
+            builder: (_, state) {
+              final onlyBankCash =
+                  state.uri.queryParameters['onlyBankCash'] == 'true';
+              return TransactionsScreen(onlyBankCash: onlyBankCash);
+            }),
         AppRoute(
             path: 'coa',
             title: 'Chart of Accounts',

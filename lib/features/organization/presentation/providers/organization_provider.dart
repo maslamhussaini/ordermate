@@ -80,9 +80,16 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
   }
 
   Future<void> _init() async {
-    await loadOrganizations();
-    await _loadPersistedSelection();
-    state = state.copyWith(isInitialized: true);
+    try {
+      debugPrint('OrganizationNotifier: _init started');
+      await loadOrganizations();
+      await _loadPersistedSelection();
+    } catch (e) {
+      debugPrint('OrganizationNotifier: _init error: $e');
+    } finally {
+      debugPrint('OrganizationNotifier: _init completed, setting isInitialized=true');
+      state = state.copyWith(isInitialized: true);
+    }
   }
 
   Future<void> _loadPersistedSelection() async {
@@ -205,18 +212,32 @@ class OrganizationNotifier extends StateNotifier<OrganizationState> {
     Store? store,
     int? financialYear,
   }) async {
+    debugPrint('OrganizationProvider: Setting workspace - Org: ${organization.id}, Store: ${store?.id}, Year: $financialYear');
+    
     state = state.copyWith(
       selectedOrganization: organization,
       selectedStore: store,
       selectedFinancialYear: financialYear,
     );
-    // Ensure stores are loaded for the new organization
-    await loadStores(organization.id);
-    // Explicitly set store again in case loadStores auto-selected something else
+
+    // Ensure stores are loaded for the new organization in the background
+    final loadStoresFuture = loadStores(organization.id);
+    
+    // If store was provided, we don't need to wait for loadStores to complete before proceeding
+    // but we still want to ensure it completes and doesn't overwrite our selection
     if (store != null) {
-      state = state.copyWith(selectedStore: store);
+      loadStoresFuture.then((_) {
+        // Re-enforce selection after background load in case loadStores auto-selected something else
+        if (state.selectedOrganization?.id == organization.id) {
+           state = state.copyWith(selectedStore: store);
+        }
+      });
+    } else {
+      await loadStoresFuture;
     }
+    
     await _persistSelection();
+    debugPrint('OrganizationProvider: Workspace set and persisted.');
   }
 
   void clearSelection() {

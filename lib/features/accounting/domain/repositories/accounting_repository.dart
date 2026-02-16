@@ -87,4 +87,9 @@ abstract class AccountingRepository {
   Future<DailyBalance?> getLatestDailyBalance(String accountId,
       {int? organizationId});
   Future<void> saveDailyBalance(DailyBalance balance);
+
+  // Opening Balance Methods
+  Future<List<OpeningBalance>> getOpeningBalances(
+      {int? organizationId, int? sYear});
+  Future<void> saveOpeningBalance(OpeningBalance balance);
 }

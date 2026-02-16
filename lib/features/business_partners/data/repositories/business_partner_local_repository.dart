@@ -618,10 +618,10 @@ class BusinessPartnerLocalRepository {
   Future<void> createAppUser({
     required String partnerId,
     required String email,
-    required int roleId,
+    int? roleId,
     String? fullName,
-    required int organizationId,
-    required int storeId,
+    int? organizationId,
+    int? storeId,
     String? password,
   }) async {
     final db = await _dbHelper.database;

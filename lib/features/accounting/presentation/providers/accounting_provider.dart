@@ -14,6 +14,7 @@ import '../../data/repositories/local_accounting_repository.dart';
 import '../../data/services/accounting_setup_service.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/features/business_partners/presentation/providers/business_partner_provider.dart';
+
 import 'package:uuid/uuid.dart';
 import 'package:ordermate/features/orders/presentation/providers/order_provider.dart';
 import 'package:ordermate/features/products/presentation/providers/product_provider.dart';
@@ -142,40 +143,113 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
   Future<void> loadAll({int? organizationId}) async {
     final orgId = organizationId ??
         _ref.read(organizationProvider).selectedOrganizationId;
+    
     // Preserve the currently selected session
     final currentSession = state.selectedFinancialSession;
-    state = state.copyWith(isLoading: true);
+    final sYear = currentSession?.sYear ??
+        _ref.read(organizationProvider).selectedFinancialYear;
+
+    state = state.copyWith(isLoading: true, error: null);
+    
     try {
+      debugPrint('AccountingNotifier: Loading all metadata for org $orgId, year $sYear');
+      
       final results = await Future.wait([
-        _repository.getChartOfAccounts(organizationId: orgId),
-        _repository.getAccountTypes(organizationId: orgId),
-        _repository.getAccountCategories(organizationId: orgId),
-        _repository.getPaymentTerms(organizationId: orgId),
-        _repository.getBankCashAccounts(organizationId: orgId),
-        _repository.getVoucherPrefixes(organizationId: orgId),
-        _repository.getFinancialSessions(organizationId: orgId),
-        _repository.getInvoiceTypes(organizationId: orgId),
-        _repository.getGLSetup(orgId ?? 0),
+        _repository.getChartOfAccounts(organizationId: orgId).catchError((e) {
+          debugPrint('Error loading accounts: $e');
+          return <ChartOfAccount>[];
+        }),
+        _repository.getAccountTypes(organizationId: orgId).catchError((e) {
+          debugPrint('Error loading account types: $e');
+          return <AccountType>[];
+        }),
+        _repository.getAccountCategories(organizationId: orgId).catchError((e) {
+          debugPrint('Error loading account categories: $e');
+          return <AccountCategory>[];
+        }),
+        _repository.getPaymentTerms(organizationId: orgId).catchError((e) {
+          debugPrint('Error loading payment terms: $e');
+          return <PaymentTerm>[];
+        }),
+        _repository.getBankCashAccounts(organizationId: orgId).catchError((e) {
+          debugPrint('Error loading bank/cash: $e');
+          return <BankCash>[];
+        }),
+        _repository.getVoucherPrefixes(organizationId: orgId).catchError((e) {
+          debugPrint('Error loading voucher prefixes: $e');
+          return <VoucherPrefix>[];
+        }),
+        _repository.getFinancialSessions(organizationId: orgId).catchError((e) {
+          debugPrint('Error loading financial sessions: $e');
+          return <FinancialSession>[];
+        }),
+        _repository.getInvoiceTypes(organizationId: orgId).catchError((e) {
+          debugPrint('Error loading invoice types: $e');
+          return <InvoiceType>[];
+        }),
+        _repository.getGLSetup(orgId ?? 0).catchError((e) {
+          debugPrint('Error loading GL Setup: $e');
+          return null;
+        }),
+        (sYear != null
+                ? _repository.getOpeningBalances(
+                    organizationId: orgId, sYear: sYear)
+                : Future.value(<OpeningBalance>[]))
+            .catchError((e) {
+          debugPrint('Error loading opening balances: $e');
+          return <OpeningBalance>[];
+        }),
       ]);
 
       if (!mounted) return;
 
-      final loadedSessions =
-          List<FinancialSession>.from(results[6] as Iterable);
-      // Restore the selected session if it still exists in the loaded sessions
+      final loadedSessions = List<FinancialSession>.from(results[6] as Iterable);
+      final persistedYear = _ref.read(organizationProvider).selectedFinancialYear;
+      
+      debugPrint('AccountingNotifier: Loaded ${loadedSessions.length} financial sessions');
+
+      // Restore the selected session
       FinancialSession? restoredSession;
       if (currentSession != null) {
         restoredSession = loadedSessions
             .where((s) => s.sYear == currentSession.sYear)
             .firstOrNull;
+      } else if (persistedYear != null) {
+        restoredSession = loadedSessions
+            .where((s) => s.sYear == persistedYear)
+            .firstOrNull;
+      }
+      
+      if (restoredSession == null && loadedSessions.isNotEmpty) {
+        restoredSession = loadedSessions.where((s) => s.isActive).firstOrNull ?? 
+                          loadedSessions.where((s) => s.inUse).firstOrNull ?? 
+                          loadedSessions.first;
       }
 
+      final rawAccounts = List<ChartOfAccount>.from(results[0] as Iterable);
+      final openingBalances = List<OpeningBalance>.from(results[9] as Iterable);
+
+      final mergedAccounts = rawAccounts.map((a) {
+        final bal = openingBalances
+            .where((b) => b.entityId == a.id && b.entityType == 'Account')
+            .firstOrNull;
+        return bal != null ? a.copyWith(openingBalance: bal.amount) : a;
+      }).toList();
+      
+      final rawBankCash = List<BankCash>.from(results[4] as Iterable);
+      final mergedBankCash = rawBankCash.map((b) {
+         final bal = openingBalances
+            .where((ob) => ob.entityId == b.id && ob.entityType == 'BankCash')
+            .firstOrNull;
+         return bal != null ? b.copyWith(openingBalance: bal.amount) : b;
+      }).toList();
+
       state = state.copyWith(
-        accounts: List<ChartOfAccount>.from(results[0] as Iterable),
+        accounts: mergedAccounts,
         types: List<AccountType>.from(results[1] as Iterable),
         categories: List<AccountCategory>.from(results[2] as Iterable),
         paymentTerms: List<PaymentTerm>.from(results[3] as Iterable),
-        bankCashAccounts: List<BankCash>.from(results[4] as Iterable),
+        bankCashAccounts: mergedBankCash,
         voucherPrefixes: List<VoucherPrefix>.from(results[5] as Iterable),
         financialSessions: loadedSessions,
         invoiceTypes: List<InvoiceType>.from(results[7] as Iterable),
@@ -183,29 +257,39 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         selectedFinancialSession: restoredSession,
         isLoading: false,
       );
+      
+      debugPrint('AccountingNotifier: State updated. Selected Year: ${state.selectedFinancialSession?.sYear}');
     } catch (e) {
+      debugPrint('AccountingNotifier: Critical error in loadAll: $e');
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
   void selectFinancialSession(FinancialSession? session) {
+    debugPrint('AccountingNotifier: Selecting session ${session?.sYear}');
     state = state.copyWith(selectedFinancialSession: session);
-
+    
+    // Sync with OrganizationProvider for persistence is now handled by WorkspaceSelectionScreen
+    // calling setWorkspace before this. If called from elsewhere, we may need a check.
+    // However, OrganizationProvider.selectFinancialYear is essentially redundant if 
+    // we use AccountingNotifier as the source of truth for the year.
+    
     final orgId = _ref.read(organizationProvider).selectedOrganizationId;
     final storeId = _ref.read(organizationProvider).selectedStore?.id;
     final sYear = session?.sYear;
 
-    // Reload depedent data
-    loadTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
-    loadInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
+    // Reload dependent data
+    if (orgId != null) {
+      loadTransactions(organizationId: orgId, storeId: storeId, sYear: sYear);
+      loadInvoices(organizationId: orgId, storeId: storeId, sYear: sYear);
+    }
 
     // Reload Orders
     try {
-      // OrderProvider has been updated to accept sYear
       _ref.read(orderProvider.notifier).loadOrders(sYear: sYear);
     } catch (e) {
-      // print('Error reloading orders: $e');
+      debugPrint('AccountingNotifier: Could not reload orders: $e');
     }
   }
 
@@ -271,6 +355,11 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
           'No financial years configured. Please configure a financial session first.');
     }
 
+    if (state.selectedFinancialSession == null) {
+      throw Exception(
+          'No Financial Year selected. Please select a Financial Session from the settings or dashboard.');
+    }
+
     // Find a session that covers this date
     final session =
         state.financialSessions.cast<FinancialSession?>().firstWhere(
@@ -293,6 +382,11 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     if (session.isClosed) {
       throw Exception(
           'Financial Year ${session.sYear} is closed. Cannot transact.');
+    }
+
+    if (session.sYear != state.selectedFinancialSession!.sYear) {
+      throw Exception(
+          'Date falls in Financial Year ${session.sYear}, but you have selected ${state.selectedFinancialSession!.sYear}. Please switch financial years to Transact.');
     }
 
     return session.sYear;
@@ -399,6 +493,9 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         updatedAt: account.updatedAt,
       );
       await _repository.createChartOfAccount(accountWithOrg);
+      if (account.openingBalance != 0) {
+        await _saveOpeningBalance(account.id, 'Account', account.openingBalance);
+      }
       await loadAll(organizationId: orgId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -406,10 +503,45 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
     }
   }
 
+  Future<void> _saveOpeningBalance(
+      String entityId, String entityType, double amount) async {
+    if (state.selectedFinancialSession == null) return;
+    final orgId = state.selectedFinancialSession!.organizationId;
+    final sYear = state.selectedFinancialSession!.sYear;
+
+    try {
+      final existingBalances = await _repository.getOpeningBalances(
+          organizationId: orgId, sYear: sYear);
+      
+      final existing = existingBalances
+          .where((b) => b.entityId == entityId && b.entityType == entityType)
+          .firstOrNull;
+
+      final balance = OpeningBalance(
+        id: existing?.id ?? const Uuid().v4(),
+        sYear: sYear,
+        amount: amount,
+        entityId: entityId,
+        entityType: entityType,
+        organizationId: orgId,
+        createdAt: existing?.createdAt ?? DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await _repository.saveOpeningBalance(balance);
+    } catch (e) {
+      print('Error saving opening balance: $e');
+      // Non-blocking error, just log
+    }
+  }
+
   Future<void> updateAccount(ChartOfAccount account,
       {int? organizationId}) async {
     try {
       await _repository.updateChartOfAccount(account);
+      if (account.openingBalance != 0) {
+        await _saveOpeningBalance(account.id, 'Account', account.openingBalance);
+      }
       final orgId = organizationId ??
           _ref.read(organizationProvider).selectedOrganizationId;
       await loadAll(organizationId: orgId);
@@ -665,6 +797,9 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
         status: account.status,
       );
       await _repository.createBankCashAccount(accountWithOrg);
+      if (account.openingBalance != 0) {
+        await _saveOpeningBalance(account.id, 'BankCash', account.openingBalance);
+      }
       await loadAll(organizationId: orgId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -676,6 +811,9 @@ class AccountingNotifier extends StateNotifier<AccountingState> {
       {int? organizationId}) async {
     try {
       await _repository.updateBankCashAccount(account);
+      if (account.openingBalance != 0) {
+        await _saveOpeningBalance(account.id, 'BankCash', account.openingBalance);
+      }
       await loadAll(organizationId: organizationId);
     } catch (e) {
       state = state.copyWith(error: e.toString());

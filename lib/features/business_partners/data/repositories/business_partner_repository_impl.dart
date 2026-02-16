@@ -98,13 +98,18 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
           .from('omtbl_businesspartners')
           .upsert(json)
           .select('*, omtbl_roles(role_name), omtbl_business_types(business_type), omtbl_depts(name)')
-          .single();
+          .single()
+          .timeout(const Duration(seconds: 15));
 
       return BusinessPartnerModel.fromJson(response);
     } catch (e) {
-      debugPrint('Failed to create partner online: $e. Falling back to local.');
-      await _localRepository.addPartner(partner);
-      return partner;
+      if (e.toString().contains('SocketException') || e.toString().contains('Network')) {
+        debugPrint('Network error creating partner, falling back to local: $e');
+        await _localRepository.addPartner(partner);
+        return partner;
+      }
+      debugPrint('Structural error creating partner (e.g. FK violation): $e');
+      rethrow;
     }
   }
 
@@ -185,6 +190,7 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     json['is_vendor'] = partner.isVendor ? 1 : 0;
     json['is_employee'] = partner.isEmployee ? 1 : 0;
     json['is_supplier'] = partner.isSupplier ? 1 : 0;
+    json['is_active'] = partner.isActive;
     
     // Remove fields not yet in DB schema or managed elsewhere
     json.remove('role_name');
@@ -203,20 +209,20 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
       final model = _toModel(partner);
 
       final json = model.toJson();
-      json.remove('id');
-      json.remove('created_at');
-      json.remove('updated_at');
-      json.remove('role_name');
-      json.remove('payment_term_id');
-      // json.remove('chart_of_account_id'); // Re-enabled
-      
+      _prepareJsonForInsert(json, partner); // Use _prepareJsonForInsert for consistency
+
       await SupabaseConfig.client
           .from('omtbl_businesspartners')
           .update(json)
-          .eq('id', partner.id);
+          .eq('id', partner.id)
+          .timeout(const Duration(seconds: 15));
     } catch (e) {
-       debugPrint('Failed to update partner online: $e. Falling back to local.');
-       await _localRepository.updatePartner(partner);
+      if (e.toString().contains('SocketException') || e.toString().contains('Network') || e.toString().contains('TimeoutException')) { // Added TimeoutException
+        debugPrint('Network error updating partner, falling back to local: $e');
+        await _localRepository.updatePartner(partner);
+        return;
+      }
+      rethrow;
     }
   }
 
@@ -440,8 +446,8 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     required String email,
     required int roleId,
     String? fullName,
-    required int organizationId,
-    required int storeId,
+    int? organizationId,
+    int? storeId,
     String? password,
   }) async {
     // 1. Connectivity Check
@@ -456,8 +462,8 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
         email: email,
         fullName: fullName,
         roleId: roleId,
-        organizationId: organizationId,
-        storeId: storeId,
+        organizationId: organizationId ?? 0,
+        storeId: storeId ?? 0,
         password: password,
       );
       debugPrint('AppUser created locally (Offline). Invitation not sent.');

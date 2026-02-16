@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:intl/intl.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,7 +6,6 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ordermate/core/network/supabase_client.dart';
 import 'package:ordermate/core/services/sync_service.dart';
 import 'package:ordermate/features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'package:ordermate/features/dashboard/presentation/widgets/sync_progress_indicator.dart';
@@ -16,8 +14,6 @@ import 'package:ordermate/core/localization/app_localizations.dart';
 import 'package:ordermate/features/organization/presentation/providers/organization_provider.dart';
 import 'package:ordermate/core/providers/session_provider.dart';
 import 'package:ordermate/core/services/connectivity_provider.dart';
-import 'package:ordermate/features/auth/presentation/providers/user_provider.dart';
-import 'package:ordermate/features/auth/domain/entities/user.dart';
 import 'package:ordermate/core/providers/auth_provider.dart';
 import 'package:ordermate/core/enums/permission.dart';
 import 'package:ordermate/features/accounting/presentation/providers/accounting_provider.dart';

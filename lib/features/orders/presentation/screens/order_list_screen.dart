@@ -356,6 +356,12 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
           builder: (ctx) => const Center(child: CircularProgressIndicator()));
 
       final accountingState = ref.read(accountingProvider);
+      
+      if (accountingState.selectedFinancialSession == null) {
+        throw Exception(
+            'No Financial Session selected. Please select a Financial Session from the dashboard or settings.');
+      }
+
       if (accountingState.accounts.isEmpty) {
         await ref.read(accountingProvider.notifier).loadAll();
       }

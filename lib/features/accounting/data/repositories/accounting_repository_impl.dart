@@ -7,6 +7,7 @@ import '../models/accounting_models.dart';
 import '../models/invoice_item_model.dart';
 import '../models/gl_setup_model.dart';
 import '../models/daily_balance_model.dart';
+import '../models/opening_balance_model.dart';
 import '../../domain/entities/invoice_item.dart';
 import '../../domain/entities/gl_setup.dart';
 import '../../domain/entities/daily_balance.dart';
@@ -559,13 +560,15 @@ class AccountingRepositoryImpl implements AccountingRepository {
       }
       if (storeId != null) query = query.eq('store_id', storeId);
       if (sYear != null) query = query.eq('syear', sYear);
-      final response = await query.order('voucher_date', ascending: false);
+      final response = await query
+          .order('voucher_date', ascending: false)
+          .timeout(const Duration(seconds: 15));
       final txs =
           (response as List).map((e) => TransactionModel.fromJson(e)).toList();
 
       // CACHE LOCALLY
       await _localRepo.cacheTransactions(txs,
-          organizationId: organizationId, storeId: storeId);
+          organizationId: organizationId, storeId: storeId, sYear: sYear);
 
       return txs.cast<Transaction>();
     } catch (e) {
@@ -583,7 +586,9 @@ class AccountingRepositoryImpl implements AccountingRepository {
       if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
       }
-      final response = await query.order('bank_name');
+      final response = await query
+          .order('bank_name')
+          .timeout(const Duration(seconds: 15));
 
       // DEBUG LOG
       print(
@@ -812,7 +817,9 @@ class AccountingRepositoryImpl implements AccountingRepository {
       if (organizationId != null) {
         query = query.eq('organization_id', organizationId);
       }
-      final response = await query;
+      final response = await query
+          .order('syear', ascending: false)
+          .timeout(const Duration(seconds: 15));
       final sessions = (response as List)
           .map((e) => FinancialSessionModel.fromJson(e))
           .toList()
@@ -938,7 +945,9 @@ class AccountingRepositoryImpl implements AccountingRepository {
         query = query
             .or('organization_id.eq.$organizationId,organization_id.is.null');
       }
-      final response = await query.order('id_invoice_type');
+      final response = await query
+          .order('id_invoice_type')
+          .timeout(const Duration(seconds: 15));
       final types = (response as List)
           .map((e) => InvoiceTypeModel.fromJson(e))
           .toList()
@@ -968,7 +977,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_invoice_types').upsert(model.toJson());
+      await _supabase
+          .from('omtbl_invoice_types')
+          .upsert(model.toJson())
+          .timeout(const Duration(seconds: 15));
       await _localRepo.saveInvoiceType(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveInvoiceType(model, isSynced: false);
@@ -986,7 +998,9 @@ class AccountingRepositoryImpl implements AccountingRepository {
       }
       if (storeId != null) query = query.eq('store_id', storeId);
       if (sYear != null) query = query.eq('syear', sYear);
-      final response = await query.order('invoice_date', ascending: false);
+      final response = await query
+          .order('invoice_date', ascending: false)
+          .timeout(const Duration(seconds: 15));
       final invoices = (response as List)
           .map((e) => InvoiceModel.fromJson(e))
           .toList()
@@ -1028,7 +1042,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
       return;
     }
     try {
-      await _supabase.from('omtbl_invoices').upsert(model.toJson());
+      await _supabase
+          .from('omtbl_invoices')
+          .upsert(model.toJson())
+          .timeout(const Duration(seconds: 15));
       await _localRepo.saveInvoice(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveInvoice(model, isSynced: false);
@@ -1062,7 +1079,8 @@ class AccountingRepositoryImpl implements AccountingRepository {
       await _supabase
           .from('omtbl_invoices')
           .update(model.toJson())
-          .eq('id', model.id);
+          .eq('id', model.id)
+          .timeout(const Duration(seconds: 15));
       await _localRepo.saveInvoice(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveInvoice(model, isSynced: false);
@@ -1093,9 +1111,17 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
     try {
       // First delete items online
-      await _supabase.from('omtbl_invoice_items').delete().eq('invoice_id', id);
+      await _supabase
+          .from('omtbl_invoice_items')
+          .delete()
+          .eq('invoice_id', id)
+          .timeout(const Duration(seconds: 15));
       // Then delete invoice online
-      await _supabase.from('omtbl_invoices').delete().eq('id', id);
+      await _supabase
+          .from('omtbl_invoices')
+          .delete()
+          .eq('id', id)
+          .timeout(const Duration(seconds: 15));
       // Then local
       await _localRepo.deleteInvoice(id);
     } catch (e) {
@@ -1111,7 +1137,8 @@ class AccountingRepositoryImpl implements AccountingRepository {
       final response = await _supabase
           .from('omtbl_invoice_items')
           .select()
-          .eq('invoice_id', invoiceId);
+          .eq('invoice_id', invoiceId)
+          .timeout(const Duration(seconds: 15));
 
       final items =
           (response as List).map((e) => InvoiceItemModel.fromJson(e)).toList();
@@ -1129,7 +1156,8 @@ class AccountingRepositoryImpl implements AccountingRepository {
       final response = await _supabase
           .from('omtbl_invoice_items')
           .select('*, omtbl_invoices!inner(organization_id)')
-          .eq('omtbl_invoices.organization_id', organizationId);
+          .eq('omtbl_invoices.organization_id', organizationId)
+          .timeout(const Duration(seconds: 15));
 
       final items =
           (response as List).map((e) => InvoiceItemModel.fromJson(e)).toList();
@@ -1154,7 +1182,8 @@ class AccountingRepositoryImpl implements AccountingRepository {
     try {
       await _supabase
           .from('omtbl_invoice_items')
-          .upsert(models.map((e) => e.toJson()).toList());
+          .upsert(models.map((e) => e.toJson()).toList())
+          .timeout(const Duration(seconds: 15));
       await _localRepo.saveInvoiceItems(models, isSynced: true);
     } catch (e) {
       await _localRepo.saveInvoiceItems(models, isSynced: false);
@@ -1172,7 +1201,8 @@ class AccountingRepositoryImpl implements AccountingRepository {
       await _supabase
           .from('omtbl_invoice_items')
           .delete()
-          .eq('invoice_id', invoiceId);
+          .eq('invoice_id', invoiceId)
+          .timeout(const Duration(seconds: 15));
       await _localRepo.deleteInvoiceItems(invoiceId);
     } catch (e) {
       await _localRepo.deleteInvoiceItems(invoiceId);
@@ -1215,7 +1245,10 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_gl_setup').upsert(model.toJson());
+      await _supabase
+          .from('omtbl_gl_setup')
+          .upsert(model.toJson())
+          .timeout(const Duration(seconds: 15));
       await _localRepo.saveGLSetup(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveGLSetup(model, isSynced: false);
@@ -1236,8 +1269,11 @@ class AccountingRepositoryImpl implements AccountingRepository {
         query = query.eq('organization_id', organizationId);
       }
 
-      final response =
-          await query.order('date', ascending: false).limit(1).maybeSingle();
+      final response = await query
+          .order('date', ascending: false)
+          .limit(1)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 15));
 
       if (response == null) {
         return _localRepo.getLatestDailyBalance(accountId,
@@ -1262,10 +1298,68 @@ class AccountingRepositoryImpl implements AccountingRepository {
     }
 
     try {
-      await _supabase.from('omtbl_daily_balances').upsert(model.toJson());
+      await _supabase
+          .from('omtbl_daily_balances')
+          .upsert(model.toJson())
+          .timeout(const Duration(seconds: 15));
       await _localRepo.saveDailyBalance(model, isSynced: true);
     } catch (e) {
       await _localRepo.saveDailyBalance(model, isSynced: false);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<OpeningBalance>> getOpeningBalances(
+      {int? organizationId, int? sYear}) async {
+    try {
+      var query = _supabase.from('omtbl_opening_balances').select();
+      if (organizationId != null) {
+        query = query.eq('organization_id', organizationId);
+      }
+      if (sYear != null) {
+        query = query.eq('syear', sYear);
+      }
+      
+      final response = await query.timeout(const Duration(seconds: 15));
+      final balances = ((response as List?) ?? [])
+          .map((e) => OpeningBalanceModel.fromJson(e))
+          .toList();
+
+      for (var balance in balances) {
+        await _localRepo.saveOpeningBalance(balance, isSynced: true);
+      }
+      return balances;
+    } catch (e) {
+      return (await _localRepo.getOpeningBalances(
+              organizationId: organizationId, sYear: sYear))
+          .cast<OpeningBalance>();
+    }
+  }
+
+  @override
+  Future<void> saveOpeningBalance(OpeningBalance balance) async {
+    final model = OpeningBalanceModel(
+      id: balance.id,
+      sYear: balance.sYear,
+      amount: balance.amount,
+      entityId: balance.entityId,
+      entityType: balance.entityType,
+      organizationId: balance.organizationId,
+      createdAt: balance.createdAt,
+      updatedAt: balance.updatedAt,
+    );
+
+    if (SupabaseConfig.isOfflineLoggedIn) {
+      await _localRepo.saveOpeningBalance(model, isSynced: false);
+      return;
+    }
+
+    try {
+      await _supabase.from('omtbl_opening_balances').upsert(model.toJson());
+      await _localRepo.saveOpeningBalance(model, isSynced: true);
+    } catch (e) {
+      await _localRepo.saveOpeningBalance(model, isSynced: false);
       rethrow;
     }
   }

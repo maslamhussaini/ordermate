@@ -19,7 +19,14 @@ class AuthService {
 
   static String? get currentUserId => SupabaseConfig.currentUser?.id;
 
+  static Map<String, Set<Permission>>? _overriddenPermissions;
+  static set setPermissions(Map<String, Set<Permission>>? perms) =>
+      _overriddenPermissions = perms;
+
   static Set<Permission> permissionsFor(String module) {
+    if (_overriddenPermissions != null) {
+      return _overriddenPermissions![module] ?? <Permission>{};
+    }
     return role == UserRole.admin
         ? RolePermissions.admin[module] ?? <Permission>{}
         : RolePermissions.staff[module] ?? <Permission>{};

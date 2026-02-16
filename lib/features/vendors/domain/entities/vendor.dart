@@ -16,8 +16,8 @@ class Vendor extends Equatable {
     this.isVendor = false,
     this.isActive = true,
     this.productCount,
-    required this.organizationId,
-    required this.storeId,
+    this.organizationId,
+    this.storeId,
     this.chartOfAccountId,
   });
   final String id;
@@ -30,8 +30,8 @@ class Vendor extends Equatable {
   final bool isVendor;
   final bool isActive;
   final int? productCount;
-  final int organizationId;
-  final int storeId;
+  final int? organizationId;
+  final int? storeId;
   final String? chartOfAccountId;
   final DateTime createdAt;
   final DateTime updatedAt;

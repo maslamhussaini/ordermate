@@ -59,10 +59,11 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen> {
           'name': member['name'],
           'email': member['email']!.isEmpty ? null : member['email'],
           'phone': member['phone']!,
+          'role_id': 1003, // Employee Role
           'is_employee': 1,
+          'is_active': true,
           'organization_id': orgId,
           'store_id': storeId,
-          'is_active': true,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         });

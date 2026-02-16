@@ -141,6 +141,7 @@ class AccountingSeedService {
     
     final existingCodes = existingAccountsRes.map((a) => a['account_code'] as String).toSet();
 
+    final accountInserts = <Map<String, dynamic>>[];
     for (var acc in accounts) {
       final accCode = acc['account_code'];
       if (existingCodes.contains(accCode)) {
@@ -149,25 +150,31 @@ class AccountingSeedService {
 
       final catName = acc['category_name'];
       final catInfo = catInfoMap[catName];
-      
+
       if (catInfo == null) {
         debugPrint('Warning: Category "$catName" not found for account "${acc['account_title']}"');
         continue;
       }
 
+      accountInserts.add({
+        'account_code': accCode,
+        'account_title': acc['account_title'],
+        'account_category_id': catInfo['id'],
+        'account_type_id': catInfo['account_type_id'],
+        'level': acc['level'],
+        'is_system': acc['is_system'] ?? false,
+        'organization_id': orgId,
+        'is_active': true,
+      });
+    }
+
+    if (accountInserts.isNotEmpty) {
       try {
-        await SupabaseConfig.client.from('omtbl_chart_of_accounts').insert({
-          'account_code': accCode,
-          'account_title': acc['account_title'],
-          'account_category_id': catInfo['id'],
-          'account_type_id': catInfo['account_type_id'],
-          'level': acc['level'],
-          'is_system': acc['is_system'] ?? false,
-          'organization_id': orgId,
-          'is_active': true,
-        });
+        await SupabaseConfig.client
+            .from('omtbl_chart_of_accounts')
+            .insert(accountInserts);
       } catch (e) {
-        debugPrint('Error inserting account $accCode: $e');
+        debugPrint('Error batch inserting accounts: $e');
       }
     }
   }
@@ -219,7 +226,7 @@ class AccountingSeedService {
     // Check for existing setup
     final existingSetup = await SupabaseConfig.client
         .from('omtbl_gl_setup')
-        .select('id')
+        .select('organization_id')
         .eq('organization_id', orgId)
         .maybeSingle();
 

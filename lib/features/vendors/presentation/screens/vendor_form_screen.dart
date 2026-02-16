@@ -142,8 +142,9 @@ class _VendorFormScreenState extends ConsumerState<VendorFormScreen> {
       }
 
       if (mounted) {
+        final entityType = _isSupplier ? 'Supplier' : 'Vendor';
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vendor saved successfully')),
+          SnackBar(content: Text('$entityType saved successfully')),
         );
         context.pop();
       }
@@ -160,9 +161,19 @@ class _VendorFormScreenState extends ConsumerState<VendorFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine if this is a supplier based on the current vendor data
+    final state = ref.watch(vendorProvider);
+    final currentVendor = widget.vendorId != null
+        ? [...state.vendors, ...state.suppliers]
+            .where((v) => v.id == widget.vendorId)
+            .firstOrNull
+        : null;
+    final isSupplierContext = currentVendor?.isSupplier ?? _isSupplier;
+    final entityType = isSupplierContext ? 'Supplier' : 'Vendor';
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.vendorId == null ? 'Create Vendor' : 'Edit Vendor'),
+        title: Text(widget.vendorId == null ? 'Create $entityType' : 'Edit $entityType'),
         actions: [
           IconButton(
             onPressed: _isLoading ? null : _save,
@@ -183,9 +194,9 @@ class _VendorFormScreenState extends ConsumerState<VendorFormScreen> {
                     children: [
                       TextFormField(
                         controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Vendor Name',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: '${_isSupplier ? "Supplier" : "Vendor"} Name',
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (v) =>
                             v == null || v.isEmpty ? 'Required' : null,
@@ -227,7 +238,7 @@ class _VendorFormScreenState extends ConsumerState<VendorFormScreen> {
                       ),
                       const SizedBox(height: 16),
                       LookupField<ChartOfAccount, String>(
-                        label: 'Vendor GL Account',
+                        label: '${_isSupplier ? "Supplier" : "Vendor"} GL Account',
                         value: _selectedChartOfAccountId?.toString(),
                         items:
                             ref.watch(accountingProvider).accounts.where((a) {

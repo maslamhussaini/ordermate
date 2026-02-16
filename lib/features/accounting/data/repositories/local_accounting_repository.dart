@@ -7,6 +7,7 @@ import '../models/invoice_item_model.dart';
 import '../models/gl_setup_model.dart';
 import '../models/daily_balance_model.dart';
 import '../../domain/entities/chart_of_account.dart';
+import '../models/opening_balance_model.dart';
 
 class LocalAccountingRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -349,7 +350,7 @@ class LocalAccountingRepository {
         await txn.insert(
             'local_bank_cash',
             {
-              ...account.toJson(),
+              ...account.toLocalMap(),
               'is_synced': 1,
             },
             conflictAlgorithm: ConflictAlgorithm.replace);
@@ -363,7 +364,7 @@ class LocalAccountingRepository {
     await db.insert(
         'local_bank_cash',
         {
-          ...account.toJson(),
+          ...account.toLocalMap(),
           'is_synced': isSynced ? 1 : 0,
         },
         conflictAlgorithm: ConflictAlgorithm.replace);
@@ -537,33 +538,50 @@ class LocalAccountingRepository {
   }
 
   Future<void> cacheTransactions(List<TransactionModel> transactions,
-      {int? organizationId, int? storeId}) async {
+      {int? organizationId, int? storeId, int? sYear}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
-      if (organizationId != null && storeId != null) {
-        await txn.delete('local_transactions',
-            where: 'is_synced = 1 AND organization_id = ? AND store_id = ?',
-            whereArgs: [organizationId, storeId]);
-      } else if (organizationId != null) {
-        await txn.delete('local_transactions',
-            where: 'is_synced = 1 AND organization_id = ?',
-            whereArgs: [organizationId]);
+      String where = 'is_synced = 1';
+      List<dynamic> whereArgs = [];
+
+      if (organizationId != null) {
+        where += ' AND organization_id = ?';
+        whereArgs.add(organizationId);
+      }
+      if (storeId != null) {
+        where += ' AND store_id = ?';
+        whereArgs.add(storeId);
+      }
+      if (sYear != null) {
+        where += ' AND syear = ?';
+        whereArgs.add(sYear);
+      }
+
+      // Only delete if we have at least organizationId constraint to avoid wiping everything
+      if (organizationId != null) {
+        await txn.delete('local_transactions', where: where, whereArgs: whereArgs);
       }
 
       for (var tx in transactions) {
-        final map = tx.toJson();
+        final map = _transactionToMap(tx);
         map['is_synced'] = 1;
-        // In some models toJson() might not include these or have different names,
-        // ensures consistency with the table definition
-        map['voucher_date'] = tx.voucherDate.millisecondsSinceEpoch;
-        if (tx.referenceDate != null) {
-          map['reference_date'] = tx.referenceDate!.millisecondsSinceEpoch;
-        }
-
         await txn.insert('local_transactions', map,
             conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
+  }
+
+  Map<String, dynamic> _transactionToMap(TransactionModel tx) {
+     final map = tx.toJson();
+      // In some models toJson() might not include these or have different names,
+      // ensures consistency with the table definition
+      map['voucher_date'] = tx.voucherDate.millisecondsSinceEpoch;
+      if (tx.referenceDate != null) {
+        map['reference_date'] = tx.referenceDate!.millisecondsSinceEpoch;
+      }
+      // Ensure sYear is present
+      map['syear'] = tx.sYear;
+      return map;
   }
 
   // ... (Existing sync methods continue) ...
@@ -798,6 +816,42 @@ class LocalAccountingRepository {
   Future<void> deleteBankCashAccount(String id) async {
     final db = await _dbHelper.database;
     await db.delete('local_bank_cash', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<List<OpeningBalanceModel>> getOpeningBalances(
+      {int? organizationId, int? sYear}) async {
+    final db = await _dbHelper.database;
+    String where = '1=1';
+    List<dynamic> whereArgs = [];
+
+    if (organizationId != null) {
+      where += ' AND organization_id = ?';
+      whereArgs.add(organizationId);
+    }
+    if (sYear != null) {
+      where += ' AND syear = ?';
+      whereArgs.add(sYear);
+    }
+
+    final maps = await db.query(
+      'local_opening_balances',
+      where: where,
+      whereArgs: whereArgs,
+    );
+
+    return maps.map((e) => OpeningBalanceModel.fromLocalMap(e)).toList();
+  }
+
+  Future<void> saveOpeningBalance(OpeningBalanceModel balance,
+      {bool isSynced = false}) async {
+    final db = await _dbHelper.database;
+    final map = balance.toLocalMap();
+    map['is_synced'] = isSynced ? 1 : 0;
+    await db.insert(
+      'local_opening_balances',
+      map,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<bool> isBankCashUsed(String bankCashId) async {

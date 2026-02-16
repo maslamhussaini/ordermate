@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 class DatabaseHelper {
   DatabaseHelper._init();
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static const int _databaseVersion = 75;
+  static const int _databaseVersion = 76;
   static Database? _database;
   static Future<Database>? _dbOpenFuture;
 
@@ -2175,6 +2175,38 @@ class DatabaseHelper {
         )
       ''');
       debugPrint('Database: v75 migration complete.');
+    }
+
+    if (oldVersion < 76) {
+      debugPrint('Database: Starting v76 migration (Opening Balances)...');
+      
+      // 1. Create Opening Balances Table
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS local_opening_balances(
+          id TEXT PRIMARY KEY,
+          syear INTEGER,
+          amount REAL,
+          entity_id TEXT,
+          entity_type TEXT,
+          organization_id INTEGER,
+          created_at INTEGER,
+          updated_at INTEGER,
+          is_synced INTEGER DEFAULT 1
+        )
+      ''');
+
+      // 2. Add opening balance functionality to Bank/Cash and Business Partners
+      try {
+        await db.execute(
+            'ALTER TABLE local_businesspartners ADD COLUMN opening_balance REAL DEFAULT 0.0');
+        await db.execute(
+            'ALTER TABLE local_chart_of_accounts ADD COLUMN opening_balance REAL DEFAULT 0.0');
+        await db.execute(
+            'ALTER TABLE local_bank_cash ADD COLUMN opening_balance REAL DEFAULT 0.0');
+      } catch (e) {
+        debugPrint('Database: v76 migration column add error: $e');
+      }
+      debugPrint('Database: v76 migration complete.');
     }
   }
 

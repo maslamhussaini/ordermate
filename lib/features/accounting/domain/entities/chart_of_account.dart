@@ -1,5 +1,7 @@
 // lib/features/accounting/domain/entities/chart_of_account.dart
 
+import 'package:equatable/equatable.dart';
+
 class ChartOfAccount {
   final String id;
   final String accountCode;
@@ -8,11 +10,12 @@ class ChartOfAccount {
   final int level;
   final int? accountTypeId;
   final int? accountCategoryId;
-  final int organizationId;
+  final int? organizationId;
   final bool isActive;
   final bool isSystem;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final double openingBalance;
 
   const ChartOfAccount({
     required this.id,
@@ -22,12 +25,45 @@ class ChartOfAccount {
     required this.level,
     this.accountTypeId,
     this.accountCategoryId,
-    required this.organizationId,
+    this.organizationId,
     this.isActive = true,
     this.isSystem = false,
     required this.createdAt,
     required this.updatedAt,
+    this.openingBalance = 0.0,
   });
+
+  ChartOfAccount copyWith({
+    String? id,
+    String? accountCode,
+    String? accountTitle,
+    String? parentId,
+    int? level,
+    int? accountTypeId,
+    int? accountCategoryId,
+    int? organizationId,
+    bool? isActive,
+    bool? isSystem,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    double? openingBalance,
+  }) {
+    return ChartOfAccount(
+      id: id ?? this.id,
+      accountCode: accountCode ?? this.accountCode,
+      accountTitle: accountTitle ?? this.accountTitle,
+      parentId: parentId ?? this.parentId,
+      level: level ?? this.level,
+      accountTypeId: accountTypeId ?? this.accountTypeId,
+      accountCategoryId: accountCategoryId ?? this.accountCategoryId,
+      organizationId: organizationId ?? this.organizationId,
+      isActive: isActive ?? this.isActive,
+      isSystem: isSystem ?? this.isSystem,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      openingBalance: openingBalance ?? this.openingBalance,
+    );
+  }
 }
 
 class AccountType {
@@ -35,13 +71,13 @@ class AccountType {
   final String typeName;
   final bool status;
   final bool isSystem;
-  final int organizationId;
+  final int? organizationId;
   const AccountType({
     required this.id,
     required this.typeName,
     this.status = true,
     this.isSystem = false,
-    required this.organizationId,
+    this.organizationId,
   });
 }
 
@@ -51,14 +87,14 @@ class AccountCategory {
   final int accountTypeId;
   final bool status;
   final bool isSystem;
-  final int organizationId;
+  final int? organizationId;
   const AccountCategory({
     required this.id,
     required this.categoryName,
     required this.accountTypeId,
     this.status = true,
     this.isSystem = false,
-    required this.organizationId,
+    this.organizationId,
   });
 }
 
@@ -68,9 +104,10 @@ class BankCash {
   final String chartOfAccountId;
   final String? accountNumber;
   final String? branchName;
-  final int organizationId;
-  final int storeId;
+  final int? organizationId;
+  final int? storeId;
   final bool status;
+  final double openingBalance;
 
   const BankCash({
     required this.id,
@@ -78,9 +115,57 @@ class BankCash {
     required this.chartOfAccountId,
     this.accountNumber,
     this.branchName,
-    required this.organizationId,
-    required this.storeId,
+    this.organizationId,
+    this.storeId,
+
     this.status = true,
+    this.openingBalance = 0.0,
+  });
+
+  BankCash copyWith({
+    String? id,
+    String? name,
+    String? chartOfAccountId,
+    String? accountNumber,
+    String? branchName,
+    int? organizationId,
+    int? storeId,
+    bool? status,
+    double? openingBalance,
+  }) {
+    return BankCash(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      chartOfAccountId: chartOfAccountId ?? this.chartOfAccountId,
+      accountNumber: accountNumber ?? this.accountNumber,
+      branchName: branchName ?? this.branchName,
+      organizationId: organizationId ?? this.organizationId,
+      storeId: storeId ?? this.storeId,
+      status: status ?? this.status,
+      openingBalance: openingBalance ?? this.openingBalance,
+    );
+  }
+}
+
+class OpeningBalance {
+  final String id;
+  final int sYear;
+  final double amount;
+  final String entityId; // ID of Customer, Vendor, Bank, or GL Account
+  final String entityType; // 'Customer', 'Vendor', 'Bank', 'GL' (Optional, but good for clarity)
+  final int? organizationId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const OpeningBalance({
+    required this.id,
+    required this.sYear,
+    required this.amount,
+    required this.entityId,
+    this.entityType = '',
+    this.organizationId,
+    required this.createdAt,
+    required this.updatedAt,
   });
 }
 
@@ -89,7 +174,7 @@ class VoucherPrefix {
   final String prefixCode;
   final String? description;
   final String voucherType;
-  final int organizationId;
+  final int? organizationId;
   final bool status;
   final bool isSystem;
 
@@ -98,7 +183,7 @@ class VoucherPrefix {
     required this.prefixCode,
     this.description,
     required this.voucherType,
-    required this.organizationId,
+    this.organizationId,
     this.status = true,
     this.isSystem = false,
   });
@@ -114,8 +199,8 @@ class Transaction {
   final double amount;
   final String? description;
   final String status;
-  final int organizationId;
-  final int storeId;
+  final int? organizationId;
+  final int? storeId;
   final int? sYear;
   final String? moduleAccount;
   final String? offsetModuleAccount;
@@ -135,8 +220,8 @@ class Transaction {
     required this.amount,
     this.description,
     this.status = 'posted',
-    required this.organizationId,
-    required this.storeId,
+    this.organizationId,
+    this.storeId,
     this.sYear,
     this.moduleAccount,
     this.offsetModuleAccount,
@@ -155,7 +240,7 @@ class PaymentTerm {
   final bool isActive;
 
   final int days;
-  final int organizationId;
+  final int? organizationId;
 
   const PaymentTerm({
     required this.id,
@@ -163,11 +248,11 @@ class PaymentTerm {
     this.description,
     this.isActive = true,
     this.days = 0,
-    required this.organizationId,
+    this.organizationId,
   });
 }
 
-class FinancialSession {
+class FinancialSession extends Equatable {
   final int sYear;
   final DateTime startDate;
   final DateTime endDate;
@@ -175,7 +260,7 @@ class FinancialSession {
   final bool inUse;
   final bool isActive;
   final bool isClosed;
-  final int organizationId;
+  final int? organizationId;
 
   const FinancialSession({
     required this.sYear,
@@ -185,6 +270,18 @@ class FinancialSession {
     this.inUse = false,
     this.isActive = true,
     this.isClosed = false,
-    required this.organizationId,
+    this.organizationId,
   });
+
+  @override
+  List<Object?> get props => [
+        sYear,
+        startDate,
+        endDate,
+        narration,
+        inUse,
+        isActive,
+        isClosed,
+        organizationId,
+      ];
 }
