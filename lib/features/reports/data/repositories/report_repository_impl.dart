@@ -417,7 +417,7 @@ class ReportRepositoryImpl implements ReportRepository {
 
     if (type != null) {
       // For local, we assume types are synced correctly or we use names
-      sql += ' AND i.id_invoice_type_name = ?';
+      sql += ' AND i.id_invoice_type = ?';
       args.add(type);
     }
 
@@ -514,7 +514,7 @@ class ReportRepositoryImpl implements ReportRepository {
     }
 
     if (type != null) {
-      sql += ' AND i.id_invoice_type_name = ?';
+      sql += ' AND i.id_invoice_type = ?';
       args.add(type);
     }
 
@@ -611,7 +611,7 @@ class ReportRepositoryImpl implements ReportRepository {
     }
 
     if (type != null) {
-      sql += ' AND i.id_invoice_type_name = ?';
+      sql += ' AND i.id_invoice_type = ?';
       args.add(type);
     }
 
@@ -678,9 +678,9 @@ class ReportRepositoryImpl implements ReportRepository {
     List<String>? productIds,
   }) async {
     final String dateStr = DateFormat('yyyy-MM-dd').format(beforeDate);
-    final Map<String, double> openingBalances = {};
+    final Map<String, double> stockAtDate = {};
 
-    // 1. Get Initial Stock from omtbl_products
+    // 1. Get CURRENT Stock
     var productQuery = _supabase
         .from('omtbl_products')
         .select('id, stock_qty')
@@ -692,12 +692,15 @@ class ReportRepositoryImpl implements ReportRepository {
 
     final productsRes = await productQuery;
     for (var p in productsRes as List) {
-      openingBalances[p['id'].toString()] =
+      stockAtDate[p['id'].toString()] =
           (p['stock_qty'] as num?)?.toDouble() ?? 0.0;
     }
 
-    // 2. Adjust with Previous Invoice Items (beforeDate)
-    // We need types PI, PR, SI, SR
+    // 2. Adjust BACKWARDS from transactions >= beforeDate
+    // Logic: Opening = Current - (Net Change since Date)
+    // If we bought (PI/SR) since date, we remove it.
+    // If we sold (SI/PR) since date, we add it back.
+    
     final piIds =
         await _getInvoiceTypeIds('PI', organizationId: organizationId);
     final prIds =
@@ -713,7 +716,7 @@ class ReportRepositoryImpl implements ReportRepository {
           .from('omtbl_invoice_items')
           .select('product_id, quantity, omtbl_invoices!inner(id_invoice_type)')
           .eq('omtbl_invoices.organization_id', organizationId)
-          .lt('omtbl_invoices.invoice_date', dateStr)
+          .gte('omtbl_invoices.invoice_date', dateStr)
           .filter('omtbl_invoices.id_invoice_type', 'in', allTypeIds);
 
       if (storeId != null) {
@@ -726,17 +729,17 @@ class ReportRepositoryImpl implements ReportRepository {
       final invItemsRes = await invItemQuery;
       for (var item in invItemsRes as List) {
         final pId = item['product_id'].toString();
-        if (!openingBalances.containsKey(pId)) continue;
+        if (!stockAtDate.containsKey(pId)) continue; 
 
         final qty = (item['quantity'] as num?)?.toDouble() ?? 0.0;
         final typeId = item['omtbl_invoices']['id_invoice_type'] as int;
 
         if (piIds.contains(typeId) || srIds.contains(typeId)) {
-          // Purchase or Sales Return increases stock
-          openingBalances[pId] = openingBalances[pId]! + qty;
+          // Purchase or Sales Return increased stock later. Subtract to go back.
+          stockAtDate[pId] = stockAtDate[pId]! - qty;
         } else if (prIds.contains(typeId) || siIds.contains(typeId)) {
-          // Purchase Return or Sales increases decreases stock
-          openingBalances[pId] = openingBalances[pId]! - qty;
+          // Purchase Return or Sales decreased stock later. Add to go back.
+          stockAtDate[pId] = stockAtDate[pId]! + qty;
         }
       }
     }
@@ -744,6 +747,7 @@ class ReportRepositoryImpl implements ReportRepository {
     // 3. Adjust with Stock Transfers (only if storeId is specified)
     if (storeId != null) {
       // Outward Transfers (Source = storeId)
+      // These DECREASED stock later. Add back.
       var outTransferQuery = _supabase
           .from('omtbl_stock_transfer_items')
           .select(
@@ -751,7 +755,7 @@ class ReportRepositoryImpl implements ReportRepository {
           .eq('omtbl_stock_transfers.organization_id', organizationId)
           .eq('omtbl_stock_transfers.source_store_id', storeId)
           .eq('omtbl_stock_transfers.status', 'Completed')
-          .lt('omtbl_stock_transfers.transfer_date', dateStr);
+          .gte('omtbl_stock_transfers.transfer_date', dateStr);
 
       if (productIds != null && productIds.isNotEmpty) {
         outTransferQuery =
@@ -761,13 +765,14 @@ class ReportRepositoryImpl implements ReportRepository {
       final outRes = await outTransferQuery;
       for (var item in outRes as List) {
         final pId = item['product_id'].toString();
-        if (openingBalances.containsKey(pId)) {
-          openingBalances[pId] = openingBalances[pId]! -
-              ((item['quantity'] as num?)?.toDouble() ?? 0.0);
+        if (stockAtDate.containsKey(pId)) {
+          final qty = (item['quantity'] as num?)?.toDouble() ?? 0.0;
+          stockAtDate[pId] = stockAtDate[pId]! + qty;
         }
       }
 
       // Inward Transfers (Destination = storeId)
+      // These INCREASED stock later. Subtract.
       var inTransferQuery = _supabase
           .from('omtbl_stock_transfer_items')
           .select(
@@ -775,7 +780,7 @@ class ReportRepositoryImpl implements ReportRepository {
           .eq('omtbl_stock_transfers.organization_id', organizationId)
           .eq('omtbl_stock_transfers.destination_store_id', storeId)
           .eq('omtbl_stock_transfers.status', 'Completed')
-          .lt('omtbl_stock_transfers.transfer_date', dateStr);
+          .gte('omtbl_stock_transfers.transfer_date', dateStr);
 
       if (productIds != null && productIds.isNotEmpty) {
         inTransferQuery =
@@ -785,14 +790,14 @@ class ReportRepositoryImpl implements ReportRepository {
       final inRes = await inTransferQuery;
       for (var item in inRes as List) {
         final pId = item['product_id'].toString();
-        if (openingBalances.containsKey(pId)) {
-          openingBalances[pId] = openingBalances[pId]! +
-              ((item['quantity'] as num?)?.toDouble() ?? 0.0);
+        if (stockAtDate.containsKey(pId)) {
+          final qty = (item['quantity'] as num?)?.toDouble() ?? 0.0;
+          stockAtDate[pId] = stockAtDate[pId]! - qty;
         }
       }
     }
 
-    return openingBalances;
+    return stockAtDate;
   }
 
   // --- Helper to get Invoice Type IDs by Prefix ---

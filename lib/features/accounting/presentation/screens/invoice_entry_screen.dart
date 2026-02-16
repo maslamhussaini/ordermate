@@ -421,6 +421,17 @@ class _InvoiceEntryScreenState extends ConsumerState<InvoiceEntryScreen> {
       }
     }
 
+    // NEW VALIDATION: Ensure final price after discount is >= limit price
+    final priceAfterDiscount = rate * (1 - (discount / 100));
+    if (priceAfterDiscount < minRate) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+            'Final price after discount (${priceAfterDiscount.toStringAsFixed(2)}) cannot be less than limit price (${minRate.toStringAsFixed(2)})'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
+
     final total = (qty * rate) * (1 - (discount / 100));
 
     setState(() {
@@ -859,9 +870,7 @@ class _InvoiceEntryScreenState extends ConsumerState<InvoiceEntryScreen> {
                                     _qtyController.text = '1';
                                     _rateController.text =
                                         selection.rate.toString();
-                                    _discountController.text = selection
-                                        .defaultDiscountPercent
-                                        .toString();
+                                    _discountController.text = '0'; // Don't auto-fill discount
                                     _selectedUomId = selection.uomId;
                                     _selectedUomSymbol = selection.uomSymbol;
                                     _selectedUomFactor = 1.0;
