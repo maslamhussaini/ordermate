@@ -93,9 +93,9 @@ class OrganizationLocalRepository {
 
     // Add local not in remote (unsynced additions)
     for (var localData in localMaps) {
-      if (!remoteMap.containsKey(localData['id'])) {
+      if (!remoteMap.containsKey(localData['id']) && localData['is_synced'] == 0) {
         merged.add(Organization(
-          id: localData['id'] as int,
+          id: (localData['id'] as int?) ?? 0,
           name: localData['name'] as String,
           code: localData['code'] as String?,
           isActive: (localData['is_active'] as int) == 1,
@@ -161,9 +161,14 @@ class OrganizationLocalRepository {
 
   // --- Stores ---
 
-  Future<void> cacheStores(List<Store> stores) async {
+  Future<void> cacheStores(int organizationId, List<Store> stores) async {
     final db = await _dbHelper.database;
     final batch = db.batch();
+
+    // Clear existing synced records for this org to remove deleted/stale stores
+    await db.delete('local_stores',
+        where: 'organization_id = ? AND is_synced = 1',
+        whereArgs: [organizationId]);
 
     for (var store in stores) {
       batch.insert(
@@ -276,9 +281,10 @@ class OrganizationLocalRepository {
 
     // Add local not in remote (unsynced additions)
     for (var localData in localMaps) {
-      if (!remoteMap.containsKey(localData['id'])) {
+      // Only keep local-only stores if they are unsynced (pending upload)
+      if (!remoteMap.containsKey(localData['id']) && localData['is_synced'] == 0) {
         merged.add(Store(
-          id: localData['id'] as int,
+          id: (localData['id'] as int?) ?? 0,
           organizationId: localData['organization_id'] as int,
           name: localData['name'] as String,
           location: localData['location'] as String?,

@@ -79,9 +79,8 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
 
       // Cache remote data
       await _localRepository.cacheOrganizations(remoteOrgs);
-// Merge remote and local data
-
-      final mergedOrgs = _mergeOrganizations(remoteOrgs, localOrgs);
+      // Merge remote and local data
+      final mergedOrgs = await _localRepository.mergeOrganizations(remoteOrgs);
 
       return mergedOrgs;
     } catch (e) {
@@ -234,11 +233,12 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
           .map((json) => StoreModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
-      // Merge remote and local data
-      final mergedStores = _mergeStores(remoteStores, localStores);
+      // Merge logic now handles sync status internally (drops old synced data)
+      final mergedStores =
+          await _localRepository.mergeStores(remoteStores, organizationId);
 
-      // Cache merged result
-      await _localRepository.cacheStores(mergedStores);
+      // Cache merged result (clears old synced data for this org first)
+      await _localRepository.cacheStores(organizationId, mergedStores);
 
       return mergedStores;
     } catch (e) {
@@ -380,27 +380,5 @@ class OrganizationRepositoryImpl implements OrganizationRepository {
     return _localRepository.getCachedLogo(orgId);
   }
 
-  // Helper methods for merging data
-  List<Organization> _mergeOrganizations(
-      List<Organization> remote, List<Organization> local) {
-    final map = <int, Organization>{};
-    for (var org in local) {
-      map[org.id] = org;
-    }
-    for (var org in remote) {
-      map[org.id] = org; // remote overwrites local
-    }
-    return map.values.toList();
-  }
 
-  List<Store> _mergeStores(List<Store> remote, List<Store> local) {
-    final map = <int, Store>{};
-    for (var store in local) {
-      map[store.id] = store;
-    }
-    for (var store in remote) {
-      map[store.id] = store; // remote overwrites local
-    }
-    return map.values.toList();
-  }
 }
